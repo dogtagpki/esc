@@ -1,0 +1,155 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="esc.css" type="text/css"?>
+<!-- ***** BEGIN COPYRIGHT BLOCK *****
+ * This Program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; version 2 of the License.
+ *
+ * This Program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this Program; if not, write to the Free Software Foundation, Inc., 59 Temple
+ * Place, Suite 330, Boston, MA 02111-1307 USA.
+ *
+ * Copyright (C) 2005 Red Hat, Inc.
+ * All rights reserved.
+ ***** END COPYRIGHT BLOCK ***** -->
+
+<!DOCTYPE window SYSTEM "chrome://esc/locale/esc.dtd">
+<window 
+    class="escwindow"
+    id="settings-window"
+    title="&escTitle;"
+    onload="InitializeBindingTable()"
+    onunload="cleanup()"
+    width ="600"
+    height= "450"
+    xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+ <stringbundle id="esc_strings" src="chrome://esc/locale/esc.properties"/> 
+ <script src="TRAY.js"/>
+ <script src="ESC.js"/>
+
+  <hbox>
+  <toolbar id="esc-settings-smenubar">
+    <menu id="settings-nav-menu" label="&navigationMenu;">
+      <menupopup id="settings-nav-popup">
+        <menuitem label="&enrollmentMenuItem;" oncommand="loadESC();"/>
+        <menuitem label="&configMenuItem;" oncommand="loadCONFIG();"/>
+      </menupopup>
+    </menu>
+
+   <menu id="op-menu" label="&operationsMenu;">
+
+    <menupopup id="op-popup">
+    <menuitem id="menu-format-item" label="&doFormat;" oncommand="DoFormatCoolKey();"/>
+    <menuitem id="menu-reset-item" label="&doResetPin;" oncommand="DoResetSelectedCoolKeyPIN();"/>
+   <menuitem id="menu-info-item" label="&keyInfo;" oncommand="DoShowKeyInfo();"/>
+  </menupopup>
+  </menu>
+  </toolbar>
+
+</hbox>
+
+<groupbox>
+<hbox >
+ <image id="logoImage"/>
+ <spacer flex="1"/>
+ <label class = "headLabelText" value="&settingsTitle;"/>
+ <spacer flex="1"/>
+</hbox>
+</groupbox>
+    <vbox flex = "1"> 
+    <vbox  flex = "4">
+
+<groupbox flex="1" >
+<caption label="&keysCaption;"/>
+
+<grid id ="BindingTable" >
+<columns>
+
+ <column flex = "1" />
+ <column flex = "1" />
+ <column flex = "1" />
+ <column flex = "1"/>
+ <column flex = "1"/>
+</columns>
+<rows id="BindingTableRows">
+    <row pack="center">
+
+        <label class="titleText" value="&keyIssuer;" />
+        <spacer flex= "1" class = "horSpacerShort" />
+        <label class="titleText" value="&keyIssuedTo;" />
+        <spacer flex = "1" class="horSpacerShort"/>
+        <label class="titleText" value="&keyStatus;"/>
+        <spacer flex = "1" class="horSpacerShort"/>
+        <label class="titleText" value="&keyProgress;"/>
+
+    </row>
+   
+    <spacer flex = "1" class="verticalSpacer" />
+    <row id="NoKeysRow" >
+
+       <label class="rowLabelTextUninit" id="NoKeysLabel" value = "&noKeysPresent;" hidden="false"/>
+
+    </row>
+
+</rows>
+
+</grid>
+
+<hbox id="cylon1" class="cylonHBox" >
+
+    <label class="titleText" id="operationtext" value="" />
+    <label id="eye1" mode="determined"  value = "..."  hidden="true" class="cylonEye"> </label>
+</hbox>
+
+ <groupbox flex = "1" >
+    <caption label ="Key Information"/>
+    <grid >
+        <rows>
+            <row>
+                <label control="pintf"  value="&enterKeyPin;" maxlength="10"/>
+                <textbox id="pintf" type = "password"/>
+           </row>
+           <row>
+               <label control="reenterpintf" value="&reEnterKeyPin;" maxlength="10"/>
+               <textbox id="reenterpintf" type="password" />
+          </row>
+       </rows>
+    </grid>
+
+    </groupbox>
+
+</groupbox>
+
+<groupbox  >
+<caption label="&keyOperationsCaption;" />
+<vbox flex = "1">
+<label class = "headLabelText" value = "&chooseKeyOperation;"/>
+<spacer flex = "1" class="verticalSpacer" />
+<hbox >
+
+<spacer flex = "1" />
+
+
+<button id="resetpinbtn" label="&doResetPin;" oncommand="DoResetSelectedCoolKeyPIN();"/>
+<spacer flex = "1" />
+
+<button id="keyinfobtn" label="&doShowKeyInfo;"  oncommand="DoShowKeyInfo()" />
+<spacer flex = "1" />
+
+
+<button id="cancelbtn" label="&doCancel;" oncommand="DoCancelOperation();"/>
+<spacer flex = "1" />
+</hbox>
+<spacer flex = "1" class = "verticalSpacer" />
+</vbox>
+
+</groupbox>
+  
+</vbox> 
+</vbox>
+</window>

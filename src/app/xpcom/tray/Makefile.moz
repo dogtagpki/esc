@@ -1,0 +1,174 @@
+# ***** BEGIN COPYRIGHT BLOCK *****
+# This Program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; version 2 of the License.
+#
+# This Program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this Program; if not, write to the Free Software Foundation, Inc., 59 Temple
+# Place, Suite 330, Boston, MA 02111-1307 USA.
+#
+# Copyright (C) 2005 Red Hat, Inc.
+# All rights reserved.
+# ***** END COPYRIGHT BLOCK *****
+
+CORE_DEPTH	= ../../../..
+MOZ_OBJDIR	= $(CORE_DEPTH)/dist/$(OBJDIR)/xulrunner_build
+MOZ_SRCDIR	= $(CORE_DEPTH)/dist/src/mozilla
+DEPTH           = $(MOZ_OBJDIR)
+topsrcdir       = $(MOZ_SRCDIR)
+srcdir          = .
+VPATH           = .
+TOP             = $(MOZ_SRCDIR)
+CORE_DIST	= $(CORE_DEPTH)/dist/$(OBJDIR)
+CORE_INC	= $(CORE_DEPTH)/dist/public
+MDDEPDIR	:= $(OBJDIR)/.deps
+DESTDIR		= $(MOZ_OBJDIR)/install
+
+
+-include $(MOZ_OBJDIR)/config/autoconf.mk
+
+OS_CXXFLAGS     +=  $(HOST_CXXFLAGS)
+
+MODULE		= rhTray
+XPIDL_MODULE	= rhTray
+LIBRARY_NAME	= rhTray
+
+ifeq ($(OS_ARCH),WINNT)
+OS_LIBS+=shell32.lib
+XPCOM_GLUE_LDOPTS += /Force
+MOZ_NO_DEBUG_RTL=1
+RESFILE=cool.res
+endif
+
+IS_COMPONENT	= 1
+MODULE_NAME	= rhTray
+
+
+# Ensure that the xpcom classes that we build
+# do not export themselves
+DEFINES		+= -DXPCOM_GLUE  $(GECKO_INCLUDES)
+
+
+REQUIRES	= string \
+		  xpcom \
+		  xpcom_glue \
+		  gfx \
+		  $(NULL)
+
+ifeq ($(OS_ARCH),WINNT)
+
+CPPSRCS		=		   \
+		rhTray.cpp	   \
+		$(NULL)
+
+endif
+
+
+ifeq ($(OS_ARCH),Linux)
+
+CPPSRCS         =                  \
+                rhLinuxTray.cpp         \
+                $(NULL)
+
+endif
+
+ifeq ($(OS_ARCH),Darwin)
+
+CPPSRCS         =                  \
+                rhMacTray.cpp         \
+                $(NULL) 
+
+endif
+
+XPIDLSRCS	= rhITray.idl rhITrayWindNotify.idl
+
+TESTCPPSRCS	= 
+
+CPPSRCS		+= $(TESTCPPSRCS)
+
+INSTALL_STUFF =  
+
+ifeq ($(OS_ARCH),Linux)
+INSTALL_STUFF +=  CoolKeyLogo.gif
+endif
+
+ifeq ($(OS_ARCH),WINNT)
+INSTALL_STUFF += esc.ico esc.bmp
+endif
+
+include $(topsrcdir)/config/config.mk
+
+
+ifeq ($(OS_ARCH),Linux)
+
+CXXFLAGS	+= $(MOZ_GTK_CFLAGS) $(MOZ_GTK2_CFLAGS)
+
+endif
+
+all:: export libs deploy 
+
+
+libs:: $(INSTALL_STUFF) rhTray.h 
+	$(NSINSTALL) rhTray.h $(DIST)/include/rhTray
+
+
+clean::
+	rm -f Makefile.in
+
+deploy::
+	echo "Deploying"
+	echo $(IMPORT_LIBRARY)
+	$(NSINSTALL) ./$(LIB_PREFIX)rhTray$(DLL_SUFFIX) $(CORE_DEPTH)/esc/app/xul/esc/components
+	$(NSINSTALL) ./_xpidlgen/*.xpt $(INSTALL_STUFF) $(CORE_DEPTH)/esc/app/xul/esc/components
+
+
+# separate libraries linked in.
+EXTRA_DSO_LDOPTS = \
+		$(MOZ_OBJDIR)/dist/lib/$(LIB_PREFIX)xpcomglue.$(LIB_SUFFIX) \
+		$(NSPR_LIBS) \
+		$(NSS_LIBS) \
+		$(COOLKEY_LIBS) \
+		$(XPCOM_GLUE_LDOPTS) \
+		$(NULL)
+
+LIBS            = \
+		$(MOZ_OBJDIR)/dist/$(LIB_PREFIX)xpcomglue.$(LIB_SUFFIX) \
+		$(NSPR_LIBS) \
+		$(NSS_LIBS) \
+		$(COOLKEY_LIBS) \
+		$(NULL)
+
+
+# Needed to resolve __yylex (?)
+ifeq ($(OS_ARCH)$(OS_RELEASE),FreeBSD2)
+LIBS		+= -lpcap 
+endif
+
+# Need to link with CoreFoundation on Mac
+ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+EXTRA_DSO_LDOPTS += \
+		$(TK_LIBS) \
+		$(NULL)
+
+LIBS += \
+		$(TK_LIBS)  \
+		$(NULL)
+endif
+
+# Need to fool Mozilla's dependency rules, or it will try to build
+# Makefile from Makefile.in
+Makefile.in:
+	cp Makefile Makefile.in
+	touch Makefile
+
+-include $(topsrcdir)/config/rules.mk
+
+ifeq ($(OS_ARCH),WINNT)
+	IMPORT_LIBRARY=
+endif
+
+

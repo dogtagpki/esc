@@ -1,0 +1,90 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="esc.css" type="text/css"?>
+<!-- ***** BEGIN COPYRIGHT BLOCK *****
+ * This Program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; version 2 of the License.
+ *
+ * This Program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this Program; if not, write to the Free Software Foundation, Inc., 59 Temple
+ * Place, Suite 330, Boston, MA 02111-1307 USA.
+ *
+ * Copyright (C) 2005 Red Hat, Inc.
+ * All rights reserved.
+ ***** END COPYRIGHT BLOCK ***** -->
+
+<!DOCTYPE window SYSTEM "chrome://esc/locale/esc.dtd">
+<window 
+    class="escwindow"
+    id="esc-config-window"
+    title="&escTitle;"
+    onload="InitializeConfigUI()"
+    width ="600"
+    height= "350"
+    onunload="cleanup();"
+    xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+<stringbundle id="esc_strings" src="chrome://esc/locale/esc.properties"/>
+<script src="TRAY.js"/>
+ <script src="ESC.js"/> 
+ <toolbox flex="0">
+  <toolbar id="esc-menubar">
+    <menu id="nav-menu" label="&navigationMenu;">
+      <menupopup id="file-popup">
+        <menuitem label="&enrollmentMenuItem;" oncommand="loadESC();"/>
+        <menuitem label="&settingsMenuItem;" oncommand="loadSETTINGS();"/>
+      </menupopup>
+    </menu>
+  </toolbar>
+  </toolbox>
+
+   <groupbox>
+<hbox >
+ <image id="logoImage"/>
+ <spacer flex="1"/>
+ <label class = "headLabelText" value="&configTitle;"/>
+ <spacer flex="1"/>
+</hbox>
+</groupbox>
+    <vbox flex="1" >
+
+    <groupbox  >
+    <caption label="&editConfigValues;"/>
+    <spacer flex="1" style="min-height: 10px" />
+    <grid id ="ConfigTable" >
+    <columns>
+
+     <column  />
+     <column flex = "1" />
+     <column flex = "1" />
+    </columns>
+    <rows id="ConfigTableRows">
+        <row pack="center">
+            <label class="titleText"  value="&tpsURIHeader;" /> 
+             <textbox size="70" class="configTextBox" id="tpsuri"  value="" /> 
+             <button id="testtpsurl" label="&doTest;" oncommand="testTPSURI(null);"/>
+        </row>
+
+        <row pack="center">
+             <label class="titleText" value = "&escEnrollURIHeader;" />
+             <textbox size="70" class="configTextBox" id="tpsenrolluri" value="" />
+             <button id="testenrollurl" label="&doTest;" oncommand="testEnrollURI();"/>
+        </row>
+
+        <row>
+            <button id="commitconfig" label= "&updateValues;" oncommand="commitConfigValues();"/>
+        </row>
+
+    </rows>
+
+    </grid>
+
+    <spacer flex="1" style="min-height: 20px"  />
+     </groupbox>
+
+</vbox>
+
+</window>

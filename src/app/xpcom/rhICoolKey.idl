@@ -1,0 +1,77 @@
+/** BEGIN COPYRIGHT BLOCK
+ * This Program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; version 2 of the License.
+ *
+ * This Program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this Program; if not, write to the Free Software Foundation, Inc., 59 Temple
+ * Place, Suite 330, Boston, MA 02111-1307 USA.
+ *
+ * Copyright (C) 2005 Red Hat, Inc.
+ * All rights reserved.
+ * END COPYRIGHT BLOCK **/
+
+#include "nsISupports.idl"
+#include "rhIKeyNotify.idl"
+#include "nsIObserver.idl"
+
+[scriptable,uuid(ea54eee4-9548-4b63-b94d-c519ffc91d09)]
+
+interface rhICoolKey: nsISupports
+{
+
+    void rhNotifyKeyStateChange(in unsigned long aKeyType, in string aKeyID,  in unsigned long aKeyState, in unsigned long aData, in string strData);
+
+
+    void rhCoolKeySetNotifyCallback(in rhIKeyNotify jsNotify);
+
+    void rhCoolKeyUnSetNotifyCallback(in rhIKeyNotify jsNotify);
+    void BlinkCoolKey(in unsigned long aKeyType, in string aKeyID,in unsigned long aRate,in unsigned long aDuration);
+
+
+    void EnrollCoolKey(in unsigned long aKeyType, in string aKeyID, in string aEnrollmentType,in string aScreenName,in string aPin,in string aScreenNamePWord,in string aTokenCode);
+
+    
+    void ResetCoolKeyPIN(in unsigned long aKeyType,in string aKeyID,in string aScreenName, in string aPIN, in string aScreenNamePwd);
+
+    void RenewCoolKey(in unsigned long aKeyType, in string aKeyID);
+
+   
+    void FormatCoolKey(in unsigned long aKeyType, in string aKeyID, in string aEnrollmentType, in string aScreenName, in string aPIN, in string aScreenNamePWord, in string aTokenCode);
+
+    void CancelCoolKeyOperation(in unsigned long aKeyType, in string aKeyID);
+
+    void GetAvailableCoolKeys(out PRUint32 count,
+                     [retval, array, size_is(count)] out string str);
+
+     void GetCoolKeyCertNicknames(in unsigned long aKeyType, in string aKeyID,
+      out PRUint32 count, [retval, array, size_is(count)] out string str);
+
+    
+    unsigned long GetCoolKeyStatus(in unsigned long  aKeyType,in string aKeyID);
+
+    boolean GetCoolKeyIsEnrolled(in unsigned long aKeyType, in string aKeyID);
+
+    string GetCoolKeyPolicy(in unsigned long aKeyType,in string aKeyID);
+
+    string GetCoolKeyCertInfo(in unsigned long aKeyType, in string aKeyID, in string aCertNickname);
+
+    boolean GetCoolKeyRequiresAuthentication(in unsigned long aKeyType,in string aKeyID);
+
+    boolean GetCoolKeyIsAuthenticated(in unsigned long aKeyType,in string aKeyID);
+
+    boolean AuthenticateCoolKey(in unsigned long aKeyType,in string aKeyID,in string aPIN);
+
+    void    SetCoolKeyDataValue(in unsigned long aKeyType,in string aKeyID,in string name,in string value);
+
+    boolean    SetCoolKeyConfigValue(in string aName, in string aValue);
+    string    GetCoolKeyConfigValue(in string aName);
+
+    string    GetCoolKeyVersion();
+
+};
+

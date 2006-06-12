@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+
+<!-- ***** BEGIN COPYRIGHT BLOCK *****
+ * This Program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; version 2 of the License.
+ *
+ * This Program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this Program; if not, write to the Free Software Foundation, Inc., 59 Temple
+ * Place, Suite 330, Boston, MA 02111-1307 USA.
+ *
+ * Copyright (C) 2005 Red Hat, Inc.
+ * All rights reserved.
+ ***** END COPYRIGHT BLOCK ***** -->
+
+<RDF:RDF xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:chrome="http://www.mozilla.org/rdf/chrome#">
+
+  <RDF:Seq about="urn:mozilla:package:root">
+    <RDF:li resource="urn:mozilla:package:esc"/>
+  </RDF:Seq>
+
+  <RDF:Description about="urn:mozilla:package:esc"
+        chrome:displayName="ESC"
+        chrome:author="Whoever"
+        chrome:name="esc">
+  </RDF:Description>
+</RDF:RDF>

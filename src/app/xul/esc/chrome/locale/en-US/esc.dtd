@@ -1,0 +1,53 @@
+<!-- ***** BEGIN COPYRIGHT BLOCK *****
+ * This Program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; version 2 of the License.
+ *
+ * This Program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this Program; if not, write to the Free Software Foundation, Inc., 59 Temple
+ * Place, Suite 330, Boston, MA 02111-1307 USA.
+ *
+ * Copyright (C) 2005 Red Hat, Inc.
+ * All rights reserved.
+ ***** END COPYRIGHT BLOCK ***** -->
+
+<!ENTITY escTitle "Red Hat Enterprise Security Client">
+<!ENTITY settingsTitle "Red Hat Enterprise Security Client Settings">
+<!ENTITY configTitle "Red Hat Enterprise Security Client Configuration">
+<!ENTITY certInfoTitle "ESC Key Info">
+<!ENTITY genericAuthTitle "ESC Authentication">
+<!ENTITY progressHeader "Progress">
+<!ENTITY unknownIssuer "Unknown Issuer">
+<!ENTITY unknown "Unknown">
+<!ENTITY cancel "Cancel">
+<!ENTITY doEnroll "Enroll">
+<!ENTITY doCancel "Cancel">
+<!ENTITY doResetPin "Reset Pin">
+<!ENTITY doFormat "Format"> 
+<!ENTITY doShowKeyInfo "Show KeyInfo">
+<!ENTITY keyInfo "Key Info">
+<!ENTITY navigationMenu "Navigation">
+<!ENTITY operationsMenu "Operations">
+<!ENTITY settingsMenuItem "Settings">
+<!ENTITY enrollmentMenuItem "Enrollment">
+<!ENTITY configMenuItem "Configuration">
+<!ENTITY keysCaption "Keys">
+<!ENTITY keyOperationsCaption "Key Operations">
+<!ENTITY chooseKeyOperation "Choose Key Operation">
+<!ENTITY keyIssuer "Key Issuer">
+<!ENTITY keyIssuedTo "Key Issued To">
+<!ENTITY keyStatus "Key Status">
+<!ENTITY keyProgress "Key Progress">
+<!ENTITY noKeysPresent "NO KEYS PRESENT">
+<!ENTITY keyInformation "Key Information">
+<!ENTITY enterKeyPin "Enter Key Pin">
+<!ENTITY reEnterKeyPin "Re Enter Key Pin">
+<!ENTITY editConfigValues "Edit Configuration Values">
+<!ENTITY tpsURIHeader "TPS URI:">
+<!ENTITY escEnrollURIHeader "ESC ENROLL URI:">
+<!ENTITY updateValues "Update Values">
+<!ENTITY doTest "Test">

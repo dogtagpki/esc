@@ -1,0 +1,125 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="esc.css" type="text/css"?>
+<!-- ***** BEGIN COPYRIGHT BLOCK *****
+ * This Program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; version 2 of the License.
+ *
+ * This Program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this Program; if not, write to the Free Software Foundation, Inc., 59 Temple
+ * Place, Suite 330, Boston, MA 02111-1307 USA.
+ *
+ * Copyright (C) 2005 Red Hat, Inc.
+ * All rights reserved.
+ ***** END COPYRIGHT BLOCK ***** -->
+
+<!DOCTYPE window SYSTEM "chrome://esc/locale/esc.dtd">
+<window 
+    class="escwindow"
+    id="esc-window"
+    title="&escTitle;"
+    onload="InitializeBindingTable()"
+    width ="500"
+    height= "350"
+    onunload="cleanup()"
+    xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+<stringbundle id="esc_strings" src="chrome://esc/locale/esc.properties"/>
+<script src= "TRAY.js"/>
+<script src="ESC.js"/> 
+  <toolbar id="enroll-esc-menubar">
+    <menu id="enroll-nav-menu" label="&navigationMenu;">
+      <menupopup id="enroll-file-popup">
+        <menuitem label="&settingsMenuItem;" oncommand="loadSETTINGS();"/>
+        <menuitem label="&configMenuItem;" oncommand="loadCONFIG();"/>
+      </menupopup>
+    </menu>
+  </toolbar>
+    <vbox flex ="1"  >
+
+    <groupbox>
+<hbox >
+ <image id="logoImage"/>
+ <spacer flex="1"/>
+ <label class = "headLabelText" value="&escTitle;"/>
+ <spacer flex="1"/>
+</hbox>
+</groupbox>
+
+    
+ <!--   <spacer flex="1"  /> -->
+
+    <groupbox flex = "1" >
+
+    <caption label = "&keysCaption;" />
+    <grid id ="BindingTable"  >
+    <columns>
+
+     <column flex = "1" />
+     <column flex = "1" />
+     <column flex = "1"/>
+     <column flex = "1"/>
+     <column flex = "1" />
+    </columns>
+    <rows id="BindingTableRows">
+        <row pack="center">
+
+         <label class="titleText" value="&keyIssuer;" />
+         <spacer flex= "1" class = "horSpacerShort" />
+         <label class="titleText" value="&keyIssuedTo;" />
+         <spacer flex = "1" class="horSpacerShort"/>
+         <label class="titleText" value="&keyStatus;"/>
+         <spacer flex = "1" class="horSpacerShort"/>
+         <label class="titleText" value="&keyProgress;"/>
+
+        </row>
+
+         <spacer flex = "1" class="verticalSpacer" />
+        <row id="NoKeysRow">
+
+          <label class="rowLabelTextUninit" id="NoKeysLabel" value = "&noKeysPresent;" hidden="false"/>
+
+        </row>
+
+    </rows>
+
+    </grid>
+
+<!--    <spacer flex="1" style="min-height: 20px" /> -->
+
+    <hbox id="cylon1" class="cylonHBox" >
+    <label class="titleText" id="operationtext" value=""/> 
+    <label id="eye1"   hidden="true" value="...." class="cylonEye"> </label>
+    </hbox>
+
+    <vbox>
+    <groupbox flex = "1" >
+    <caption label="&keyInformation;"/>
+    <grid >
+        <rows>
+            <row>
+                <label control="pintf"  value="&enterKeyPin;" maxlength="10"/>
+                <textbox id="pintf" type = "password"/>
+           </row>
+           <row>
+               <label control="reenterpintf" value="&reEnterKeyPin;" maxlength="10"/>
+               <textbox id="reenterpintf" type="password" />
+          </row>
+          <row>
+              <button id="enrollbtn" label="&doEnroll;" oncommand="DoEnrollCoolKey();"/>
+              <button id="cancelbtn" label="&doCancel;" oncommand="DoCancelOperation();"/>
+         </row>
+       </rows>
+    </grid>
+
+    </groupbox>
+    </vbox>
+
+    </groupbox>
+    </vbox>
+
+</window>

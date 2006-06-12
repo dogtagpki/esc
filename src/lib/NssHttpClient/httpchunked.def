@@ -1,0 +1,42 @@
+;+# ***** BEGIN COPYRIGHT BLOCK *****
+;+# This Program is free software; you can redistribute it and/or modify it under
+;+# the terms of the GNU General Public License as published by the Free Software
+;+# Foundation; version 2 of the License.
+;+#
+;+# This Program is distributed in the hope that it will be useful, but WITHOUT
+;+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+;+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+;+#
+;+# You should have received a copy of the GNU General Public License along with
+;+# this Program; if not, write to the Free Software Foundation, Inc., 59 Temple
+;+# Place, Suite 330, Boston, MA 02111-1307 USA.
+;+#
+;+# Copyright (C) 2005 Red Hat, Inc.
+;+# All rights reserved.
+;+# ***** END COPYRIGHT BLOCK *****
+;+#
+;+# OK, this file is meant to support SUN, LINUX, AIX and WINDOWS
+;+#   1. For all unix platforms, the string ";-"  means "remove this line"
+;+#   2. For all unix platforms, the string " DATA " will be removed from any 
+;+#	line on which it occurs.
+;+#   3. Lines containing ";+" will have ";+" removed on SUN and LINUX.
+;+#      On AIX, lines containing ";+" will be removed.  
+;+#   4. For all unix platforms, the string ";;" will thave the ";;" removed.
+;+#   5. For all unix platforms, after the above processing has taken place,
+;+#    all characters after the first ";" on the line will be removed.  
+;+#    And for AIX, the first ";" will also be removed.
+;+#  This file is passed directly to windows. Since ';' is a comment, all UNIX
+;+#   directives are hidden behind ";", ";+", and ";-"
+;+HTTPCHUNCKED_1.0 {       # NSSHttpChuncked 1.0
+;+    global:
+LIBRARY httpchunked ;-
+EXPORTS		;-
+httpAllocateClient;
+httpDestroyClient;
+httpSendChunked;
+sendChunkedEntityData;
+httpCloseConnection;
+;+#URLEncode;
+;+    local:
+;+       *;
+;+};

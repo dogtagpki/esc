@@ -1,0 +1,38 @@
+/** BEGIN COPYRIGHT BLOCK
+ * This Program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; version 2 of the License.
+ *
+ * This Program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this Program; if not, write to the Free Software Foundation, Inc., 59 Temple
+ * Place, Suite 330, Boston, MA 02111-1307 USA.
+ *
+ * Copyright (C) 2005 Red Hat, Inc.
+ * All rights reserved.
+ * END COPYRIGHT BLOCK **/
+
+#include "nsISupports.idl"
+
+interface nsIBaseWindow;
+
+[scriptable,uuid(18100a23-0e0f-4201-8378-c9625d09be39)]
+
+interface rhITray: nsISupports
+{
+    void    add(in nsIBaseWindow aWindow);
+    void    remove(in nsIBaseWindow aWindow);
+    void    hide(in nsIBaseWindow aWindow);
+    void    show(in nsIBaseWindow aWindow);
+
+    void    hideall();
+    void    showall();
+    boolean isInitializedAlready(); 
+    void    sendnotification(in string aMessage);
+    
+
+};
+
