@@ -23,14 +23,25 @@ include $(CORE_DEPTH)/coreconf/rules.mk
 
 
 ifeq ($(OS_ARCH), WINNT)
-DIRS += mozilla app/xpcom/tray app/xpcom win32
+DIRS += xulrunner app/xpcom/tray app/xpcom win32
 endif
 
 ifeq ($(OS_ARCH), Darwin)
-DIRS +=  mozilla app/xpcom/tray app/xpcom mac
+DIRS +=  xulrunner app/xpcom/tray app/xpcom mac
 endif
 
 ifeq ($(OS_ARCH), Linux)
-DIRS +=  mozilla lib/docklet app/xpcom/tray app/xpcom  
+DIRS += xulrunner lib/notifytray app/xpcom/tray app/xpcom  
+endif
+
+
+ifneq ($(OS_ARCH),Linux)
+IMPORTS += src/xulrunner/v1.8.0.1/xulrunner-1.8.0.1-source.tar.gz
+importnss:
+ifeq ($(IMPORT_NSS),1)
+ifneq ($(wildcard $(NSSDIR)/$(OBJDIR)/include/prtypes.h),$(NSSDIR)/$(OBJDIR)/include/prtypes.h)
+	$(MAKE) import
+endif
+endif
 endif
 

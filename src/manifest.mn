@@ -15,7 +15,7 @@
 # All rights reserved.
 # END COPYRIGHT BLOCK
 
-CORE_DEPTH	= ..
+CORE_DEPTH	= ../
 
 DIRS = \
        lib/NssHttpClient \
