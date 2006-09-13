@@ -15,21 +15,11 @@
 # All rights reserved.
 # END COPYRIGHT BLOCK
 
-CORE_DEPTH	= .
-
-REQUIRES = nss nspr
+CORE_DEPTH	= ./
 
 DIRS = coreconf \
- clib \
- zlib \
- pkcs11 \
- esc \
+ src \
  $(NULL)
 
-# egate \
-# lib  \
-# cmd   \
 
-IMPORTS = nspr20/v4.4.1 \
-	  nss/NSS_3_9_3_RTM \
-	  $(NULL)
+IMPORTS = $(NULL)
