@@ -1,0 +1,11 @@
+;+NOTIFY_1.0 {       # NOTIFY release 1.0
+;+    global:
+LIBRARY notify  ;-
+EXPORTS		;-
+notify_icon_create;
+notify_icon_create_with_image_file;
+notify_icon_destroy;
+notify_icon_created_ok;
+;+    local:
+;+       *;
+;+};
