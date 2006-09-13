@@ -15,6 +15,8 @@
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
+#define FORCE_PR_LOG 1
+
 #include <string.h>
 #include <windows.h>
 //#include <wincrypt.h>
@@ -384,7 +386,7 @@ NS_IMETHODIMP CoolKeyCSPKeyListener::RhNotifyKeyStateChange(PRUint32 aKeyType,co
 
 
    
-   PR_LOG( coolKeyCSPLog, 5, ("CoolKeyCSPListener::RhNotifyStateChange state %d \n",aKeyState));
+   PR_LOG( coolKeyCSPLog, PR_LOG_DEBUG, ("CoolKeyCSPListener::RhNotifyStateChange state %d \n",aKeyState));
    AutoCoolKey key(aKeyType, aKeyID);
 
 

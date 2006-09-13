@@ -15,6 +15,8 @@
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
+#define FORCE_PR_LOG 1
+
 #include "rhTray.h"
 #include "nsIGenericFactory.h"
 #include <prlog.h>
@@ -27,6 +29,8 @@ HWND rhTray::mWnd = 0;
 int rhTray::mInitialized = 0;
 ATOM rhTray::mWndClass = 0;
 
+
+std::list< nsCOMPtr<rhITrayWindNotify> > rhTray::gTrayWindNotifyListeners;
 
 
 map< nsIBaseWindow *, rhTrayWindowListener *> rhTray::mWindowMap;
@@ -50,11 +54,34 @@ rhTray::rhTray()
 rhTray::~rhTray()
 {
 
-    PR_LOG( trayLog, 5, ("rhTray::~rhTray\n"));
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::~rhTray\n"));
 
 
     Cleanup();
   /* destructor code */
+}
+
+NS_IMETHODIMP rhTray::Setwindnotifycallback(rhITrayWindNotify *jsNotify)
+{
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::Setwindnotifycallback\n"));
+
+    if(jsNotify)
+        AddTrayWindNotifyListener(jsNotify);
+
+    return NS_OK;
+
+}
+ /* void unsetwindnotifycallback (in rhITrayWindNotify jsNotify); */
+
+NS_IMETHODIMP rhTray::Unsetwindnotifycallback(rhITrayWindNotify *jsNotify)
+{
+
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::Unsetwindnotifycallback\n"));
+
+    if(jsNotify)
+        RemoveTrayWindNotifyListener(jsNotify);
+
+    return NS_OK;
 }
 
 /* void add (); */
@@ -64,7 +91,7 @@ NS_IMETHODIMP rhTray::Add(nsIBaseWindow *aWindow)
 
     NS_ENSURE_ARG(aWindow);
 
-    PR_LOG( trayLog, 5, ("rhTray::Add %p \n",aWindow));
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::Add %p \n",aWindow));
     HRESULT res = Initialize();
     if(res != S_OK)
     {
@@ -82,8 +109,7 @@ NS_IMETHODIMP rhTray::Add(nsIBaseWindow *aWindow)
 /* void remove (); */
 NS_IMETHODIMP rhTray::Remove(nsIBaseWindow *aWindow)
 {
-     PR_LOG( trayLog, 5, ("rhTray::Remove window %p \n",aWindow));
-
+     PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::Remove window %p \n",aWindow));
 
     return NS_OK;
 }
@@ -150,7 +176,7 @@ NS_IMETHODIMP rhTray::Showall()
     return NS_OK;
 }
 
-NS_IMETHODIMP rhTray::Sendnotification(const char *aMessage)
+NS_IMETHODIMP rhTray::Sendnotification(const char *aTitle,const char *aMessage,PRUint32 aSeverity,PRUint32 aTimeout, const char *aIcon)
 {
 
     if(aMessage)
@@ -162,6 +188,38 @@ NS_IMETHODIMP rhTray::Sendnotification(const char *aMessage)
     return NS_OK;
 
 }
+
+/* void settooltipmsg (in string aMessage); */
+NS_IMETHODIMP rhTray::Settooltipmsg(const char *aMessage)
+{
+    return NS_OK;
+}
+
+/* void seticonimage (in string aIcon); */
+NS_IMETHODIMP rhTray::Seticonimage(const char *aIcon)
+{
+
+
+    return NS_OK;
+}
+
+/* void hideicon (); */
+NS_IMETHODIMP rhTray::Hideicon(void)
+{
+
+
+    return NS_OK;
+}
+
+/* void showicon (); */
+NS_IMETHODIMP rhTray::Showicon(void)
+{
+
+
+    return NS_OK;
+}
+
+
 
 HRESULT rhTray::SendBalloonTooltipMessage(char *aMessage)
 {
@@ -189,9 +247,8 @@ HRESULT rhTray::Initialize()
         return S_OK;
     }
 
-    PR_LOG( trayLog, 5, ("rhTray::Initialize  \n"));
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::Initialize  \n"));
 
-    //MessageBox(NULL,"Inside rhTray::Initialize!",NULL,NULL);
 
     HRESULT res = CreateEventWindow();
     
@@ -227,7 +284,7 @@ HRESULT rhTray::Initialize()
 
     rhTray::mIconData.uTimeout = 1000;
 
-    PR_LOG(trayLog,5,("rhTray::Initialize tray icon handle %d \n",icon));
+    PR_LOG(trayLog,PR_LOG_DEBUG,("rhTray::Initialize tray icon handle %d \n",icon));
 
 
     ::Shell_NotifyIcon( NIM_ADD, &rhTray::mIconData);
@@ -238,7 +295,7 @@ HRESULT rhTray::Initialize()
 
 HRESULT rhTray::RemoveIcon()
 {
-    PR_LOG( trayLog, 5, ("rhTray::RemoveIcon. \n"));
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::RemoveIcon. \n"));
 
     ::Shell_NotifyIcon(NIM_DELETE,&rhTray::mIconData);
 
@@ -248,7 +305,7 @@ HRESULT rhTray::RemoveIcon()
 
 HRESULT rhTray::Cleanup()
 {
-    PR_LOG( trayLog, 5, ("rhTray::Cleanup.\n"));
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::Cleanup.\n"));
 
     RemoveAllListeners();
     DestroyEventWindow();
@@ -260,7 +317,7 @@ HRESULT rhTray::Cleanup()
 void rhTray::ShowAllListeners()
 {
 
-    PR_LOG( trayLog, 5, ("rhTray::ShowAllListeners.\n"));
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::ShowAllListeners.\n"));
     map< nsIBaseWindow *, rhTrayWindowListener *>::iterator i;
 
     rhTrayWindowListener *cur = NULL;
@@ -284,7 +341,7 @@ void rhTray::ShowAllListeners()
 
 void rhTray::HideAllListeners()
 {
-    PR_LOG( trayLog, 5, ("rhTray::HideAllListeners.\n"));
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::HideAllListeners.\n"));
 
     map< nsIBaseWindow *, rhTrayWindowListener *>::iterator i;
 
@@ -307,7 +364,7 @@ void rhTray::HideAllListeners()
 HRESULT rhTray::DestroyEventWindow()
 {
 
-    PR_LOG( trayLog, 5, ("rhTray::DestroyEventWindow \n"));
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::DestroyEventWindow \n"));
 
     ::DestroyWindow(rhTray::mWnd);
     rhTray::mWnd = 0;
@@ -318,7 +375,7 @@ HRESULT rhTray::DestroyEventWindow()
 HRESULT rhTray::CreateEventWindow()
 {
 
-    PR_LOG( trayLog, 5, ("rhTray::CreateEventWindow \n"));
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::CreateEventWindow \n"));
     ::SetLastError(0);
     HINSTANCE hInst = ::GetModuleHandle(NULL);
 
@@ -388,13 +445,13 @@ rhTray::WindowProc(
        {
            case WM_LBUTTONDBLCLK:
 
-               PR_LOG( trayLog, 5, ("rhTray::WindowProc: WM_LBUTTONDBLCLK  \n"));
+               PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::WindowProc: WM_LBUTTONDBLCLK  \n"));
                ShowAllListeners();
 
            break;
            case WM_RBUTTONDOWN:
 
-                PR_LOG( trayLog, 5, ("rhTray::WindowProc: WM_RBUTTONDOWN \n"));
+                PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::WindowProc: WM_RBUTTONDOWN \n"));
 
                 HRESULT res = rhTray::ShowPopupMenu (IDR_MENU1);
 
@@ -424,7 +481,7 @@ rhTray::WindowProc(
       break;
     case WM_CREATE:
 
-           PR_LOG( trayLog, 5, ("rhTray::WindowProc: WM_CREATE  \n"));
+           PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::WindowProc: WM_CREATE  \n"));
        break;
     default:
        break;
@@ -444,7 +501,7 @@ HRESULT rhTray::AddListener(nsIBaseWindow *aWindow)
     nsresult rv;
 
 
-    PR_LOG( trayLog, 5, ("rhTray::AddListener %p \n",aWindow));
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::AddListener %p \n",aWindow));
     NS_ENSURE_ARG(aWindow);
 
     nativeWindow aNativeWindow;
@@ -470,7 +527,7 @@ HRESULT rhTray::AddListener(nsIBaseWindow *aWindow)
 
     if(already)
     {
-        PR_LOG( trayLog, 5, ("rhTray::AddWindowListener Window already registered  %p \n",aWindow));
+        PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::AddWindowListener Window already registered  %p \n",aWindow));
         return S_OK;
 
     }
@@ -502,7 +559,7 @@ HRESULT rhTray::ShowPopupMenu (WORD PopupMenuResource)
   hMenu = ::LoadMenu (::GetModuleHandle("rhTray.dll"),
                       MAKEINTRESOURCE (PopupMenuResource));
 
-  PR_LOG( trayLog, 5, ("rhTray::ShowPopupMenu hMenu %d  error %d\n",hMenu,GetLastError()));
+  PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::ShowPopupMenu hMenu %d  error %d\n",hMenu,GetLastError()));
 
   if (hMenu != 0) {
     POINT pt;
@@ -526,7 +583,7 @@ HRESULT rhTray::ShowPopupMenu (WORD PopupMenuResource)
 HRESULT rhTray::RemoveListener(nsIBaseWindow *aBaseWindow)
 {
 
-    PR_LOG( trayLog, 5, ("rhTray::RemoveWindowListener %p \n",aBaseWindow));
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::RemoveWindowListener %p \n",aBaseWindow));
 
     if(!aBaseWindow)
         return S_OK;
@@ -556,7 +613,7 @@ HRESULT rhTray::RemoveListener(nsIBaseWindow *aBaseWindow)
 HRESULT rhTray::RemoveAllListeners()
 {
 
-    PR_LOG( trayLog, 5, ("rhTray::RemoveAllListenesr\n"));
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::RemoveAllListenesr\n"));
     map< nsIBaseWindow *, rhTrayWindowListener *>::iterator i;
 
     rhTrayWindowListener *cur = NULL;
@@ -570,7 +627,7 @@ HRESULT rhTray::RemoveAllListeners()
         {
 
 
-            PR_LOG( trayLog, 5, ("rhTray::RemoveAllListeners deleting %p\n",cur));
+            PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::RemoveAllListeners deleting %p\n",cur));
 
             delete cur;
 
@@ -581,6 +638,96 @@ HRESULT rhTray::RemoveAllListeners()
     rhTray::mWindowMap.clear();
     
     return S_OK;
+
+}
+
+//rhTrayWindNotify methods
+
+rhITrayWindNotify* rhTray::GetTrayWindNotifyListener(rhITrayWindNotify *listener)
+{
+
+    std::list<nsCOMPtr<rhITrayWindNotify> >::const_iterator it;
+
+    for(it=gTrayWindNotifyListeners.begin(); it!=gTrayWindNotifyListeners.end(); ++it) {
+
+    if((*it) == listener)
+    {
+        return (*it);
+    }
+}
+
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhCoolKey::GetNotifyKeyListener:  looking for %p returning NULL. \n",listener));
+
+    return nsnull;
+
+}
+
+int rhTray::GetTrayWindNotifyListSize()
+{
+    return gTrayWindNotifyListeners.size();
+
+}
+void rhTray::AddTrayWindNotifyListener(rhITrayWindNotify *listener)
+{
+
+        PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::AddTrayWindNotifyListener: %p \n",
+listener));
+
+    if(GetTrayWindNotifyListener(listener ))
+    {
+
+         PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::AddTrayWindNotifyListener: %p listener already in list. \n",listener));
+
+         return ;
+
+    }
+
+    gTrayWindNotifyListeners.push_back(listener);
+
+
+}
+
+void rhTray::RemoveTrayWindNotifyListener(rhITrayWindNotify *listener)
+{
+
+    if(!GetTrayWindNotifyListener(listener))
+    {
+        return;
+    }
+
+    gTrayWindNotifyListeners.remove(listener);
+
+
+    listener = NULL;
+}
+
+void rhTray::ClearTrayWindNotifyList()
+{
+
+     while (gTrayWindNotifyListeners.size() > 0) {
+         rhITrayWindNotify * node = (gTrayWindNotifyListeners.front()).get();
+
+         node = NULL;
+
+         gTrayWindNotifyListeners.pop_front();
+     }
+
+}
+
+void rhTray::NotifyTrayWindListeners(PRUint32 aEvent, PRUint32 aEventData,PRUint32 aKeyData,PRUint32 aData1, PRUint32 aData2)
+{
+
+      //Now notify all the listeners of the event
+
+    std::list< nsCOMPtr <rhITrayWindNotify> >::const_iterator it;
+    for(it=gTrayWindNotifyListeners.begin(); it!=gTrayWindNotifyListeners.end(); ++it) {
+
+        PRBool claimed = 0;
+
+        ((rhITrayWindNotify *) (*it))->RhTrayWindEventNotify(aEvent,aEventData, aKeyData, aData1, aData2, &claimed);
+
+
+    }
 
 }
 
@@ -597,7 +744,7 @@ rhTrayWindowListener::rhTrayWindowListener(HWND aWnd)
 rhTrayWindowListener::~rhTrayWindowListener()
 {
 
-    PR_LOG( trayLog, 5, ("rhTrayWindowListener::~rhTrayWindowListener.\n"));
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener::~rhTrayWindowListener.\n"));
 
     Cleanup();
 
@@ -636,27 +783,25 @@ rhTrayWindowListener::WindowProc(
         case WM_NCLBUTTONDOWN:
             switch(wParam)
             {
-
                 case HTMINBUTTON:
 
                      if(me)
                      {
                          me->HideWindow();
-                         
                      }
 
-                    PR_LOG( trayLog, 5, ("rhTrayWindowListener Minimize\n"));
+                    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener Minimize\n"));
                      eventClaimed = 1;
                 break;
 
                 case HTMAXBUTTON:
-                    PR_LOG( trayLog, 5, ("rhTrayWindowListener:: Maximize  \n"));
+                    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener:: Maximize  \n"));
                     eventClaimed = 1;
                 break;
                  
                 case HTCLOSE:
 
-                    PR_LOG( trayLog, 5, ("rhTrayWindowListener Close! \n"));
+                    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener Close! \n"));
 
                     if(me)
                     {
@@ -677,7 +822,7 @@ rhTrayWindowListener::WindowProc(
                  case WA_ACTIVE:
                  case WA_CLICKACTIVE:
 
-                     PR_LOG( trayLog, 5, ("rhTrayWindowListener ACTIVATE! \n"));
+                     PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener ACTIVATE! \n"));
 
                      
                  break;
@@ -701,7 +846,7 @@ rhTrayWindowListener::WindowProc(
         }
 
 
-        PR_LOG( trayLog, 5, ("rhTrayWindowListener WM_SHOWWINDOW wParam %d lParam %d! \n",wParam, lParam));
+        PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener WM_SHOWWINDOW wParam %d lParam %d! \n",wParam, lParam));
 
         show = (int) wParam;
 
@@ -709,7 +854,7 @@ rhTrayWindowListener::WindowProc(
         if(lParam == 0)
         {    
 
-                  PR_LOG( trayLog, 5, ("rhTrayWindowListener  WM_SHOW called from ShowWindow or HideWindow \n"));
+                  PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener  WM_SHOW called from ShowWindow or HideWindow \n"));
 
 
         }
@@ -721,7 +866,7 @@ rhTrayWindowListener::WindowProc(
             {
                 case SC_CLOSE:
 
-                    PR_LOG( trayLog, 5, ("rhTrayWindowListener:: WM_SYSCOMMAND SC_CLOSE  \n"));
+                    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener:: WM_SYSCOMMAND SC_CLOSE  \n"));
                 break;
 
                 default:
@@ -735,7 +880,7 @@ rhTrayWindowListener::WindowProc(
             {
                 case SIZE_MINIMIZED:
 
-                    PR_LOG( trayLog, 5, ("rhTrayWindowListener::  WM_SIZE SIZE_MINIMIZE \n"));
+                    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener::  WM_SIZE SIZE_MINIMIZE \n"));
 
                 break;
                 default:
@@ -751,7 +896,7 @@ rhTrayWindowListener::WindowProc(
 
   if(eventClaimed)
   {
-    PR_LOG( trayLog, 5, ("rhTrayWindowListener:: Event claimed \n"));
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener:: Event claimed \n"));
     return FALSE;
   }
 
@@ -766,7 +911,7 @@ rhTrayWindowListener::WindowProc(
 HRESULT rhTrayWindowListener::Cleanup()
 {
 
-    PR_LOG( trayLog, 5, ("rhTrayWindowListener::Cleanup. \n"));
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener::Cleanup. \n"));
 
     return S_OK;
 
@@ -790,7 +935,7 @@ void rhTrayWindowListener::ShowWindow()
 {
     if(mWnd)
     {
-         PR_LOG( trayLog, 5, ("rhTrayWindowListener:: ShowWindow \n"));
+         PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener:: ShowWindow \n"));
          ::ShowWindow(mWnd,SW_SHOW);
 
          ::ShowWindow(mWnd,SW_RESTORE);
@@ -804,7 +949,7 @@ void rhTrayWindowListener::HideWindow()
     if(mWnd)
     {
 
-        PR_LOG( trayLog, 5, ("rhTrayWindowListener:: Hide Window \n"));
+        PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener:: Hide Window \n"));
 
         ::ShowWindow(mWnd,SW_MINIMIZE);
         ::ShowWindow(mWnd,SW_HIDE);

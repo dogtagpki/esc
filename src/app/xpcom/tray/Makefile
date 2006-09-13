@@ -29,14 +29,18 @@ ifeq ($(OS_ARCH), Darwin)
 #MOZ_OBJDIR=$(MOZ_SRCDIR)
 endif
 
+ifeq ($(OS_ARCH),Linux)
+endif
+
 all export install clean deploy args::  
 	echo "***** Dropping into the Mozilla build environment ***** $(MOZ_OBJDIR) $@"
+	echo $(DIST)
 	$(MAKE) -f Makefile.moz $@ \
 		OBJDIR=$(OBJDIR) \
 		CORE_DIST=$(DIST) \
 		CORE_INC=$(CORE_INC) \
 		MOZ_SRCDIR=$(MOZ_SRCDIR) \
-		MOZ_OBJDIR=$(MOZ_OBJDIR)
+		MOZ_OBJDIR=$(MOZ_OBJDIR) \
 
 libs::
 
@@ -45,13 +49,13 @@ libs::
 		CORE_DIST=$(DIST) \
 		CORE_INC=$(CORE_INC) \
 		MOZ_SRCDIR=$(MOZ_SRCDIR) \
-		MOZ_OBJDIR=$(MOZ_OBJDIR)
+		MOZ_OBJ_DIR=$(MOZ_OBJDIR) \
 
 	$(MAKE) -f Makefile.moz deploy \
 		OBJDIR=$(OBJDIR) \
 		CORE_DIST=$(DIST) \
 		CORE_INC=$(CORE_INC) \
 		MOZ_SRCDIR=$(MOZ_SRCDIR) \
-		MOZ_OBJDIR=$(MOZ_OBJDIR)
+		MOZ_OBJ_DIR=$(MOZ_OBJDIR)
 
 

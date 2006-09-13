@@ -26,6 +26,20 @@
 #include "widget/nsIBaseWindow.h"
 #include "widget/nsIWidget.h"
 
+
+// Event Defines
+#define MENU_EVT        1
+#define APP_EVT         2
+#define WINDOW_EVT      3
+
+#define SHOW_ALL_WINDOWS  4
+#define HIDE_ALL_WINDOWS  5
+
+#define MENU_SHOW         6
+#define APP_SHOW          7
+
+
+
 #ifdef XP_WIN32
 
 #define _WIN32_IE  0x0500
@@ -46,8 +60,11 @@
 
 #include <gtk/gtk.h>
 
+extern "C" {
+#include "notifytray.h"
+}
 
-#define COOLKEY_ICON "components/CoolKeyLogo.gif"
+#define COOLKEY_ICON "components/icon.png"
 #endif
 
 #include <map>
@@ -151,6 +168,20 @@ protected:
    HRESULT DestroyEventWindow(); 
 
    HRESULT RemoveIcon();
+
+    // rhTrayWindNotify content
+
+   static std::list< nsCOMPtr<rhITrayWindNotify> > gTrayWindNotifyListeners;
+
+
+   rhITrayWindNotify* GetTrayWindNotifyListener(rhITrayWindNotify *listener);
+
+   int GetTrayWindNotifyListSize();
+   void AddTrayWindNotifyListener(rhITrayWindNotify *listener);
+   void RemoveTrayWindNotifyListener(rhITrayWindNotify *listener);
+   void ClearTrayWindNotifyList();
+
+   static void NotifyTrayWindListeners(PRUint32 aEvent, PRUint32 aEventData =0,PRUint32 aKeyData=0, PRUint32 aData1=0, PRUint32 aData2=0);
 };
 
 #endif
@@ -240,6 +271,21 @@ protected:
     //Gtk print handler
 
     static void TrayPrintHandler(const gchar *string);
+
+
+     // rhTrayWindNotify content
+
+   static std::list< nsCOMPtr<rhITrayWindNotify> > gTrayWindNotifyListeners;
+
+
+   rhITrayWindNotify* GetTrayWindNotifyListener(rhITrayWindNotify *listener);
+
+   int GetTrayWindNotifyListSize();
+   void AddTrayWindNotifyListener(rhITrayWindNotify *listener);
+   void RemoveTrayWindNotifyListener(rhITrayWindNotify *listener);
+   void ClearTrayWindNotifyList();
+
+   static void NotifyTrayWindListeners(PRUint32 aEvent, PRUint32 aEventData =0,PRUint32 aKeyData=0, PRUint32 aData1=0, PRUint32 aData2=0);
 };
 
 #endif
@@ -330,6 +376,21 @@ protected:
     HRESULT DestroyEventWindow();
 
     HRESULT RemoveIcon();
+
+
+     // rhTrayWindNotify content
+
+   static std::list< nsCOMPtr<rhITrayWindNotify> > gTrayWindNotifyListeners;
+
+
+   rhITrayWindNotify* GetTrayWindNotifyListener(rhITrayWindNotify *listener);
+
+   int GetTrayWindNotifyListSize();
+   void AddTrayWindNotifyListener(rhITrayWindNotify *listener);
+   void RemoveTrayWindNotifyListener(rhITrayWindNotify *listener);
+   void ClearTrayWindNotifyList();
+
+   static void NotifyTrayWindListeners(PRUint32 aEvent, PRUint32 aEventData =0,PRUint32 aKeyData=0, PRUint32 aData1=0, PRUint32 aData2=0);
 
 };
 

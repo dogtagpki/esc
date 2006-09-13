@@ -56,9 +56,13 @@ interface rhICoolKey: nsISupports
 
     boolean GetCoolKeyIsEnrolled(in unsigned long aKeyType, in string aKeyID);
 
+    string GetCoolKeyIssuerInfo(in unsigned long aKeyType, in string aKeyID);
+
     string GetCoolKeyPolicy(in unsigned long aKeyType,in string aKeyID);
 
     string GetCoolKeyCertInfo(in unsigned long aKeyType, in string aKeyID, in string aCertNickname);
+
+    string GetCoolKeyIssuedTo(in unsigned long aKeyType, in string aKeyID);
 
     boolean GetCoolKeyRequiresAuthentication(in unsigned long aKeyType,in string aKeyID);
 

@@ -1,4 +1,4 @@
-# ***** BEGIN COPYRIGHT BLOCK *****
+
 # This Program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
 # Foundation; version 2 of the License.
@@ -28,29 +28,25 @@ CORE_INC	= $(CORE_DEPTH)/dist/public
 MDDEPDIR	:= $(OBJDIR)/.deps
 DESTDIR		= $(MOZ_OBJDIR)/install
 
+NO_DIST_INSTALL	= 1
 
 -include $(MOZ_OBJDIR)/config/autoconf.mk
-
-#include $(CORE_DEPTH)/esc/mozilla/config.mk
 
 #XULRUNNER release bundle, taken from ftp site
 
 DEPLOY_OBJDIR           = $(CORE_DEPTH)/dist/$(OBJDIR)/esc_build
 
+XULRUNNER_ZIP_NAME	= xulrunner-1.8.0.1.*.tar.gz 
+XULRUNNER_BIN_PATH	= $(MOZ_OBJDIR)/dist/xulrunner
+XULRUNNER_EXEC		= xulrunner
 ifeq ($(OS_ARCH), Darwin)
 XULRUNNER_BIN_PATH      = /Library/Frameworks/XUL.framework
 XULRUNNER_EXEC          = xulrunner-bin
 XULRUNNER_FRAME_DEST    = ESC.app/Contents/Frameworks/XUL.framework
 XULRUNNER_FRAME_BASE	= ESC.app/Contents/Frameworks
-else
-XULRUNNER_BIN_PATH      = /opt/xulrunner/1.8.0.1/xulrunner
-DEPLOY_OBJDIR           = $(CORE_DEPTH)/dist/$(OBJDIR)/esc_build
-XULRUNNER_EXEC          = xulrunner
-XULRUNNER_FRAME_DEST    = esc
 endif
 
 ifeq ($(OS_ARCH), WINNT)
-XULRUNNER_BIN_PATH	= C:/"Program Files"/"Mozilla XULRunner"/1.8.0.1/xulrunner
 OS_LIBS			+= crypt32.lib
 CSPSRCS			=  CoolKeyCSP.cpp
 endif
@@ -75,7 +71,7 @@ MODULE_NAME	= rhCoolKey
 
 # Ensure that the xpcom classes that we build
 # do not export themselves
-DEFINES		+= -DXPCOM_GLUE  $(GECKO_INCLUDES) -I$(CORE_INC)/ckymanager -I$(CORE_INC)/httpchuncked
+DEFINES		+= -DXPCOM_GLUE  $(GECKO_INCLUDES) -I$(CORE_INC)/ckymanager -I$(CORE_INC)/httpchuncked -I./_xpidlgen
 
 
 REQUIRES	= string \
@@ -99,24 +95,26 @@ INSTALL_STUFF =
 XPCOM_EXTRA = $(CORE_DIST)/lib/coolkeypk11.dll
 
 ifeq ($(OS_ARCH),Linux)
-INSTALL_STUFF += $(CORE_DEPTH)/esc/app/gtk/CoolKeyLogo.gif
+INSTALL_STUFF +=
 endif
 
 -include $(topsrcdir)/config/config.mk
 
-
-all:: export libs  deploy
+install::
+ifdef DESTDIR
+	$(NSINSTALL) $(DEPLOY_OBJDIR)/esc/* $(DESTDIR)
+endif
+all:: export libs 
 
 
 libs::	$(INSTALL_STUFF) rhCoolKey.h 
 	#$(NSINSTALL) $(INSTALL_STUFF) $(DIST)/bin
-	$(NSINSTALL) rhCoolKey.h $(DIST)/include/rhCoolKey
+	$(NSINSTALL) rhCoolKey.h $(CORE_INC)/include/rhCoolKey
 	
 clean::
 	rm -f Makefile.in
 	rm -rf $(DEPLOY_OBJDIR)
-	rm -f $(CORE_DEPTH)/esc/app/xul/esc/test.zip
-	rm -rf $(CORE_DEPTH)/esc/app/xul/esc/esc
+	rm -rf $(CORE_DEPTH)/src/app/xul/esc/esc
 
 deploy: $(DEPLOY_OBJDIR)
 	echo "deploy! on $(OS_ARCH)"
@@ -161,24 +159,30 @@ Makefile.in:
 
 $(DEPLOY_OBJDIR):
 	echo "Installing!"
-	$(NSINSTALL) ./$(LIB_PREFIX)rhCoolKey$(DLL_SUFFIX) $(CORE_DEPTH)/esc/app/xul/esc/components
-	$(NSINSTALL) ./_xpidlgen/*.xpt $(CORE_DEPTH)/esc/app/xul/esc/components
+	$(NSINSTALL) ./$(LIB_PREFIX)rhCoolKey$(DLL_SUFFIX) $(CORE_DEPTH)/src/app/xul/esc/components
+	$(NSINSTALL) ./_xpidlgen/*.xpt $(CORE_DEPTH)/src/app/xul/esc/components
 
 	echo  "Creating $(DEPLOY_OBJDIR)"
 	mkdir $(DEPLOY_OBJDIR)
 
-	cd $(CORE_DEPTH)/esc/app/xul/esc; zip -r test.zip * -x *\CVS\*; unzip -d esc test.zip 
-	$(XULRUNNER_BIN_PATH)/$(XULRUNNER_EXEC) --install-app $(CORE_DEPTH)/esc/app/xul/esc/esc  $(DEPLOY_OBJDIR)
+	cd $(CORE_DEPTH)/src/app/xul/esc; zip -r test.zip * -x *\CVS\* \*.fix*; unzip -d esc test.zip ; rm -f test.zip
+	$(XULRUNNER_BIN_PATH)/$(XULRUNNER_EXEC) --install-app $(CORE_DEPTH)/src/app/xul/esc/esc  $(DEPLOY_OBJDIR)
 
 ifeq ($(OS_ARCH), Darwin)
 
 	mkdir $(DEPLOY_OBJDIR)/$(XULRUNNER_FRAME_BASE)
+	cp -Rf -v $(XULRUNNER_BIN_PATH) $(DEPLOY_OBJDIR)/$(XULRUNNER_FRAME_DEST)
 #	mkdir $(DEPLOY_OBJDIR)/$(XULRUNNER_FRAME_BASE)/XUL.framework
 
 endif
-	cp -Rf -v $(XULRUNNER_BIN_PATH) $(DEPLOY_OBJDIR)/$(XULRUNNER_FRAME_DEST)
+	#cp -Rf -v $(XULRUNNER_BIN_PATH) $(DEPLOY_OBJDIR)/$(XULRUNNER_FRAME_DEST)
+
+	tar -xzvf $(MOZ_OBJDIR)/dist/$(XULRUNNER_ZIP_NAME)  -C $(DEPLOY_OBJDIR)/$(XULRUNNER_FRAME_DEST)/esc 
 ifeq ($(OS_ARCH),WINNT)
 	cp -f $(XPCOM_EXTRA)  $(DEPLOY_OBJDIR)/ESC/components
+endif
+ifdef DESTDIR
+	$(NSINSTALL) $(DEPLOY_OBJDIR) $(DESTDIR)
 endif
 
 -include $(topsrcdir)/config/rules.mk
@@ -186,3 +190,4 @@ endif
 ifeq ($(OS_ARCH),WINNT)
 	IMPORT_LIBRARY=
 endif
+

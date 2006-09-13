@@ -26,6 +26,9 @@ CORE_INC=$(SOURCE_XP_DIR)/public
 MOZ_SRCDIR=$(SOURCE_XP_DIR)/src/mozilla
 MOZ_OBJDIR=$(DIST)/xulrunner_build
 
+ifeq ($(OS_ARCH),Linux)
+endif
+
 
 all export install clean deploy args::  
 	echo "***** Dropping into the Mozilla build environment ***** $(MOZ_OBJDIR)"
@@ -34,7 +37,8 @@ all export install clean deploy args::
 		CORE_DIST=$(DIST) \
 		CORE_INC=$(CORE_INC) \
 		MOZ_SRCDIR=$(MOZ_SRCDIR) \
-		MOZ_OBJDIR=$(MOZ_OBJDIR)
+		MOZ_OBJDIR=$(MOZ_OBJDIR) \
+
 
 libs::
 	echo "***** Dropping into the Mozilla build environment ***** $(MOZ_OBJDIR)"
@@ -43,12 +47,14 @@ libs::
 		CORE_DIST=$(DIST) \
 		CORE_INC=$(CORE_INC) \
 		MOZ_SRCDIR=$(MOZ_SRCDIR) \
-		MOZ_OBJDIR=$(MOZ_OBJDIR)
+		MOZ_OBJDIR=$(MOZ_OBJDIR) \
+
 
 	$(MAKE) -f Makefile.moz deploy \
 		OBJDIR=$(OBJDIR) \
 		CORE_DIST=$(DIST) \
 		CORE_INC=$(CORE_INC) \
 		MOZ_SRCDIR=$(MOZ_SRCDIR) \
-		MOZ_OBJDIR=$(MOZ_OBJDIR)
+		MOZ_OBJDIR=$(MOZ_OBJDIR) \
+
 

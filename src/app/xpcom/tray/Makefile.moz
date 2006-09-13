@@ -28,12 +28,20 @@ CORE_INC	= $(CORE_DEPTH)/dist/public
 MDDEPDIR	:= $(OBJDIR)/.deps
 DESTDIR		= $(MOZ_OBJDIR)/install
 
+NOTIFY_DEPTH	= $(CORE_DEPTH)/src/lib/notifytray
+NOTIFY_CXX_FLAGS	= -I$(NOTIFY_DEPTH) $(shell pkg-config --cflags glib-2.0)
+NOTIFY_LDFLAGS	= $(shell pkg-config --libs libnotify)
+
+NO_DIST_INSTALL	= 1
+ifeq ($(OS_ARCH),Linux)
+
+endif
 
 -include $(MOZ_OBJDIR)/config/autoconf.mk
 
 OS_CXXFLAGS     +=  $(HOST_CXXFLAGS)
 
-MODULE		= rhTray
+#MODULE		= rhTray
 XPIDL_MODULE	= rhTray
 LIBRARY_NAME	= rhTray
 
@@ -44,13 +52,19 @@ MOZ_NO_DEBUG_RTL=1
 RESFILE=cool.res
 endif
 
+ifeq ($(OS_ARCH),Linux)
+
+COOLKEY_LIBS+= -L $(CORE_DIST)/lib -ltraynotify  -L/usr/lib  $(NOTIFY_LDFLAGS) 
+
+endif
+
 IS_COMPONENT	= 1
 MODULE_NAME	= rhTray
 
 
 # Ensure that the xpcom classes that we build
 # do not export themselves
-DEFINES		+= -DXPCOM_GLUE  $(GECKO_INCLUDES)
+DEFINES		+= -DXPCOM_GLUE  $(GECKO_INCLUDES) -I./_xpidlgen
 
 
 REQUIRES	= string \
@@ -71,9 +85,8 @@ endif
 ifeq ($(OS_ARCH),Linux)
 
 CPPSRCS         =                  \
-                rhLinuxTray.cpp         \
-                $(NULL)
-
+		rhLinuxTray.cpp     \
+		$(NULL)
 endif
 
 ifeq ($(OS_ARCH),Darwin)
@@ -93,7 +106,7 @@ CPPSRCS		+= $(TESTCPPSRCS)
 INSTALL_STUFF =  
 
 ifeq ($(OS_ARCH),Linux)
-INSTALL_STUFF +=  CoolKeyLogo.gif
+INSTALL_STUFF +=  icon.png 
 endif
 
 ifeq ($(OS_ARCH),WINNT)
@@ -104,16 +117,14 @@ include $(topsrcdir)/config/config.mk
 
 
 ifeq ($(OS_ARCH),Linux)
-
-CXXFLAGS	+= $(MOZ_GTK_CFLAGS) $(MOZ_GTK2_CFLAGS)
-
+CXXFLAGS	+= $(MOZ_GTK_CFLAGS) $(MOZ_GTK2_CFLAGS) $(NOTIFY_CXX_FLAGS)
 endif
 
 all:: export libs deploy 
 
 
 libs:: $(INSTALL_STUFF) rhTray.h 
-	$(NSINSTALL) rhTray.h $(DIST)/include/rhTray
+	$(NSINSTALL) rhTray.h $(CORE_INC)/rhTray
 
 
 clean::
@@ -122,8 +133,8 @@ clean::
 deploy::
 	echo "Deploying"
 	echo $(IMPORT_LIBRARY)
-	$(NSINSTALL) ./$(LIB_PREFIX)rhTray$(DLL_SUFFIX) $(CORE_DEPTH)/esc/app/xul/esc/components
-	$(NSINSTALL) ./_xpidlgen/*.xpt $(INSTALL_STUFF) $(CORE_DEPTH)/esc/app/xul/esc/components
+	$(NSINSTALL) ./$(LIB_PREFIX)rhTray$(DLL_SUFFIX) $(CORE_DEPTH)/src/app/xul/esc/components
+	$(NSINSTALL) ./_xpidlgen/*.xpt $(INSTALL_STUFF) $(CORE_DEPTH)/src/app/xul/esc/components
 
 
 # separate libraries linked in.
