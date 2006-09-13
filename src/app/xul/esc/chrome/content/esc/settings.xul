@@ -20,136 +20,133 @@
 <!DOCTYPE window SYSTEM "chrome://esc/locale/esc.dtd">
 <window 
     class="escwindow"
-    id="settings-window"
+    id="esc-window"
     title="&escTitle;"
-    onload="InitializeBindingTable()"
+    onload="InitializeAdminBindingList()"
     onunload="cleanup()"
-    width ="600"
-    height= "450"
+    width ="720"
+    height= "460"
+    name="admin"
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
- <stringbundle id="esc_strings" src="chrome://esc/locale/esc.properties"/> 
- <script src="TRAY.js"/>
- <script src="ESC.js"/>
+     <stringbundle id="esc_strings" src="chrome://esc/locale/esc.properties"/>
+     <script src="TRAY.js"/>
+     <script src="ESC.js"/>
+     <tabbox id="tablist" hidden="true">
+         <tabs>
+             <tab label="Enrollment" oncommand="loadESC();"/>
+             <tab label="Configuration" oncommand="loadCONFIG();"/>
+         </tabs>
+     </tabbox>
+     <hbox class="logoBox">
+                 <image id="logoImage"/>
+                 <spacer class = "horSpacerVeryShort"/>
+                 <vbox>
+                     <spacer flex="1"/>
+                     <label class="headLabelText" value="&administerKeys;"/>
+                     <spacer flex="1"/>
+                 </vbox>
+     </hbox>
+     <groupbox flex ="1" orient="vertical" class="outerGroupBox">
+         <vbox id="administer-message-id">
+             <spacer flex="1"/>
+             <description class="messageText">
+                 &administerMessage;
+             </description>
+         </vbox>
+         <hbox flex="1">
+             <groupbox flex="1" >
+                  <caption label="&pluggedInCards;" class="captionText"/>
+                  <vbox id="admin-no-keys-area">
+                  <spacer flex ="1"/>
+                  <description class="messageText">
+                      &adminNoKeysMessage;
+                  </description>
+                  <spacer flex = "1"/>
+                  </vbox>
+                  <listbox id="AdminBindingList" flex="2" >
+                      <listcols>
+                          <listcol/>
+                          <listcol flex="1"/>
+                          <listcol flex="1"/>
+                          <listcol flex="1"/>
+                          <listcol flex="1"/>
+                      </listcols>
+                      <listhead>
+                          <listheader />
+                          <listheader flex="1" class="headerText" label="&keyIssuer;"/>
+                          <listheader flex="1" class="headerText" label="&keyIssuedTo;"/>
+                          <listheader flex="1" class="headerText" label="&keyStatus;"/>
+                          <listheader flex="1" class="headerText" label="&keyProgress;"/>
+                      </listhead>
+                  </listbox>
+             </groupbox>
+             <groupbox flex="1" class="mediumWideBox" align="center">
+                  <caption class="captionText" label="&detectedKeyDetailsHeader;"/>
+                  <hbox class="outerBoxMedium" align="center">
+                      <image id="admin-details-image" src="blank-cardx2.png"/> 
+                      <vbox class="outerGroupBox">
+                          <label id="admin-key-details-label" value="&blankKeyLabel;" class ="mediumLabelText"/>
+                      </vbox>
+                  </hbox>
 
-  <hbox>
-  <toolbar id="esc-settings-smenubar">
-    <menu id="settings-nav-menu" label="&navigationMenu;">
-      <menupopup id="settings-nav-popup">
-        <menuitem label="&enrollmentMenuItem;" oncommand="loadESC();"/>
-        <menuitem label="&configMenuItem;" oncommand="loadCONFIG();"/>
-      </menupopup>
-    </menu>
+             <!--    <spacer class="verticleSpacerShort"/> -->
+                 <vbox id="password-area-id" hidden="true" >
+                      <grid>
+                          <columns>
+                              <column flex="0"/>
+                          </columns>
+                          <rows>
+                              <row>
+                                  <label control="pintf"  value="&pleaseEnterPassword;" maxlength="10"/>
+                              </row>
+                              <row>
+                                  <textbox id="pintf" type = "password" />
+                              </row>
+                              <row>
+                                  <label control="reenterpintf" value="&pleaseReEnterPassword;" maxlength="10"/>
+                               </row>
+                               <row>
+                                  <textbox id="reenterpintf" type="password" />
+                              </row>
+                              <spacer class="verticalSpacer"/>
+                              <row>
+                                  <label value="&passwordQuality;"/>
+                              </row>
+                              <row>
+                                  <image id="password-image" src="1-none.png"/>
+                                  <spacer flex = "1"/>
+                              </row>
+                              <row>
+                              <spacer class="verticalSpacerShort"/>
+                              </row>
+                          </rows>
+                     </grid>
+                  </vbox>
 
-   <menu id="op-menu" label="&operationsMenu;">
+                  <vbox class="outerBoxMedium" >
+                      <description id="admin-details-message" class="messageText" hidden="true">
+                          &adminDetailsMessage;
+                          <spacer class="verticalSpacer"/>
+                      </description>
 
-    <menupopup id="op-popup">
-    <menuitem id="menu-format-item" label="&doFormat;" oncommand="DoFormatCoolKey();"/>
-    <menuitem id="menu-reset-item" label="&doResetPin;" oncommand="DoResetSelectedCoolKeyPIN();"/>
-   <menuitem id="menu-info-item" label="&keyInfo;" oncommand="DoShowKeyInfo();"/>
-  </menupopup>
-  </menu>
-  </toolbar>
+                          <button class="buttonText" id="formatbtn" label="&doFormat;" oncommand="DoFormatCoolKey()" disabled="true" hidden = "false"/>
 
-</hbox>
+                          <button class="buttonText"  id="resetpinbtn" label="&doResetPin;" oncommand="DoCollectPassword('resetpin');" disabled="true" hidden="false"/>
 
-<groupbox>
-<hbox >
- <image id="logoImage"/>
- <spacer flex="1"/>
- <label class = "headLabelText" value="&settingsTitle;"/>
- <spacer flex="1"/>
-</hbox>
-</groupbox>
-    <vbox flex = "1"> 
-    <vbox  flex = "4">
+                          <button class="buttonText" id="enrollbtn" label="&doEnroll;" oncommand="DoCollectPassword('enroll');" disabled="true" hidden="false"/>
 
-<groupbox flex="1" >
-<caption label="&keysCaption;"/>
+                          <button class="buttonText"  id="viewcertsbtn" label="&doViewCerts;" oncommand="launchCertViewer()" disabled="true" hidden="false"/>
 
-<grid id ="BindingTable" >
-<columns>
+                          <button class="buttonText" id="advancedbtn" label="&advancedInfo;" disabled="true" hidden="false" oncommand="DoShowAdvancedInfo();"/>
 
- <column flex = "1" />
- <column flex = "1" />
- <column flex = "1" />
- <column flex = "1"/>
- <column flex = "1"/>
-</columns>
-<rows id="BindingTableRows">
-    <row pack="center">
-
-        <label class="titleText" value="&keyIssuer;" />
-        <spacer flex= "1" class = "horSpacerShort" />
-        <label class="titleText" value="&keyIssuedTo;" />
-        <spacer flex = "1" class="horSpacerShort"/>
-        <label class="titleText" value="&keyStatus;"/>
-        <spacer flex = "1" class="horSpacerShort"/>
-        <label class="titleText" value="&keyProgress;"/>
-
-    </row>
-   
-    <spacer flex = "1" class="verticalSpacer" />
-    <row id="NoKeysRow" >
-
-       <label class="rowLabelTextUninit" id="NoKeysLabel" value = "&noKeysPresent;" hidden="false"/>
-
-    </row>
-
-</rows>
-
-</grid>
-
-<hbox id="cylon1" class="cylonHBox" >
-
-    <label class="titleText" id="operationtext" value="" />
-    <label id="eye1" mode="determined"  value = "..."  hidden="true" class="cylonEye"> </label>
-</hbox>
-
- <groupbox flex = "1" >
-    <caption label ="Key Information"/>
-    <grid >
-        <rows>
-            <row>
-                <label control="pintf"  value="&enterKeyPin;" maxlength="10"/>
-                <textbox id="pintf" type = "password"/>
-           </row>
-           <row>
-               <label control="reenterpintf" value="&reEnterKeyPin;" maxlength="10"/>
-               <textbox id="reenterpintf" type="password" />
-          </row>
-       </rows>
-    </grid>
-
-    </groupbox>
-
-</groupbox>
-
-<groupbox  >
-<caption label="&keyOperationsCaption;" />
-<vbox flex = "1">
-<label class = "headLabelText" value = "&chooseKeyOperation;"/>
-<spacer flex = "1" class="verticalSpacer" />
-<hbox >
-
-<spacer flex = "1" />
-
-
-<button id="resetpinbtn" label="&doResetPin;" oncommand="DoResetSelectedCoolKeyPIN();"/>
-<spacer flex = "1" />
-
-<button id="keyinfobtn" label="&doShowKeyInfo;"  oncommand="DoShowKeyInfo()" />
-<spacer flex = "1" />
-
-
-<button id="cancelbtn" label="&doCancel;" oncommand="DoCancelOperation();"/>
-<spacer flex = "1" />
-</hbox>
-<spacer flex = "1" class = "verticalSpacer" />
-</vbox>
-
-</groupbox>
-  
-</vbox> 
-</vbox>
+                  </vbox> 
+             </groupbox>
+         </hbox>
+        <hbox id = "enrollment_button_box" >
+            <spacer flex = "1"/>
+            <button class="buttonText" id="closebtn" label ="&closeAdminLater;" oncommand="HideAdminPage();"/>
+            <spacer class="horSpacerShort"/>
+         </hbox>
+  </groupbox>
 </window>

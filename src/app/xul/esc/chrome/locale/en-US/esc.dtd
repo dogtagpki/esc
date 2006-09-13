@@ -15,39 +15,68 @@
  * All rights reserved.
  ***** END COPYRIGHT BLOCK ***** -->
 
-<!ENTITY escTitle "Red Hat Enterprise Security Client">
-<!ENTITY settingsTitle "Red Hat Enterprise Security Client Settings">
-<!ENTITY configTitle "Red Hat Enterprise Security Client Configuration">
+<!ENTITY escCompany "Red Hat">
+<!ENTITY smartCardManager  "smart card manager">
+<!ENTITY smartCardManagerU "Smart Card Manager">
+<!ENTITY smartCard "smart card">
+<!ENTITY smartCardU "Smart Card">
+<!ENTITY escTitle "Smart Card Manager">
+<!ENTITY configTitle "Phone Home Configuration Information">
 <!ENTITY certInfoTitle "ESC Key Info">
-<!ENTITY genericAuthTitle "ESC Authentication">
+<!ENTITY advancedInfoTitle "Diagnostics Information">
+<!ENTITY genericAuthTitle "Authentication">
 <!ENTITY progressHeader "Progress">
 <!ENTITY unknownIssuer "Unknown Issuer">
 <!ENTITY unknown "Unknown">
 <!ENTITY cancel "Cancel">
 <!ENTITY doEnroll "Enroll">
 <!ENTITY doCancel "Cancel">
-<!ENTITY doResetPin "Reset Pin">
+<!ENTITY doResetPin "Reset Password">
 <!ENTITY doFormat "Format"> 
-<!ENTITY doShowKeyInfo "Show KeyInfo">
-<!ENTITY keyInfo "Key Info">
-<!ENTITY navigationMenu "Navigation">
-<!ENTITY operationsMenu "Operations">
-<!ENTITY settingsMenuItem "Settings">
-<!ENTITY enrollmentMenuItem "Enrollment">
-<!ENTITY configMenuItem "Configuration">
-<!ENTITY keysCaption "Keys">
-<!ENTITY keyOperationsCaption "Key Operations">
-<!ENTITY chooseKeyOperation "Choose Key Operation">
-<!ENTITY keyIssuer "Key Issuer">
-<!ENTITY keyIssuedTo "Key Issued To">
-<!ENTITY keyStatus "Key Status">
-<!ENTITY keyProgress "Key Progress">
-<!ENTITY noKeysPresent "NO KEYS PRESENT">
-<!ENTITY keyInformation "Key Information">
+<!ENTITY keyPassword "Password">
+<!ENTITY pluggedInCards "Plugged-In-Cards">
+<!ENTITY keyIssuer "Issuer">
+<!ENTITY keyIssuedTo "Issued To">
+<!ENTITY keyStatus "Status">
+<!ENTITY keyProgress "Progress">
+<!ENTITY noKeysPresent "No Cards Present">
 <!ENTITY enterKeyPin "Enter Key Pin">
 <!ENTITY reEnterKeyPin "Re Enter Key Pin">
 <!ENTITY editConfigValues "Edit Configuration Values">
-<!ENTITY tpsURIHeader "TPS URI:">
+<!ENTITY tpsURIHeader "TPS Config URI:">
 <!ENTITY escEnrollURIHeader "ESC ENROLL URI:">
 <!ENTITY updateValues "Update Values">
-<!ENTITY doTest "Test">
+<!ENTITY doTest "Test URL">
+<!ENTITY pleaseEnroll "Smart Card Enrollment">
+<!ENTITY unenrolledDetected "Unenrolled Smart Card Detected">
+<!ENTITY noKeyDetected "No Smart Card Detected">
+<!ENTITY enrollMessage "To begin the smart card enrollment process, you will need to choose a password to protect the smart card. You will need to enter this password each time you use your new smart card.  You will also need to enter the security information below needed by Smart Card Manager to complete your enrollment.">
+<!ENTITY detectedMessage "Smart Card Manager has detected that you have entered a new and un-enrolled smart card.  Before you can use this smart card, you have to enroll it.  Enrolling your smart card personalizes it so only you can use it for secure operations.">
+<!ENTITY readyToProceed "When you are ready to begin the process,click  Enroll My Smart Card Now.">
+<!ENTITY noKey "Unable to detect your smart card.">
+<!ENTITY insertKey "To enroll your smart card, please insert your security card or USB key now.">
+<!ENTITY adminNoKeysMessage "In order to administer your security smart cards, you must have one  or more cards connected to the computer. Please do so now.">
+<!ENTITY progressHeader "Progress">
+<!ENTITY detectedKeyDetailsHeader "Security Information">
+<!ENTITY keyEnrollmentHeader "Create Password">
+<!ENTITY passwordQuality "Password Quality">
+<!ENTITY unknownIssuer "Unknown Issuer">
+<!ENTITY unknown "Unknown">
+<!ENTITY pleaseEnterPassword "Enter new password:">
+<!ENTITY pleaseReEnterPassword "Re-enter password:">
+<!ENTITY closeEnrollLater "Close, I'll Enroll Later">
+<!ENTITY closeAdminLater "Close">
+<!ENTITY closeNow "Close">
+<!ENTITY enrollKeyNow "Enroll My Smart Card Now">
+<!ENTITY enrollKey "Enroll Smart Card">
+<!ENTITY administerKeys "Manage Smart Cards">
+<!ENTITY administerMessage "Here you can perform various operations upon your smart card(s). For instance, Formatting a card results in preparing a card for future  enrollment.">
+<!ENTITY blankKeyLabel "Blank Key">
+<!ENTITY adminDetailsMessage "This smart card is not personalized.">
+<!ENTITY advancedInfo "Diagnostics">
+<!ENTITY doViewCerts "View My Certificates">
+<!ENTITY getESCPassword "Password Information">
+<!ENTITY escOK "OK">
+<!ENTITY escCancel "Cancel">
+<!ENTITY tpsConfigDesc "Smart Card Manager has detected a totally blank smart card.  Smart Card Manager can not determine the location of the Smart Card Server for this card. Please enter the correct URL value so the Smart Card Server can be reached. The value should be of the form: http(s)://test.host.com:7888/home.cgi.">
+<!ENTITY diagnosticsMessage "The information below is diagnostic information that your system generates as you use your smart card. If you are having smart card problems, you may be asked by your support engineer to send this information for analysis.">

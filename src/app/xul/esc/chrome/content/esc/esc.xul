@@ -22,104 +22,143 @@
     class="escwindow"
     id="esc-window"
     title="&escTitle;"
-    onload="InitializeBindingTable()"
-    width ="500"
+    onload="InitializeEnrollment()"
+    width ="600"
     height= "350"
     onunload="cleanup()"
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-<stringbundle id="esc_strings" src="chrome://esc/locale/esc.properties"/>
-<script src= "TRAY.js"/>
-<script src="ESC.js"/> 
-  <toolbar id="enroll-esc-menubar">
-    <menu id="enroll-nav-menu" label="&navigationMenu;">
-      <menupopup id="enroll-file-popup">
-        <menuitem label="&settingsMenuItem;" oncommand="loadSETTINGS();"/>
-        <menuitem label="&configMenuItem;" oncommand="loadCONFIG();"/>
-      </menupopup>
-    </menu>
-  </toolbar>
-    <vbox flex ="1"  >
+  <stringbundle id="esc_strings" src="chrome://esc/locale/esc.properties"/>
+  <script src= "TRAY.js"/>
+  <script src="ESC.js"/> 
+  <tabbox id="tablist" hidden="true">
+      <tabs>
+      <tab label="Settings" oncommand="loadSETTINGS();"/>
+      <tab label="Configuration" oncommand="loadCONFIG();"/>
+     </tabs>
+  </tabbox>
+  <vbox flex ="1"  >
+      <hbox class="logoBox" >
+          <image id="logoImage"/>
+          <spacer class = "horSpacerVeryShort"/>
+          <vbox>
+              <spacer flex="1"/>
+              <label class = "headLabelText" value="&unenrolledDetected;" id="unenrolled-key-heading"/>
 
-    <groupbox>
-<hbox >
- <image id="logoImage"/>
- <spacer flex="1"/>
- <label class = "headLabelText" value="&escTitle;"/>
- <spacer flex="1"/>
-</hbox>
-</groupbox>
+             <label class = "headLabelText" value="&noKeyDetected;" id="no-key-heading" hidden="true"/>
 
-    
- <!--   <spacer flex="1"  /> -->
+             <label class = "headLabelText" value="&pleaseEnroll;" id="enrolling-key-heading" hidden="false"/>
 
-    <groupbox flex = "1" >
+              <spacer flex="1"/>
+          </vbox>
+      </hbox>
+      <groupbox flex="1" class="outerGroupBox" >
+          <description class="messageText" id="detected-key-message" >
+              &detectedMessage;
+          </description>
+          <description class="messageText" id="enroll-key-message"  hidden="true">
+              &enrollMessage;
+          </description>
+      <vbox id="no_key_box" hidden="true">
+         <description class="boldMessageText">
+             &noKey;
+         </description>
+         <spacer flex="1" class="verticalSpacer"/>
+         <description class="messageText" >
+             &insertKey; 
+         </description>
+         <spacer flex="2"/>
+      </vbox>
+      <vbox id="yes_key_box">
+         <spacer flex="1" class="verticalSpacer"/>
+         <description class="messageText">
+             &readyToProceed;
+         </description> 
 
-    <caption label = "&keysCaption;" />
-    <grid id ="BindingTable"  >
-    <columns>
+      </vbox>
+      <spacer flex = "2"/>
+      <vbox id="key_enrollment_area" hidden="true">
+          <hbox> 
+              <spacer flex = "1"/>
+              <groupbox flex = "1">
+                  <caption label="&detectedKeyDetailsHeader;"/>
+                  <vbox id="key_enrollment_row">
+                      <hbox>
+                          <spacer flex="1"/>
+                          <progressmeter id="progress-id" hidden="true"/>
+                          <spacer flex="1"/>
+                      </hbox>
+                      <grid >
+                          <columns>
+                              <column/>
+                              <column flex="1" />
+                              <column flex = "1" />
+                          </columns>
+                          <rows>
+                              <row>
+                                  <label value = "&keyIssuer;" />
+                                  <spacer flex ="1"/>
+                                  <label id="issuer-id" value ="&unknownIssuer;" />
+                              </row>
+                              <row>
+                                  <label value = "&keyStatus;"/>
+                                  <spacer flex = "1"/>
+                                  <label id="status-id" value ="&unknown;"/>
+                              </row>
+                              <row>
+                                  <label value = "&keyIssuedTo;"/>
+                                  <spacer flex = "1"/>
+                                  <label id="issued-to-id" value ="&unknown;"/>
+                             </row>
+                          </rows>
+                      </grid>
+                      <spacer flex="1" class="verticalSpacer"/>
+                      <hbox>
+                          <spacer flex ="1" />
+                          <image id="cylonImage" hidden="true"/>
+                          <spacer flex = "1"/>
+                     </hbox>
+                  </vbox>
+              </groupbox>
+              <groupbox>
+                  <caption label = "&keyEnrollmentHeader;"/>
+                  <spacer flex = "1"/>
+                  <grid>      
+                      <columns>
+                          <column/>
+                          <column flex="1" />
+                      </columns>
+                      <rows>
+                          <row>
+                              <label control="pintf"  value="&pleaseEnterPassword;" maxlength="10"/> 
+                              <textbox id="pintf" type = "password" onkeypress="EvaluatePasswordQuality();"/>
+                          </row>
+                          <row>              
+                              <label control="reenterpintf" value="&pleaseReEnterPassword;" maxlength="10"/> 
+                              <textbox id="reenterpintf" type="password" />
+                          </row>
+                      </rows>
+                  </grid> 
+                  <vbox>
+                      <label value="&passwordQuality;"/>
+                      <hbox> 
+                           <spacer flex = "1"/>
+                           <image id="password-image" src="1-none.png"/>
+                           <spacer flex="1"/>
+                      </hbox>
+                  </vbox> 
+              </groupbox>
+              <spacer flex = "1"/>
+      </hbox>
+  </vbox>
 
-     <column flex = "1" />
-     <column flex = "1" />
-     <column flex = "1"/>
-     <column flex = "1"/>
-     <column flex = "1" />
-    </columns>
-    <rows id="BindingTableRows">
-        <row pack="center">
-
-         <label class="titleText" value="&keyIssuer;" />
-         <spacer flex= "1" class = "horSpacerShort" />
-         <label class="titleText" value="&keyIssuedTo;" />
-         <spacer flex = "1" class="horSpacerShort"/>
-         <label class="titleText" value="&keyStatus;"/>
-         <spacer flex = "1" class="horSpacerShort"/>
-         <label class="titleText" value="&keyProgress;"/>
-
-        </row>
-
-         <spacer flex = "1" class="verticalSpacer" />
-        <row id="NoKeysRow">
-
-          <label class="rowLabelTextUninit" id="NoKeysLabel" value = "&noKeysPresent;" hidden="false"/>
-
-        </row>
-
-    </rows>
-
-    </grid>
-
-<!--    <spacer flex="1" style="min-height: 20px" /> -->
-
-    <hbox id="cylon1" class="cylonHBox" >
-    <label class="titleText" id="operationtext" value=""/> 
-    <label id="eye1"   hidden="true" value="...." class="cylonEye"> </label>
+  <iframe id="esc-ui"  flex="1" class="BorderedIFrame" hidden="true"/>
+  </groupbox>
+  <hbox id = "enrollment_button_box">
+        <spacer flex = "4"/>
+        <button id="closebtn" label ="&closeNow;" oncommand="HideEnrollmentPage()"/>
+        <button id="enrollbtn" label = "&enrollKeyNow;" oncommand="DoShowFullEnrollmentUI();" hidden="true" disabled="false"/>
+        <spacer class="horSpacerShort"/>
     </hbox>
-
-    <vbox>
-    <groupbox flex = "1" >
-    <caption label="&keyInformation;"/>
-    <grid >
-        <rows>
-            <row>
-                <label control="pintf"  value="&enterKeyPin;" maxlength="10"/>
-                <textbox id="pintf" type = "password"/>
-           </row>
-           <row>
-               <label control="reenterpintf" value="&reEnterKeyPin;" maxlength="10"/>
-               <textbox id="reenterpintf" type="password" />
-          </row>
-          <row>
-              <button id="enrollbtn" label="&doEnroll;" oncommand="DoEnrollCoolKey();"/>
-              <button id="cancelbtn" label="&doCancel;" oncommand="DoCancelOperation();"/>
-         </row>
-       </rows>
-    </grid>
-
-    </groupbox>
-    </vbox>
-
-    </groupbox>
-    </vbox>
-
+</vbox>
 </window>

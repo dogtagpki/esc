@@ -15,11 +15,27 @@
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
+p {
+
+   font-style: italic;
+}
+
+.invisibleWindow {
+
+    visibility: hidden ;
+
+}
 .escwindow   {
 background: #ffffff url(bg.jpg) repeat-x;
         font-family: arial;
         font-size: 17pt;
 
+        padding: 10px;
+}
+
+#smallKeyImage {
+
+    list-style-image: url(esc-client-24.png);
 }
 
 #logoImage {
@@ -27,13 +43,80 @@ background: #ffffff url(bg.jpg) repeat-x;
     list-style-image: url(logo.gif);
 }
 
+#cylonImage {
+
+    list-style-image: url(progress.7.gif);
+}
+
+#blankKeyImage {
+
+    list-style-image: url(blank-card.png);
+}
+
+#uninitializedKeyImage {
+    list-style-image: url(initializecard.png);
+}
+
+#enrolledKeyImage {
+
+    list-style-image: url(enrolled-key.png);
+}
+
+#passwordNone {
+    list-style-image: url(1-none.png);
+}
+
 * {
   font-family: "Arial";
   font-size: 8pt;
 }
+
+.logoBox {
+   margin:  5px;
+   padding: 5px;
+
+}
+
+.outerBoxMedium {
+
+    padding: 5px;
+
+}
+.outerGroupBox {
+    padding: 7px;
+}
+
+.messageText {
+  font-size: 9pt;
+  text-align: justify;
+
+}
+
+.captionText {
+  font-size: 11pt;
+}
+
+.boldMessageText {
+  font-size: 1.3em;
+  font-weight: bold;
+  text-align: justify;
+
+}
+
+.largeLabelText {
+  font-size: 20pt;
+  font-weight:bold;
+}
+
+.mediumLabelText {
+  font-size: 12pt;
+  font-weight:bold;
+  text-align: center;
+}
+
 .headLabelText {
 
-  font-size: 13pt;
+  font-size: 17pt; 
   font-weight:bold;
   text-align: center;
 }
@@ -42,6 +125,12 @@ background: #ffffff url(bg.jpg) repeat-x;
 
   font-size: 8pt;
   font-weight: bold;
+}
+
+.largeLabelText {
+
+  font-size: 13pt;
+  font-weight:bold;
 }
 
 .rowLabelTextUninit {
@@ -54,23 +143,43 @@ background: #ffffff url(bg.jpg) repeat-x;
 }
 
 .rowLabelText {
-
   font-size: 8pt;
-  font-weight: bold;
-
+  font-weight: normal;
 }
 
 .headerText {
-  font-family: "Arial";
   font-size: 12pt;
   font-weight: bold; 
 }
 
+.buttonText {
+  font-size: 10pt;
+}
+
 .verticalSpacer {
 
-    min-height: 20px;
+    min-height: 2.0em;
 
 
+}
+
+.progressMeter {
+   margin: 4px;
+   width: 12px;
+}
+
+.verticalSpacerShort {
+   min-height: 1em;
+}
+
+
+.horSpacerShort {
+
+    min-width: 2em;
+}
+
+.horSpacerVeryShort {
+    min-width: 1em;
 }
 
 .authTitleText {
@@ -101,7 +210,7 @@ background: #ffffff url(bg.jpg) repeat-x;
 
 .linkText {
   font-family: "Arial";
-  font-size: 8pt;
+  font-size: 1.2em;
 }
 
 #BindingTable {
@@ -120,6 +229,10 @@ background: #ffffff url(bg.jpg) repeat-x;
   font-size: 7pt;
 }
 
+tr [COOLKeyPresent="yes"]{
+  background-color: rgb(255, 0, 0);
+}
+
 .cylon {
   font-size: 4pt;
   position: relative;
@@ -131,15 +244,12 @@ background: #ffffff url(bg.jpg) repeat-x;
 
   width: 200px; 
   height: 20px; 
-  align: center; 
 
 }
 
 .cylonEye {
-
-  align: center; 
   font-weight: bold; 
-  font-size: 9pt;
+  font-size: 4pt;
 }
 
 #statusMsg {
@@ -148,7 +258,7 @@ background: #ffffff url(bg.jpg) repeat-x;
 
 .ProgressMeter {
   position: relative;
-  padding: 0px;
+  padding: 1px;
   border: 1px solid rgb(60, 60, 60);
   background-color: #ffffff;
   text-align: center;
@@ -172,42 +282,11 @@ background: #ffffff url(bg.jpg) repeat-x;
 
 }
 
-.KeyTableHeader {
-  color: rgb(0,0, 0);
-  background-color: #ffffff;
-  text-align: left;
-}
-#KeyTable td {
-  background-color: #ffffff;
-  padding-left: 3px;
-  padding-right: 3px;
-};
-
-.TableDescriptionPanel {
-  background-color: #ffffff);
-  margin-right: 5px;
-  margin-left: 5px;
-  margin-bottom: 0px;
-  margin-bottom: 5px;
-  padding: 5px;
-}
-                                                                                
-.PurchasePanel {
-  width: 100%;
-  text-align: center;
-  padding-top: 5px;
-  padding-bottom: 5px;
-}
-                                                                                
-.NeedQuestionText {
-  font-size: 16pt;
-  font-weight: bold;
-}
-
 .COOLHeaderText {
   font-family: "Arial";
-  font-size: 20pt;
+  font-size: 17pt;
   font-weight: bold;
+  vertical-align: middle;
 }
                                                                                 
 .ContentTable {
@@ -230,24 +309,38 @@ background: #ffffff url(bg.jpg) repeat-x;
 .PageHeader {
   width: 100%;
   border-bottom: solid black 1px;
-  vertical-align: center;
+  vertical-align: middle;
   background-color: #ffffff;
 }
 
 
-.Bordered {
+.BorderedIFrame {
 
-    border: grey solid 7px;
+    width:  600px;
+    height: 725px;
+    border: black solid 4px;
 }
 
 .SelectedRow {
 
-    background-color: grey;
+    color: white;
+    background-color: #0033CC;
 
 }
 
 .UnSelectedRow {
 
+    color: black;
     background-color:  #ffffff;
+
+}
+
+.mediumButton {
+  width: 100px;
+}
+
+.mediumWideBox {
+
+ min-width: 20em;
 
 }

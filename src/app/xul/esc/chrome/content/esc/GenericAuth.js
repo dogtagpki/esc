@@ -430,6 +430,18 @@ function AddTextToColumn(column,text)
    return text_node;
 }
 
+function AddSpacer()
+{
+  var tSpacer = document.createElement("spacer");
+
+  if(!tSpacer)
+      return null;
+
+
+  return tSpacer;
+
+}
+
 function AddButton(id,label)
 {
 
@@ -586,9 +598,15 @@ function ConstructUI(aKeyType,aKeyID,uiData)
 
     if(last_row)
     {
+         AddSpacerToNode(last_row,"1","min-height: 20px");
+         AddSpacerToNode(last_row,"1","min-height: 20px");
         var button = AddButton("","Submit"); 
-        button.setAttribute("oncommand" , "FormSubmit();");
-        last_row.appendChild(button);
+        if(button)
+            button.setAttribute("oncommand" , "FormSubmit();");
+
+
+        if(button)
+            last_row.appendChild(button);
     } 
 }
 

@@ -20,21 +20,42 @@
 var gStringBundle = null;
 var netkey;
 
-var gHidden = null;
-
 var keyUITable = new Array();
 var keyTypeTable = new Array();
 var curChildWindow = null;
 
-var gUsesTree = 0;
+var gEnrollmentPage = 0;
+var gAdminPage = 0;
+var gUsesListBox = 0;
+var gFactoryMode = 0;
+var gHiddenPage = 0;
+var gHiddenPageDone = 0;
+var gExternalUI = 0;
+
+var gDiagnosticsCopyString=null;
 
 loadStringBundle();
+
+//ESC constants
+
+const  KEY_ISSUER_URL    = "keyIssuerUrl";
+const  KEY_ISSUER        = "keyIssuer";
+const  TPS_URL           = "Operation";
+const  TPS_UI            = "UI";
+const  SERVICES_TAG      = "Services";
+const  ISSUER_TAG        = "IssuerName"; 
+const  SERVICE_INFO_TAG  = "ServiceInfo";
+
+//Window names
+
+const ENROLL_WINDOW      = "esc.xul";
+const ADMIN_WINDOW       = "settings.xul";
+const HIDDEN_WINDOW      = "hiddenWindow.xul";
 
 
 function getUIForKey(aKeyID)
 {
     return keyUITable[aKeyID];
-
 }
 
 function getTypeForKey(aKeyID)
@@ -60,7 +81,7 @@ jsNotify.prototype = {
      if(!iid.equals(Components.interfaces.rhIKeyNotify) &&
          !iid.equals(Components.interfaces.nsISupports))
       {
-          alert(getBundleString("errorJsNotifyInterface"));
+          MyAlert(getBundleString("errorJsNotifyInterface"));
           throw Components.results.NS_ERROR_NO_INTERFACE;
       }
       return this;
@@ -77,7 +98,7 @@ jsNotify.prototype = {
     gNotify = new jsNotify;
     netkey.rhCoolKeySetNotifyCallback(gNotify);
   } catch(e) {
-     alert(getBundleString("errorUniversalXPConnect") + e);
+     MyAlert(getBundleString("errorUniversalXPConnect") + e);
   }
 
 //
@@ -86,13 +107,14 @@ jsNotify.prototype = {
 function cleanup()
 {
 
- TrayRemoveWindow();
+    TrayRemoveWindow(null);
     try {
       netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
       netkey.rhCoolKeyUnSetNotifyCallback(gNotify);
     } catch(e) {
-     alert(getBundleString("errorUniversalXPConnect")  + e);
+     MyAlert(getBundleString("errorUniversalXPConnect")  + e);
     }
+
 }
 
 var gScreenName = "";
@@ -181,7 +203,7 @@ function testTPSURISilent()
 
 
             } catch(e) {
-                alert(getBundleString("errorConfigValue")  + e);
+                MyAlert(getBundleString("errorConfigValue")  + e);
             }
 
         if(tps_uri)
@@ -191,6 +213,102 @@ function testTPSURISilent()
         }
     }
 
+}
+
+function DoPhoneHome(keyType,keyID)
+{
+  var callback = function (aResult) {
+
+    if(aResult == true)
+    {
+        UpdateRowWithPhoneHomeData(keyType,keyID);
+    }
+    else
+    {
+        launchCONFIG(keyType,keyID);
+    }
+  }
+
+  if(IsPhoneHomeCached(keyID))
+  {
+      return true;
+  }
+
+  var home = DoCoolKeyGetIssuerUrl(keyType,keyID);
+
+  var homeRes = false;
+
+  if(home)
+  {
+      homeRes = phoneHome(home,keyID,callback);
+  }
+
+  if(!homeRes)
+  {
+      launchCONFIG(keyType,keyID);
+  }
+
+  return homeRes;
+}
+//Test Phone Home url in config UI
+
+function DoPhoneHomeTest()
+{
+    // Test out user supplied phone home url 
+
+    var name = this.name;
+
+    var callback = function (aResult) {
+
+        if(aResult == true)
+        {
+            MyAlert(getBundleString("tpsConfigSuccess"));
+        }
+        else
+        {
+            MyAlert(getBundleString("tpsConfigError"));
+        }
+    }
+
+    var url = document.getElementById("phonehomeuri");
+
+    if(!url)
+    {
+        MyAlert(getBundleString("noTpsConfigUrl"));
+        return;
+
+    }
+
+    if(!url.value)
+    {
+        MyAlert(getBundleString("noTpsConfigUrl"));
+        return;
+    }
+
+    MyAlert(getBundleString("tpsConfigTest") + " " + url.value);
+
+    if(name)
+    {
+         phoneHome(url.value,name,callback);
+    }
+    else
+    {
+        MyAlert(getBundleString("tpsConfigError"));
+    }
+
+}
+
+function DoPhoneHomeConfigClose()
+{
+
+    var name = this.name;
+
+    if(window.opener && name)
+    {
+        window.opener.UpdateRowWithPhoneHomeData(1,name);
+    }
+
+    window.close();
 }
 
 //Test the tps uri connection
@@ -218,13 +336,13 @@ function testTPSURI(aURL)
 
     if(!uri)
     {
-        alert(getBundleString("errorBlankTPSURI"));
+        MyAlert(getBundleString("errorBlankTPSURI"));
         return;
     }
 
     if(!aURL)
     {
-        alert(getBundleString("aboutToTestTPSURI") + uri);
+        MyAlert(getBundleString("aboutToTestTPSURI") + uri);
     }
 
     req = new XMLHttpRequest();
@@ -243,13 +361,13 @@ function testTPSURI(aURL)
 
             if(index == 0 && !aURL)
             {
-                 alert(getBundleString("tpsURLContacted"));
+                 MyAlert(getBundleString("tpsURLContacted"));
             }
             else
             {
                 if(!aURL)
                 {
-                    alert(getBundleString("errorContactTPSURL"));
+                    MyAlert(getBundleString("errorContactTPSURL"));
                 }
             }
          }
@@ -272,11 +390,11 @@ function testEnrollURI()
 
     if(!uri)
     {
-        alert(getBundleString("errorBlankEnrollURI"));
+        MyAlert(getBundleString("errorBlankEnrollURI"));
         return;
     }
 
-    alert(getBundleString("aboutToTestTPSURI"));
+    MyAlert(getBundleString("aboutToTestTPSURI"));
 
     req = new XMLHttpRequest();
     req.open('GET', uri, true);
@@ -293,11 +411,11 @@ function testEnrollURI()
 
             if(index != -1)
             {
-                 alert(getBundleString("enrollURLContacted"));
+                 MyAlert(getBundleString("enrollURLContacted"));
             }
             else
             {
-                alert(getBundleString("errorContactEnrollURL"));
+                MyAlert(getBundleString("errorContactEnrollURL"));
             }
          }
     }
@@ -332,7 +450,7 @@ function commitConfigValues()
 
         if(!tps_uri_value )
         {
-            alert(getBundleString("tpsURIMustHaveValue"));
+            MyAlert(getBundleString("tpsURIMustHaveValue"));
             return;
         }
 
@@ -345,7 +463,7 @@ function commitConfigValues()
 
 
             } catch(e) {
-                alert(getBundleString("errorSetConfigValue") + e);
+                MyAlert(getBundleString("errorSetConfigValue") + e);
                 return;
        
             }
@@ -359,15 +477,21 @@ function commitConfigValues()
                 grantPrivilegesURL(esc_enroll_value);
 
             } catch(e) {
-                alert(getBundleString("errorSetConfigValue") + e);
+                MyAlert(getBundleString("errorSetConfigValue") + e);
                 return;
             }
 
 
-            alert(getBundleString("configChangesSubmitted"));
+            MyAlert(getBundleString("configChangesSubmitted"));
 
 
     }
+
+}
+
+function InitializePhoneHomeConfigUI()
+{
+    window.sizeToContent();
 
 }
 
@@ -386,7 +510,7 @@ function InitializeConfigUI()
 
 
             } catch(e) {
-                alert(getBundleString("errorSetConfigValue") + e);
+                MyAlert(getBundleString("errorSetConfigValue") + e);
             }
 
         if(tps_uri)
@@ -410,7 +534,7 @@ function InitializeConfigUI()
     
     
             } catch(e) {
-                alert(getBundleString("errorSetConfigValue") + e);
+                MyAlert(getBundleString("errorSetConfigValue") + e);
        }
 
        if(esc_enroll_uri)
@@ -434,7 +558,6 @@ function InitializeConfigUI()
 function loadStringBundle()
 {
     gStringBundle = document.getElementById("esc_strings");
-//    var test=getBundleString("testValue");
 }
 
 function getBundleString(string_id)
@@ -450,8 +573,6 @@ function getBundleString(string_id)
     return str;
 
 }
-
-
 function GetAuthDataFromPopUp(aKeyType,aKeyID,aUiData)
 {
 
@@ -475,7 +596,7 @@ function CoolKeySetDataValue(aKeyType,aKeyID,name,value)
 
 
             } catch(e) {
-                alert(getBundleString("errorSetDataValue") + e);
+                MyAlert(getBundleString("errorSetDataValue") + e);
             }
         }
 
@@ -491,7 +612,7 @@ function CoolKeySetTokenPin(pin)
 
 
             } catch(e) {
-                alert(getBundleString("errorSetDataValue") + e);
+                MyAlert(getBundleString("errorSetDataValue") + e);
             }
         }
 }
@@ -509,7 +630,7 @@ function CoolKeySetUidPassword(uid,pwd)
               netkey.SetCoolKeyDataValue(gCurKeyType,gCurKeyID,"Password",pwd);
 
           } catch(e) {
-              alert(getBundleString("errorSetDataValue") + e);
+              MyAlert(getBundleString("errorSetDataValue") + e);
           }
 
       }
@@ -521,7 +642,7 @@ function TestStatusMessages()
 
     for(i = 0 ; i < 48; i++)
     {
-        alert(Status_Messages[i]);
+        MyAlert(Status_Messages[i]);
 
     }
 
@@ -547,6 +668,16 @@ function KeyToRowID(keyType, keyID)
   return keyType + "--" + keyID;
 }
 
+function CellIDToKeyInfo(cellID)
+{
+  return cellID.split("--");
+}
+
+function KeyToCellID(keyType,keyID,cellID)
+{
+  return keyType + "--" + keyID + "--" + cellID;
+}
+
 function RowIDToKeyInfo(rowID)
 {
   return rowID.split("--");
@@ -559,7 +690,7 @@ function GetRowForKey(keyType, keyID)
 
 function ReportException(msg, e)
 {
-  alert(msg + " " + e.description + "(" + e.number + ")");
+  MyAlert(msg + " " + e.description + "(" + e.number + ")");
 }
 
 function GetCoolKeyStatus(keyType, keyID)
@@ -573,6 +704,15 @@ function GetCoolKeyStatus(keyType, keyID)
   }
 }
 
+function ConfigValueWithKeyID(keyID,configValue)
+{
+    if(!configValue || !keyID)
+        return null;
+
+    return configValue + "-" + keyID;
+
+}
+ 
 function GetCoolKeyPolicy(keyType, keyID)
 {
 
@@ -620,12 +760,11 @@ function GetCoolKeyIsAuthed(keyType, keyID)
 
 function GetCoolKeyIssuer(keyType,keyID)
 {
+    var issuer = null;
 
-    var issuer = "Red Hat";
+     issuer = GetCachedIssuer(keyID);
 
-     var keyStatus = GetStatusForKeyID(keyType, keyID);
-
-     if(keyStatus != getBundleString("statusEnrolled"));
+     if(!issuer)
          issuer = getBundleString("unknownIssuer");
 
     return issuer;
@@ -634,27 +773,100 @@ function GetCoolKeyIssuer(keyType,keyID)
 
 function GetCoolKeyIssuedTo(keyType,keyID)
 {
+    var keyStatus = GetStatusForKeyID(keyType, keyID);
 
-     var keyStatus = GetStatusForKeyID(keyType, keyID);
+    var defaultIssuedTo = getBundleString("statusUnknown");
+    var issuedTo = null;
 
-    var issuedTo = getBundleString("redHatUser");
+    try {
+        netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+        issuedTo = netkey.GetCoolKeyIssuedTo(keyType,keyID);
 
+    } catch (e)
+    {
+    }
 
-    if(keyStatus != getBundleString("statusEnrolled"))
-       issuedTo = getBundleString("statusUnknown");
+    if(!issuedTo || issuedTo.length <= 3 || issuedTo.indexOf("CoolKey") != -1)
+        issuedTo = defaultIssuedTo;    
 
     return issuedTo;
+}
+
+function DoShowAdvancedInfo()
+{
+    var arr = GetAvailableCoolKeys();
+    var coolkeyVersion = GetCoolKeyVersion();
+
+    var dump = "<html>";
+    dump += "<style> p { font-size: 9pt } </style>";
+
+    //dump += "<p><br>" + getBundleString("diagnosticsMessage") + "<br></p>";
+
+    dump += "<p><br><b>" +  getBundleString("coolkeyComponentVersion") + "</b>" ;
+    dump += " " + coolkeyVersion ;
+
+    dump +=  "<br><b>" + getBundleString("coolkeyDetectedNumberKeys") + "</b>"; 
+    dump +=  " " +  arr.length + "</p>" ; 
+
+    dump += "<p>";
+    for(i = 0 ; i < arr.length ; i++)
+    {
+       keyID = arr[i][1];
+       keyType = arr[i][0];
+
+       var issuer = GetCachedIssuer(keyID);
+       if(!issuer)
+           issuer = getBundleString("unknownIssuer");
+
+       var status =  GetStatusForKeyID(keyType, keyID);
+
+       dump += "<b>" + getBundleString("keyID") + "</b>" + " " +  keyID  + "<br>";
+       dump += "<b>" + getBundleString("status") + "</b>" + " " + status + "<br>";
+
+       dump += "<b>" + getBundleString("issuer") + "</b>" + " " + issuer + "<br>";
+       var tpsURI = GetCachedTPSURL(keyID);
+       var tpsUI  = GetCachedTPSUI(keyID);
+
+       dump += "<b>" + getBundleString("tpsURI") + "</b>" + " " + tpsURI + "<br>";
+       dump += "<b>" + getBundleString("tpsUI") + "</b>" + " " + tpsUI + "<br>";
+
+    }
+
+    dump += "</p>";
+
+    var lines = null;
+
+    var lines = ReadESCLog();
+
+    dump += "<hr><b><center>" + getBundleString("escLogEntries") + "</b></center>";
+
+    dump += "<p>";
+
+    if(lines)
+    {
+        for(i = 0 ; i < lines.length ; i++)
+        {
+             dump += lines[i] + "<br>";
+        }
+
+    }
+    else
+    {
+         dump += getBundleString("noLogFileOrData");
+    }
+
+    dump += "</p>";
+
+    dump += "</html>";
+
+    var wnd = window.openDialog("chrome://esc/content/advancedinfo.xul","Info","chrome,centerscreen,width=600,height=500,modal=yes",dump);
 
 }
 
-
 function DoShowKeyInfo()
 {
-
   var doCertInfo = 1;
   var test = null;
-
-  var dump = "<hr><center> <b>" + getBundleString("tokenInformation") + "</b></center>";
 
   if (gCurrentSelectedRow)
   {
@@ -674,7 +886,6 @@ function DoShowKeyInfo()
     if(nicknames && nicknames.length)
     {
         dump += "<center><b>" + getBundleString("certsOnToken") + "</b><center> ";
-
     } 
 
     if(nicknames)
@@ -697,12 +908,11 @@ function DoShowKeyInfo()
    }
    else
    {
-       alert(getBundleString("noCurrentlySelectedToken"));
+       MyAlert(getBundleString("noCurrentlySelectedToken"));
    }
 }
 function GetCoolKeyCertNicknames(aKeyType,aKeyId)
 {
-
   try {
     var nameArr;
       netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
@@ -721,9 +931,22 @@ function GetCoolKeyCertNicknames(aKeyType,aKeyId)
   }
 }
 
+function GetCoolKeyVersion()
+{
+    var result = null;
+
+    try {
+      netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+      result = netkey.GetCoolKeyVersion();
+    return result;
+  } catch(e) {
+
+    return result;
+  }
+}
+
 function GetCoolKeyCertInfo(aKeyType,aKeyId,aCertNickname)
 {
-
   try {
     var info = null;
       netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
@@ -734,7 +957,6 @@ function GetCoolKeyCertInfo(aKeyType,aKeyId,aCertNickname)
     ReportException(getBundleString("errorCoolKeyCertInfo"), e);
     return "";
   }
-
 }
 
 function GetAvailableCoolKeys()
@@ -761,7 +983,7 @@ function ChallengeCoolKey(keyType, keyID, data)
 {
   try {
       netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
-    return ConvertVariantArrayToJScriptArray(netkey.ChallengeCoolKey(keyType, keyID, data));
+    return netkey.ChallengeCoolKey(keyType, keyID, data);
   } catch(e) {
     return [];
   }
@@ -846,7 +1068,6 @@ function RemoveTreeRow(table, row)
     if(rows)
         rows.removeChild(row);
 
-//    table.deleteRow(row.rowIndex);
 }
 
 //
@@ -858,7 +1079,14 @@ function RemoveRow(table, row)
 
     if(rows)
         rows.removeChild(row);
+}
 
+function RemoveAdminRow(row)
+{
+    var listbox = document.getElementById("AdminBindingList");
+
+   if(listbox)
+       listbox.removeChild(row);
 }
 
 function GetCell(row, index)
@@ -876,6 +1104,32 @@ function GetNode(parent, index)
   return node;
 }
 
+function CreateListBoxRow()
+{
+
+    var listitem = document.createElement("listitem");
+
+    return listitem;
+
+}
+
+function InsertListBoxRow(listbox)
+{
+
+    if(!listbox)
+        return null;
+
+    var listitem = document.createElement("listitem");
+
+    if(!listitem)
+        return null;
+
+    listbox.appendChild(listitem);
+
+    return listitem;
+
+}
+
 function InsertGridRow(grid)
 {
   var rows = document.getElementById("BindingTableRows");
@@ -888,6 +1142,39 @@ function InsertGridRow(grid)
 
   row.setAttribute("pack","center");
   return row;
+}
+
+function SelectImageForKeyStatus(keyStatus,observeBusy,doubleSize)
+{
+
+  var image_src = "";
+
+  if(observeBusy && (keyStatus == "BUSY" || keyStatus == "UNAVAILABLE"))
+  {
+      return "throbber-anim5.gif";
+  }
+  if(keyStatus == "ENROLLED")
+  {
+      image_src = "enrolled-key";
+  }
+  else
+  {
+          if(keyStatus == "UNINITIALIZED")
+              image_src = "initializecard";
+           else
+               if(keyStatus == "NO APPLET")
+                   image_src = "blank-card";
+  }
+
+  if(image_src == "")
+    return image_src;
+
+  var suffix = "";
+  if(doubleSize)
+     suffix = "x2";
+
+
+  return image_src + suffix + ".png";
 }
 
 function CreateImage(aImageName)
@@ -923,6 +1210,21 @@ function InsertCell(row)
   return cell;
 }
 
+function InsertListCell(listboxrow)
+{
+    if(!listboxrow)
+        return null;
+
+    var listcell = document.createElement("listcell");
+
+    if(!listcell)
+        return null;
+
+    listboxrow.appendChild(listcell);
+
+    return listcell;
+}
+
 function RemoveAllChildNodes(parent)
 {
   var numChildren = parent.childNodes.length;
@@ -937,6 +1239,299 @@ function RemoveAllChildNodes(parent)
 
 }
 
+function ShowEnrollmentAnimation(keyType,keyID,starting)
+{
+    if(!keyType || !keyID)
+        return;
+
+    var cylon = document.getElementById("cylonImage");
+
+    var progmeterId =  KeyToProgressBarID(keyType, keyID) ;
+
+    if(!progmeterId)
+        return;
+
+    var progressMeter = document.getElementById(progmeterId);
+
+    if(starting)
+    {
+        if(progressMeter)
+            progressMeter.setAttribute("hidden","false");
+
+
+    }
+    else
+    {
+        if(progressMeter)
+            progressMeter.setAttribute("hidden","true");
+        if(cylon)
+           cylon.setAttribute("hidden","true");
+    }
+
+}
+
+function DoShowFullEnrollmentUI()
+{
+   if (!gCurrentSelectedRow)
+   {
+       MyAlert(getBundleString("errorSelectKey"));
+       return;
+   }
+
+   var keyInfo = RowIDToKeyInfo(gCurrentSelectedRow.getAttribute("id"));
+
+   var keyType = keyInfo[0];
+   var keyID = keyInfo[1];
+
+   var keyInserted = 1;
+   var showFullUI  = 1;
+
+   var externalUI = GetCachedTPSUI(keyID);
+
+   if(externalUI)
+   {
+       loadExternalESCUI();
+   }
+   else
+   {
+       UpdateEnrollmentArea(keyType,keyID,keyInserted,showFullUI);
+
+   }
+}
+
+function UpdateEnrollmentArea(keyType,keyID,inserted,showFullUI,showExternalUI)
+{
+  if(!gEnrollmentPage)
+      return;
+
+     var alreadyEnrolled = false;
+
+     var keyStatus = GetStatusForKeyID(keyType, keyID);
+
+     if(inserted && keyStatus == getBundleString("statusEnrolled"))
+     {
+         alreadyEnrolled = true;
+     } 
+
+     gExternalUI = false;
+
+     var enroll_area = document.getElementById("key_enrollment_area");
+
+     if(!enroll_area)
+         return;
+
+     var no_key_area = document.getElementById("no_key_box");
+
+     if(!no_key_area)
+        return;
+
+     var yes_key_area = document.getElementById("yes_key_box");
+
+     if(!yes_key_area)
+         return;
+
+     var enrollBtn = document.getElementById("enrollbtn");
+
+     if(!enrollBtn)
+         return;
+
+     var detected_key_message = document.getElementById("detected-key-message");     
+
+     var enroll_key_message = document.getElementById("enroll-key-message");
+     var unenrolled_key_heading = document.getElementById("unenrolled-key-heading");
+
+     if(alreadyEnrolled)
+     {
+         unenrolled_key_heading.setAttribute("value",getBundleString("enrolledDetected"));
+     }
+
+     if(!unenrolled_key_heading)
+         return;
+
+     var no_key_heading = document.getElementById("no-key-heading");
+
+     if(!no_key_heading)
+         return;
+
+     var enrolling_key_heading = document.getElementById("enrolling-key-heading");
+
+     if(!enrolling_key_heading)
+        return;
+
+     var ui_id = document.getElementById("esc-ui");
+
+     if(!ui_id)
+         return;
+
+     HideItem(unenrolled_key_heading);
+     HideItem(enrolling_key_heading);
+     HideItem(no_key_heading);
+
+     if(!inserted)
+     {
+          HideItem(ui_id);
+          HideItem(enroll_area);
+          ShowItem(no_key_area);
+          HideItem(yes_key_area);
+
+          HideItem(enroll_key_message);
+          HideItem(detected_key_message);
+
+          ShowItem(no_key_heading);
+
+          HideItem(enrollBtn);
+
+          if(gCurrentSelectedRow)
+          {
+              var progId = KeyToProgressBarID(keyType, keyID) ;
+
+              var meter = document.getElementById(progId);
+
+              if(meter)
+                 meter.setAttribute("id","progress-id");
+
+              gCurrentSelectedRow.setAttribute("id","key_enrollment_row");
+              gCurrentSelectedRow= null;
+
+          }
+     }
+     else
+     {
+         if(showFullUI)
+         {
+             if(!showExternalUI)
+             {
+                 HideItem(ui_id);
+                 HideItem(detected_key_message);
+                 ShowItem(enrolling_key_heading);
+                 ShowItem(enroll_area);
+                 HideItem(yes_key_area);
+                 ShowItem(enroll_key_message);
+                 enrollBtn.setAttribute("oncommand","DoEnrollCoolKey()");
+                 ShowItem(enrollBtn);
+             }
+             else
+             {
+                 gExternalUI = true;
+                 ShowItem(ui_id); 
+                 HideItem(detected_key_message);
+                 ShowItem(enrolling_key_heading);
+                 HideItem(enroll_area);
+                 HideItem(yes_key_area);
+                 HideItem(enroll_key_message);
+                 HideItem(enrollBtn);
+                 UpdateESCSize(600,550);
+
+             }
+         }
+         else
+         {
+             ShowItem(yes_key_area);
+             ShowItem(unenrolled_key_heading);
+             HideItem(enroll_key_message);
+
+             if(alreadyEnrolled)
+             {
+                 detected_key_message.setAttribute("value",getBundleString("enrolledDetectedMessage"));
+             } 
+
+             ShowItem(detected_key_message);
+             enrollBtn.setAttribute("oncommand","DoShowFullEnrollmentUI()");
+             ShowItem(enrollBtn);
+         }
+
+         HideItem(no_key_area);
+
+         UpdateButtonStates();
+     }
+
+     if(!showExternalUI)
+         UpdateESCSize();
+}
+
+//Evaulate Password Quality
+
+function EvaluatePasswordQuality()
+{
+   var qualityImage = document.getElementById("password-image");
+
+   var pw = document.getElementById("pintf").value;
+
+  var pwlength = 0;
+
+   if(pw)
+       pwlength = pw.length;
+
+  if (pwlength>5)
+    pwlength=5;
+
+//use of numbers in the password
+  var numnumeric = pw.replace (/[0-9]/g, "");
+  var numeric=(pw.length - numnumeric.length);
+  if (numeric>3)
+    numeric=3;
+
+//use of symbols in the password
+  var symbols = pw.replace (/\W/g, "");
+  var numsymbols=(pw.length - symbols.length);
+  if (numsymbols>3)
+    numsymbols=3;
+
+//use of uppercase in the password
+  var numupper = pw.replace (/[A-Z]/g, "");
+  var upper=(pw.length - numupper.length);
+  if (upper>3)
+    upper=3;
+
+  var pwstrength=((pwlength*10)-20) + (numeric*10) + (numsymbols*15) + (upper*10);
+
+// make sure we're give a value between 0 and 100
+  if ( pwstrength < 0 ) {
+    pwstrength = 0;
+  }
+
+  if ( pwstrength > 100 ) {
+    pwstrength = 100;
+  }
+
+   if(qualityImage)
+   {
+        if(pwlength==0)
+        {
+           qualityImage.setAttribute("src","1-none.png");
+           return;
+        }
+
+        if(pwstrength < 20)
+        {
+            qualityImage.setAttribute("src", "2-vweak.png");
+            return;
+        }
+
+        if(pwstrength >= 20 && pwstrength < 40)
+        {
+            qualityImage.setAttribute("src","3-weak.png");
+            return;
+        }
+
+        if(pwstrength >=40 && pwstrength < 60)
+        {
+            qualityImage.setAttribute("src","4-fair.png");
+            return;
+        }
+
+        if(pwstrength >= 60 && pwstrength < 80)
+        {
+           qualityImage.setAttribute("src","5-good.png");
+           return;
+         }
+
+        if(pwstrength >= 80)
+           qualityImage.setAttribute("src","6-strong.png");
+
+   }
+}
+
 
 function UpdateInfoForKeyID(keyType, keyID, keyStatus, reqAuth, isAuthed)
 {
@@ -945,28 +1540,12 @@ function UpdateInfoForKeyID(keyType, keyID, keyStatus, reqAuth, isAuthed)
   if (!row)
     return;
 
-  if(gUsesTree)
-  {
-      table = document.getElementById("BindingTree");
-  }
-  else
-  {
-      table = document.getElementById("BindingTable");
-  }
+  table = document.getElementById("BindingTable");
 
   if (row && table)
   {
-    if(gUsesTree)
-    {
-        RemoveTreeRow(table,row);
-    }
-    else
-    {
-        RemoveRow(table,row);
-    }
-
+    RemoveRow(table,row);
     InsertCoolKeyIntoBindingTable(keyType, keyID);
-
     row = GetRowForKey(keyType,keyID);
 
     if(row)
@@ -975,7 +1554,46 @@ function UpdateInfoForKeyID(keyType, keyID, keyStatus, reqAuth, isAuthed)
     }
 
   }
+
+  if(gAdminPage)
+  {
+      if(row)
+      {
+          SelectRow(row);
+      }
+
+  }
     
+}
+
+function GetOperationInProgressForKeyID(keyType,keyID)
+{
+   var status;
+   var result = null;
+
+   try {
+       status = GetCoolKeyStatus(keyType, keyID);
+   } catch(e) {
+       status = 0;
+   }
+
+   switch (status) {
+       case 7: // PINResetInProgress
+
+           result = "Resetting Key Password..";
+       break;
+
+       case 5: // EnrollmentInProgress
+            result = "Enrolling Key..";
+
+       break;
+
+       case 9: // FormatInProgress
+           result = "Formatting Key..";
+       break;
+   }
+
+   return result;
 }
 
 function GetStatusForKeyID(keyType, keyID)
@@ -1025,12 +1643,10 @@ function GetKeyStatusForKeyID(keyType, keyID)
 {
   var row = GetRowForKey(keyType, keyID);
 
-
   if (!row)
     return getBundleString("statusUnknown");
 
    var status = row.childNodes[2];
-
 
    if(!row)
        return getBundleString("statusUnknown");
@@ -1038,57 +1654,55 @@ function GetKeyStatusForKeyID(keyType, keyID)
    return status.value;
 }
 
-function InsertCoolKeyIntoBindingTree(keyType,keyID)
+function InsertCoolKeyIntoEnrollmentPage(keyType,keyID)
 {
-  var treechildren = document.getElementById("BindingTreeChildren");
+   var row = GetRowForKey(keyType, keyID);
 
-  if(!treechildren)
-      return;
+   //MyAlert("Insert CoolKeyInto Enrollment Page " + " type " + keyType + " id " +  keyID + " row " + row);
 
-  var treeitem = document.createElement("treeitem");
-
-  var id =  KeyToRowID(keyType, keyID);
-
-  if(!treeitem)
-      return;
-
-  treeitem.setAttribute("id",id);
-
-  treechildren.appendChild(treeitem);
-  
-  var treerow = document.createElement("treerow");
-
-  if(!treerow)
-      return null;
-
-  treeitem.appendChild(treerow);
-
-  var treecell = document.createElement("treecell");
-  var treecell1 = document.createElement("treecell");
-
-  treerow.appendChild(treecell);
-  treerow.appendChild(treecell1);
-
-  if(treecell)
+  if (!row)
   {
-      treecell.setAttribute("label", keyID);
+    var issuer = GetCoolKeyIssuer(keyType,keyID);
+    var issuedTo = GetCoolKeyIssuedTo(keyType,keyID);
+
+    var keyStatus = GetStatusForKeyID(keyType, keyID);
+    var keyReqAuth = BoolToYesNoStr(GetCoolKeyRequiresAuth(keyType, keyID));
+    var keyIsAuthed = BoolToYesNoStr(GetCoolKeyIsAuthed(keyType, keyID));
+
+    row = CreateEnrollPageKeyRow(keyType, keyID, keyStatus, keyReqAuth, keyIsAuthed,issuer,issuedTo);
+
+    if (!row)
+      return null;
   }
 
-  if(treecell1)
-  {
-    // var progressMeter = document.createElement("progressmeter");
-     //progressMeter.setAttribute("id", KeyToProgressBarID(keyType, keyID));
-     //progressMeter.className = "ProgressMeter";
-    // progressMeter.setAttribute("value", "0%");
+  return row;
 
-     //progressMeter.setAttribute("mode","determined");
+}
 
-     treecell1.setAttribute("id",KeyToProgressBarID(keyType,keyID));
-     treecell1.setAttribute("mode","normal");
-     treecell1.setAttribute("value","0%"); 
-  } 
+function InsertCoolKeyIntoAdminBindingList(keyType,keyID)
+{
+    var row = GetRowForKey(keyType, keyID);
 
-  return treerow;
+    if(!row)
+    {
+        var listbox = document.getElementById("AdminBindingList");
+        var issuer = GetCoolKeyIssuer(keyType,keyID);
+        var issuedTo = GetCoolKeyIssuedTo(keyType,keyID);
+
+        if (listbox)
+        {
+            var keyStatus = GetStatusForKeyID(keyType, keyID);
+            var keyReqAuth = BoolToYesNoStr(GetCoolKeyRequiresAuth(keyType, keyID));
+            var keyIsAuthed = BoolToYesNoStr(GetCoolKeyIsAuthed(keyType, keyID));
+
+            row = CreateAdminListRow(listbox, keyType, keyID, keyStatus, keyReqAuth, keyIsAuthed,issuer,issuedTo);
+        }
+
+        if (!row)
+            return null;
+    }
+
+  return row;
 
 }
 
@@ -1099,12 +1713,8 @@ function InsertCoolKeyIntoBindingTable(keyType, keyID)
   if (!row)
   {
     var table = document.getElementById("BindingTable");
-
-
     var issuer = GetCoolKeyIssuer(keyType,keyID);
-
     var issuedTo = GetCoolKeyIssuedTo(keyType,keyID);
-
 
     if (table)
     {
@@ -1122,15 +1732,61 @@ function InsertCoolKeyIntoBindingTable(keyType, keyID)
   return row;
 }
 
-function ConvertVariantArrayToJScriptArray(varr)
+function UpdateCoolKeyAvailabilityForEnrollment()
 {
-  // C++ native methods, like netkey.GetAvailableCoolKeys(), can only
-  // return variant SafeArrays, so to access the data inside, you must
-  // first convert it to a VBArray, and then call toArray() to convert
-  // it to a JScript array. Lame, but that's what it takes to
-  // use an array returned from an ActiveX component.
+  //Here we only allow ONE key
+  //Take the first one that shows up.
 
-  return new VBArray(varr).toArray();
+  var arr = GetAvailableCoolKeys();
+
+  if (!arr || arr.length < 1)
+  {
+    UpdateESCSize();
+    return;
+  }
+
+  var i;
+
+  for (i=0; i < 1; i++)
+  {
+      var row = InsertCoolKeyIntoEnrollmentPage(arr[i][0],arr[i][1]);
+
+      if(row)
+        gCurrentSelectedRow = row;
+
+       var keyInserted = 1;
+       var showFullUI = 0;
+       UpdateEnrollmentArea(arr[i][0],arr[i][1],keyInserted,showFullUI);
+
+  }
+
+  UpdateButtonStates();
+  UpdateESCSize();
+}
+
+function UpdateAdminBindingListAvailability()
+{
+    var arr = GetAvailableCoolKeys();
+
+    if (!arr || arr.length < 1)
+    {
+        UpdateAdminKeyDetailsArea(null,null);
+        UpdateESCSize();
+        return;
+    }
+
+    var i;
+
+    for (i=0; i < arr.length; i++)
+    {
+        InsertCoolKeyIntoAdminBindingList(arr[i][0], arr[i][1]);
+
+        if (!gCurrentSelectedRow)
+            SelectRowByKeyID(arr[i][0], arr[i][1]);
+    }
+
+    if(i > 0)
+        UpdateESCSize();
 }
 
 function UpdateBindingTableAvailability()
@@ -1151,49 +1807,212 @@ function UpdateBindingTableAvailability()
   }
 }
 
-function UpdateBindingTreeAvailability()
+function InitializeEnrollment()
 {
-  gUsesTree = 1;
-
-  var arr = GetAvailableCoolKeys();
-
-  
-
-  if (!arr || arr.length < 1)
-    return; 
-  var i;
-
-  for (i=0; i < arr.length; i++)
-  {
-
-    InsertCoolKeyIntoBindingTree(arr[i][0],arr[i][1]);
-
-    if (!gCurrentSelectedRow)
-        SelectRowByKeyID(arr[i][0], arr[i][1]);
-  }
-}
-
-function InitializeBindingTree()
-{
-
-
-    testTPSURISilent();
-
-    UpdateBindingTreeAvailability();
-    UpdateButtonStates();
-
-    showOrHideEscOnLaunch();
+  gEnrollmentPage = 1;
+  UpdateCoolKeyAvailabilityForEnrollment();
+  UpdateButtonStates();
+  showOrHideEscOnLaunch();
+  window.setTimeout("showOrHideTabsUI()",2);
 }
 
 function InitializeBindingTable()
 {
-
-  testTPSURISilent();
   UpdateBindingTableAvailability();
   UpdateButtonStates();
   showOrHideEscOnLaunch();
+}
 
+function InitializeAdminBindingList()
+{
 
+ gAdminPage = 1;
+
+ UpdateAdminBindingListAvailability();
+ UpdateButtonStates();
+ showOrHideEscOnLaunch();
+ showOrHideTabsUI();
+}
+
+//Window related functions
+
+function hiddenWindowStartup()
+{
+  gHiddenPage = 1;
+
+  // We don't want the hidden window to be shown ever.
+
+  // We do want notify events though
+  var doPreserveNotify = true;
+ 
+  TrayRemoveWindow(doPreserveNotify);
+}
+
+function IsPageWindowPresent(aPageID)
+{
+    var pageWindow = null;
+
+    if(!aPageID)
+        return null;
+
+    var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"].getService(Components.interfaces.nsIWindowMediator);
+
+    var count = 0;
+
+    var enumerator = wm.getEnumerator("");
+    while(enumerator.hasMoreElements()) {
+        var win = enumerator.getNext();
+        if(win)
+        {
+            var locName = win.location.toString();
+            if(locName.indexOf(aPageID) != -1)
+            {
+               pageWindow = win;
+            }
+        }
+    }
+
+    return pageWindow;
+}
+
+function CloseAllNonHiddenWindows()
+{
+    var pageWindow = null;
+
+    if(!aPageID)
+        return null;
+
+    var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"].getService(Components.interfaces.nsIWindowMediator);
+
+    var enumerator = wm.getEnumerator("");
+    while(enumerator.hasMoreElements()) {
+        var win = enumerator.getNext();
+        if(win)
+        {
+            var locName = win.location.toString();
+            if(locName.indexOf(HIDDEN_WINDOW) != -1)
+            {
+               continue;
+            }
+            else
+            {
+                win.close();
+            }
+        }
+    }
+
+}
+
+function GetESCHiddenWindow()
+{
+    const hiddenName = HIDDEN_WINDOW;
+    var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"].getService(Components.interfaces.nsIWindowMediator);
+
+    var count = 0;
+    var hidden = null;
+
+    var enumerator = wm.getEnumerator("");
+    while(enumerator.hasMoreElements()) {
+        var win = enumerator.getNext();
+        if(win)
+        {
+            var locName = win.location.toString();
+            if(locName.indexOf(hiddenName) != -1)
+            {
+               hidden = win;
+            }
+        }
+    }
+
+    return hidden;
+}
+
+function CountESCWindows()
+{
+    var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"].getService(Components.interfaces.nsIWindowMediator);
+
+    var count = 0;
+    var enumerator = wm.getEnumerator("");
+    while(enumerator.hasMoreElements()) {
+        var win = enumerator.getNext();
+        if(win)
+        {
+            count++;
+        }
+    }
+
+    return count;
+}
+
+function IsPrimaryESCPage()
+{
+    var result = false;
+
+    if(gAdminPage || gEnrollmentPage  || gHiddenPage)
+        result = true;
+
+    return result;
+}
+
+function SelectESCPage(keyUninitialized)
+{
+
+     if(!gHiddenPage)
+       return;
+
+   //alert("SelectESCPage  initialized " + keyUninitialized + " gEnrollmentPage " + gEnrollmentPage + " gFactoryMode " + gFactoryMode + " gHiddenPage " + gHiddenPage);
+
+   //Get the primary page windows if present
+
+   var enrollWnd = IsPageWindowPresent(ENROLL_WINDOW);
+   var adminWnd  = IsPageWindowPresent(ADMIN_WINDOW);
+
+   if(keyUninitialized)
+   {
+
+       if(!TrayLoadedOK()) // We have no tray icon, launch both
+       {
+
+             if(!adminWnd)
+             {
+                  launchSETTINGS();
+             }
+
+       }
+       if(enrollWnd)   //Enrollment window is  already up
+       {
+           enrollWnd.focus();
+           enrollWnd.ShowWindow();
+       }
+       else
+       {
+          launchESC();
+       }
+   }
+   else
+   {
+       //Launch admin page if factory mode is enabled
+       // or we are without the tray icon.
+
+       if(gFactoryMode)
+       { 
+
+           if(adminWnd)    // Handle case where admin page is already up
+           {
+               adminWnd.focus();
+           }
+           else
+           {
+               launchSETTINGS();
+           }
+       } 
+       else
+       {
+           // No factory mode do nothing 
+       }
+
+   }
+ 
 }
 
 function KeyIsPresent(keyType, keyID)
@@ -1223,26 +2042,23 @@ function UpdateMenuStates(disable)
    if(!menu)
        return;
 
-
    var  format_item = document.getElementById("menu-format-item");
-
    var  info_item   = document.getElementById("menu-info-item");
-
    var  reset_item  = document.getElementById("menu-reset-item"); 
 
    if(format_item && info_item && reset_item)
    {
        if(disable)
        {
-           format_item.setAttribute("disabled","true");
-           info_item.setAttribute("disabled","true");
-           reset_item.setAttribute("disabled","true");
+           DisableItem(format_item);
+           DisableItem(info_item);
+           DisableItem(reset_item);
        }
        else
        {
-           format_item.setAttribute("disabled","false");
-           info_item.setAttribute("disabled","false"); 
-           reset_item.setAttribute("disabled","false");
+           EnableItem(format_item);
+           EnableItem(info_item); 
+           EnableItem(reset_item);
 
        }
 
@@ -1262,14 +2078,6 @@ function UpdateButtonStates()
   var info_btn = document.getElementById("keyinfobtn");
   var cancel_btn = document.getElementById("cancelbtn");
 
-
-  if (gKeyEnrollmentType == "deviceKey")
-  {
-  }
-  else
-  {
-  }
-
   if (gCurrentSelectedRow)
   {
     var keyInfo = RowIDToKeyInfo(gCurrentSelectedRow.getAttribute("id"));
@@ -1281,70 +2089,54 @@ function UpdateButtonStates()
 
     if(enroll_btn)
     {
-         enroll_btn.disabled = false;
-
+         EnableItem(enroll_btn);
     }
 
     if(format_btn)
     {
-        format_btn.disabled = false;
-
+        EnableItem(format_btn);
     }
 
      if(reset_btn)
      {
-        reset_btn.disabled = false
+        EnableItem(reset_btn);
      }
 
      if(info_btn)
      {
-         info_btn.disabled = false;
+         EnableItem(info_btn);
      }
      
      if(cancel_btn)
      {
-         cancel_btn.disabled = false;
+         EnableItem(cancel_btn);
      }
 
      UpdateMenuStates(false);
   }
   else
   {
-
       showHideNoKeysLabel(1);
       if(enroll_btn)
-         enroll_btn.disabled = true; 
+         DisableItem(enroll_btn); 
      if(format_btn)
-        format_btn.disabled = true;
+        DisableItem(format_btn);
 
      if(reset_btn)
-        reset_btn.disabled = true; 
+        DisableItem(reset_btn); 
 
      if(info_btn)
-        info_btn.disabled = true;
+        DisableItem(info_btn);
 
      if(cancel_btn)
-        cancel_btn.disabled = true;
+        DisableItem(cancel_btn);
 
      UpdateMenuStates(true);
   }
-
-  //refresh();
-}
-
-function SetEnrollmentType(type)
-{
-  gKeyEnrollmentType = type;
-  UpdateButtonStates();
 }
 
 function FindRow(node)
 {
-//  while (node && node.tagName != "TR")
- // {
-  //  node = node.parentNode;
- // }
-
   return node;
 }
 
@@ -1361,6 +2153,15 @@ function SelectRow(row)
 
   gCurrentSelectedRow.setAttribute("class","SelectedRow");
   UpdateButtonStates();
+
+  var keyInfo = RowIDToKeyInfo(theID);
+
+  if(gAdminPage)
+  {
+      UpdateAdminKeyDetailsArea(keyInfo[0],keyInfo[1]);
+      UpdateAdminListRow(keyInfo[0],keyInfo[1]);
+  }
+
 }
 
 function SelectRowByKeyID(keyType, keyID)
@@ -1370,11 +2171,19 @@ function SelectRowByKeyID(keyType, keyID)
   SelectRow(row);
 }
 
+function DoSelectAdminListRow(event)
+{
+    var id = event.getAttribute("id");
+    row = document.getElementById(id);
+
+    if(row)
+        SelectRow(row);
+}
+
 function DoSelectRow(event)
 {
   var row;
-
-    row = FindRow(event.parentNode);
+  row = FindRow(event.parentNode);
   SelectRow(row);
 }
 
@@ -1391,6 +2200,342 @@ function KeyToUIString(keyType, keyID)
   return keyID;
 }
 
+function CreateEnrollPageKeyRow(keyType,keyID,keyStatus,reqAuth,isAuthed,keyIssuer,keyIssuedTo)
+{
+    if(!gEnrollmentPage)
+        return null;
+
+    var row = document.getElementById("key_enrollment_row");
+
+    if(!row)
+        return null;
+
+    var progressMeter = document.getElementById("progress-id");
+
+    if(progressMeter)
+    {
+        progressMeter.setAttribute("id",KeyToProgressBarID(keyType, keyID));
+        progressMeter.setAttribute("mode","determined");
+        progressMeter.setAttribute("value","0%");
+    }
+   row.setAttribute("id", KeyToRowID(keyType, keyID));
+   var status = document.getElementById("status-id");
+
+   if(status)
+   {
+       if(keyStatus)
+           status.setAttribute("value",keyStatus);
+   }
+
+   var issuer = document.getElementById("issuer-id");
+
+   if(issuer && keyIssuer)
+   {
+       issuer.setAttribute("value",keyIssuer); 
+   }
+
+    return row;
+}
+
+function UpdateAdminKeyAreaImageToBusy(keyType, keyID)
+{
+    var image_src="throbber-anim5.gif";
+
+    var detailsImage = document.getElementById("admin-details-image");
+
+    if(!detailsImage)
+        return;
+
+    detailsImage.setAttribute("src",image_src);
+}
+
+function UpdateAdminKeyAreaDetailsLabel(label)
+{
+    if(!label)
+        return;
+
+    var detailsKeyLabel = document.getElementById("admin-key-details-label");
+
+    if(detailsKeyLabel)
+    {
+        detailsKeyLabel.setAttribute("value",label);
+    }
+}
+
+function UpdateAdminKeyDetailsArea(keyType,keyID)
+{
+
+    if(!gAdminPage)
+        return;
+
+    var noKey = 0;
+
+    if(!keyType || !keyID)
+    {
+        noKey = 1;
+    }
+
+    var keyStatus = 0;
+
+    if(!noKey)
+        keyStatus = GetStatusForKeyID(keyType, keyID);
+
+
+    var passwordArea = document.getElementById("password-area-id");
+
+    if(passwordArea)
+        HideItem(passwordArea);
+
+    var detailsImage = document.getElementById("admin-details-image");
+
+    if(!detailsImage)
+        return;
+
+    var detailsMessage = document.getElementById("admin-details-message");
+
+    if(!detailsMessage)
+        return;
+
+    var detailsKeyLabel = document.getElementById("admin-key-details-label");
+
+    if(!detailsKeyLabel)
+        return;
+
+    var formatbtn = document.getElementById("formatbtn");
+
+    if(!formatbtn)
+        return;
+
+    var resetpinbtn = document.getElementById("resetpinbtn");
+
+    if(!resetpinbtn)
+        return;
+
+    var enrollbtn = document.getElementById("enrollbtn");
+
+    if(!enrollbtn)
+        return;
+
+    var advancedbtn = document.getElementById("advancedbtn");
+
+    if(!advancedbtn)
+        return;
+
+    var viewcertsbtn = document.getElementById("viewcertsbtn");
+
+    if(!viewcertsbtn)
+        return;
+
+    var image_src = SelectImageForKeyStatus(keyStatus,1,1);
+
+    if(!image_src)
+        HideItem(detailsImage);
+    else
+    {
+        ShowItem(detailsImage);
+        detailsImage.setAttribute("src", image_src);
+    }
+    ShowItem(advancedbtn);
+    EnableItem(advancedbtn);
+
+    var isBusy =  0;
+    var operationLabel = null;
+
+    if(keyStatus == "BUSY" || keyStatus == "UNAVAILABLE")
+        isBusy = 1;
+
+    if(isBusy)
+    {
+        operationLabel = GetOperationInProgressForKeyID(keyType,keyID);
+    }
+
+   if(!keyStatus)
+   {
+      DisableItem(viewcertsbtn);
+      DisableItem(enrollbtn);
+      DisableItem(resetpinbtn);
+      DisableItem(formatbtn);
+      detailsKeyLabel.setAttribute("value",getBundleString("noKeysPresent"));
+       return;
+   }
+
+   if(keyStatus == "ENROLLED")
+   {
+       EnableItem(viewcertsbtn);
+
+       DisableItem(enrollbtn);
+
+       EnableItem(resetpinbtn);
+       EnableItem(formatbtn);
+
+       if(!isBusy)
+           detailsKeyLabel.setAttribute("value",getBundleString("enrolledKey"));
+
+       return;
+   }
+
+   if(keyStatus == "UNINITIALIZED")
+   {
+         DisableItem(viewcertsbtn);
+         EnableItem(enrollbtn);
+         DisableItem(resetpinbtn);
+         if(!isBusy)
+           detailsKeyLabel.setAttribute("value",getBundleString("uninitializedKey"));
+
+         EnableItem(formatbtn);
+
+       return;
+   }
+
+   if(keyStatus == "NO APPLET")
+   {
+       DisableItem(viewcertsbtn);
+       DisableItem(enrollbtn);
+       DisableItem(resetpinbtn);
+
+       if(!isBusy)
+           detailsKeyLabel.setAttribute("value",getBundleString("blankKey"));
+
+       EnableItem(formatbtn);
+       return;
+   }
+
+  if(isBusy)
+   {
+      DisableItem(viewcertsbtn);
+      DisableItem(enrollbtn);
+      DisableItem(resetpinbtn);
+      DisableItem(formatbtn);
+
+       if(operationLabel)
+            detailsKeyLabel.setAttribute("value",operationLabel);
+
+   }
+}
+
+function HideEnrollmentPage()
+{
+    window.close();
+
+}
+
+function HideAdminPage()
+{
+    window.close();
+}
+function UpdateAdminListRow( keyType, keyID)
+{
+
+    if(!gAdminPage)
+        return;
+
+    var row = GetRowForKey(keyType, keyID);
+
+    if(!row)
+        return;
+
+    var listbox = document.getElementById("AdminBindingList");
+    if(!listbox)
+       return;
+
+    var issuer = GetCoolKeyIssuer(keyType,keyID);
+    var issuedTo = GetCoolKeyIssuedTo(keyType,keyID);
+    var keyStatus = GetStatusForKeyID(keyType, keyID);
+
+    var imageCell    = document.getElementById(KeyToCellID(keyType,keyID,"image"));
+    var issuerCell   = document.getElementById(KeyToCellID(keyType,keyID,"issuer"));
+    var issuedToCell = document.getElementById(KeyToCellID(keyType,keyID,"issued-to"));
+    var statusCell   = document.getElementById(KeyToCellID(keyType,keyID,"status"));
+
+    if(issuerCell)
+        issuerCell.setAttribute("label",issuer);
+
+    if(issuedToCell)
+        issuedToCell.setAttribute("label",issuedTo);
+
+    if(statusCell)
+        statusCell.setAttribute("label",keyStatus);
+
+    if(imageCell)
+        imageCell.setAttribute("image",SelectImageForKeyStatus(keyStatus,1,0));
+}
+
+function CreateAdminListRow(adminListBox,keyType,keyID,keyStatus,reqAuth,isAuthed,keyIssuer,keyIssuedTo)
+{
+   //alert("CreateAdminListRow keyType " + keyType + " keyID " + keyID + " keyStatus " + keyStatus);
+
+  if(!gAdminPage)
+      return null;
+
+  var listrow = CreateListBoxRow(adminListBox);
+
+  if(!listrow)
+      return null;
+
+  listrow.setAttribute("flex","1");
+  listrow.setAttribute("id",KeyToRowID(keyType,keyID));
+
+  var imageCell = InsertListCell(listrow);
+
+  if(!imageCell)
+       return null;
+
+  var image_src = SelectImageForKeyStatus(keyStatus);
+
+  imageCell.setAttribute("class","listcell-iconic");
+  imageCell.setAttribute("image",image_src);
+  imageCell.setAttribute("id",KeyToCellID(keyType,keyID,"image"));
+
+  var issuer = InsertListCell(listrow);
+
+  if(!issuer)
+    return null;
+
+  issuer.setAttribute("label",keyIssuer);
+  issuer.setAttribute("id",KeyToCellID(keyType,keyID,"issuer"));
+  issuer.setAttribute("class","rowLabelText");
+
+  var issuedTo = InsertListCell(listrow);
+
+  if(!issuedTo)
+      return null;
+
+  issuedTo.setAttribute("label",keyIssuedTo);
+  issuedTo.setAttribute("id",KeyToCellID(keyType,keyID,"issued-to"));
+
+
+  var status = InsertListCell(listrow);
+  if(!status)
+      return null;
+
+  status.setAttribute("class","rowLabelText");
+  status.setAttribute("label",keyStatus);
+  status.setAttribute("id",KeyToCellID(keyType,keyID,"status"));
+
+  var progressCell = InsertListCell(listrow);
+
+  if(!progressCell)
+      return null;
+
+  progressCell.setAttribute("flex","1");
+  var progressMeter = document.createElement("progressmeter");
+
+  if(progressMeter)
+  {
+      progressCell.appendChild(progressMeter);
+      progressMeter.setAttribute("id", KeyToProgressBarID(keyType, keyID));
+      progressMeter.className = "ProgressMeter";
+      progressMeter.setAttribute("value", "0%");
+
+      progressMeter.setAttribute("class","progressMeter");
+  }
+
+  listrow.setAttribute("onclick","DoSelectAdminListRow(this);");
+
+  adminListBox.appendChild(listrow);
+  return listrow;
+}
+
 function CreateTableRow(table, keyType, keyID, keyStatus, reqAuth, isAuthed,keyIssuer,keyIssuedTo)
 {
 
@@ -1401,38 +2546,25 @@ function CreateTableRow(table, keyType, keyID, keyStatus, reqAuth, isAuthed,keyI
 
   row.setAttribute("id", KeyToRowID(keyType, keyID));
 
-
   var keyui = document.createElement("label");
   if(keyui)
   {
       keyui.setAttribute ("value", KeyToUIString(keyType,keyID));
 
-      //keyui.setAttribute("oncommand","DoSelectRow(this);");
-      //keyui.setAttribute("class","rowLabelText");
       keyui.setAttribute("hidden","true");
       row.appendChild(keyui);
 
   }
 
-  //var spacer1 = document.createElement("spacer");
- // spacer1.setAttribute("flex","1");
-
-  //if(spacer1)
-   //     row.appendChild(spacer1);
-
-
-
   var issuer = document.createElement("label");
 
   if(issuer)
   {
-
       issuer.setAttribute("value",keyIssuer);
       issuer.setAttribute("class","rowLabelText");
       row.appendChild(issuer);
 
       issuer.setAttribute("onclick","DoSelectRow(this);");
-
   }
 
   var spacer2 = document.createElement("spacer");
@@ -1441,24 +2573,19 @@ function CreateTableRow(table, keyType, keyID, keyStatus, reqAuth, isAuthed,keyI
   if(spacer2)
       row.appendChild(spacer2);
 
-
    var issuedTo = document.createElement("label");
 
  if(issuedTo)
  {
-
      issuedTo.setAttribute("value",keyIssuedTo);
      issuedTo.setAttribute("class","rowLabelText");
      row.appendChild(issuedTo);
-
  }
-
  var spacer3 = document.createElement("spacer");
  spacer3.setAttribute("flex","1");
 
  if(spacer3)
      row.appendChild(spacer3);
-
 
   var status = document.createElement("label");
   if(status)
@@ -1485,6 +2612,8 @@ function CreateTableRow(table, keyType, keyID, keyStatus, reqAuth, isAuthed,keyI
 
   progressMeter.setAttribute("mode","determined");
 
+  progressMeter.setAttribute("class","progressMeter");
+
   row.appendChild(progressMeter);
 
   return row;
@@ -1501,7 +2630,6 @@ function CreateKeyTableRow(table, keyType, keyID, isAvailable, label, isSecured,
 
   var keyIDStr = KeyToUIString(keyType, keyID);
 
-//  if (label == keyID)
     label = keyIDStr;
 
   // Add a tooltip to the row so that it displays more info.
@@ -1532,16 +2660,7 @@ function CreateKeyTableRow(table, keyType, keyID, isAvailable, label, isSecured,
   // Create the action cell:
   cell = InsertCell(row);
   a = document.createElement("a");
-  if (isSecured)
-  {
-  //  a.setAttribute("href", "javascript:UnbindCOOLKey(" + keyType + ", '" + keyID + "');");
-  //  a.appendChild(document.createTextNode("Release"));
-  }
-  else
-  {
-  //  a.setAttribute("href", "javascript:BindCOOLKey(" + keyType + ", '" + keyID + "');");
- //   a.appendChild(document.createTextNode("Secure"));
-  }
+
   cell.appendChild(a);
 
   // Create the secured cell:
@@ -1566,7 +2685,6 @@ function SetCylonTimer(cylonID, cylonEyeID)
 
 function AnimateCylonStatusBar(cylonID, cylonEyeID)
 {
-
   var cylon = document.getElementById(cylonID);
 
   if (!cylon)
@@ -1579,7 +2697,6 @@ function AnimateCylonStatusBar(cylonID, cylonEyeID)
 
  var curValue = eye.value;
 
-
  if(curValue == "....")
    curValue = "..." ;
   else
@@ -1591,8 +2708,6 @@ function AnimateCylonStatusBar(cylonID, cylonEyeID)
           else
                curValue = "....";
 
-
- 
   eye.setAttribute("value",curValue);
 
   SetCylonTimer(cylonID, cylonEyeID);
@@ -1618,7 +2733,6 @@ function StartCylonAnimation(cylonID, cylonEyeID)
 function StopCylonAnimation(cylonID, cylonEyeID)
 {
   var cylon = document.getElementById(cylonID)
-
   var eye = document.getElementById(cylonEyeID);
 
   if (eye)
@@ -1669,77 +2783,47 @@ function KeyToProgressBarID(keyType, keyID)
   return "PM" + keyType + "-" + keyID;
 }
 
-////////////////////////////////////////////////////////////////
-//
-// Functions that contact the server or talk directly to
-// ASC native code.
-//
-// ASC Native Functions:
-//
-//     netkey.GetAvailableCoolKeys()
-//
-//       - Returns an ActiveX Variant SafeArray containing the ID for each key
-//         that is currentlly plugged into the computer. Before accessing any
-//         data in this array you must convert it to a JScript Array with a
-//         call to ConvertVariantArrayToJScriptArray().
-//
-//     netkey.GetCoolKeyIsEnrolled(keyType, keyID)
-//
-//       - Returns true if a key has been initialized, false if it hasn't.
-//         Initialized means the card has been formatted with certificates
-//         for either an Cool HouseKey or NetKey.
-//
-//     netkey.EnrollCoolKey(keyType, keyID, enrollmentType, screenName, pin)
-//
-//       - Initiates an async connection to the RA to initialize a specific
-//         key. If you want the key to be initialized as a HouseKey, you should
-//         pass "houseKey" as the enrollmentType, and null values for both
-//         screenName and pin. For a NetKey, use "netKey" as the enrollmentType,
-//         and pass a valid screenName and pin.
-//
-//     netkey.ChallengeCoolKey(keyType, keyID, data)
-//
-//       - Signs some data with the specified key, and returns the results
-//         in an AcviteX Variant SafeArray. Before accessing any data in
-//         this array, you must convert it to a JScript Array with a
-//         call to ConvertVariantArrayToJScriptArray(). The elements in the
-//         array are as follows:
-//
-//             array[0] --> Length of the signed challenge data in binary form.
-//             array[1] --> The signed challenge data as hex.
-//             array[0] --> Length of the nonce data in binary form.
-//             array[0] --> The nonce data as hex.
-//
-//     netkey.BlinkCoolKey(keyType, keyID, rate, duration)
-//
-//       - Make a specific key blink at a given rate for a given duration.
-//         rate and duration are specified in milliseconds.
-//
-////////////////////////////////////////////////////////////////
-
 function GetScreenNameValue()
 {
   var sname = document.getElementById("snametf").value;
 
   if (! sname)
   {
-    alert(getBundleString("errorProvideScreenName"));
+    MyAlert(getBundleString("errorProvideScreenName"));
     return null;
   }
 
   return sname;
 }
 
-function GetPINValue()
+function SetPINValue(thePin)
 {
 
+ if(!thePin)
+     return;
+
+ var pintf_obj = document.getElementById("pintf");
+ var reenterpintf_obj = document.getElementById("reenterpintf");
+
+
+
+ if(pintf_obj)
+      pintf_obj.value = thePin;
+
+ if(reenterpintf_obj)
+      reenterpintf_obj.value = thePin;
+
+
+}
+
+
+function GetPINValue()
+{
   var pintf_obj = document.getElementById("pintf");
   var reenterpintf_obj = document.getElementById("reenterpintf");
 
-
   var pinVal = null;
   var rpinVal = null;
-
 
   if(pintf_obj)
        pinVal =  pintf_obj.value;
@@ -1749,13 +2833,13 @@ function GetPINValue()
 
   if (! pinVal && pintf_obj)
   {
-    alert(getBundleString("errorProvideTokenPIN"));
+    MyAlert(getBundleString("errorProvideTokenPIN"));
     return null;
   }
 
   if ( pinVal != rpinVal && reenterpintf_obj)
   {
-    alert(getBundleString("errorMatchPinValues"));
+    MyAlert(getBundleString("errorMatchPinValues"));
     return null;
   }
 
@@ -1764,12 +2848,11 @@ function GetPINValue()
 
 function GetScreenNamePwd()
 {
-
   var pwd = document.getElementById("snamepwd").value;
 
    if(!pwd)
    {
-       alert(getBundleString("errorValidUserPassword"));
+       MyAlert(getBundleString("errorValidUserPassword"));
        return null;
    }
    return pwd;
@@ -1777,7 +2860,6 @@ function GetScreenNamePwd()
 
 function GetTokenCode()
 {
-
   return null;
 }
 function DoEnrollCoolKey()
@@ -1785,7 +2867,7 @@ function DoEnrollCoolKey()
 
   if (!gCurrentSelectedRow)
   {
-    alert(getBundleString("errorSelectKey"));
+    MyAlert(getBundleString("errorSelectKey"));
     return;
   }
 
@@ -1809,23 +2891,40 @@ function DoEnrollCoolKey()
 
     pin =  GetPINValue();
 
-
     screennamepwd = null; // GetScreenNamePwd();
 
-
     tokencode = GetTokenCode();
-
   }
 
-  StartCylonAnimation("cylon1", "eye1");    
+   if(gAdminPage)
+       UpdateAdminKeyAreaImageToBusy(keyType, keyID);
 
-  SetOperationText(getBundleString("enrollingToken"));
+  if(!gEnrollmentPage)
+  {
+      StartCylonAnimation("cylon1", "eye1");
+      SetOperationText("Enrolling ");
+  }
+  else
+  {
+      ShowEnrollmentAnimation(keyType,keyID,1);
+  }
 
   if (!EnrollCoolKey(keyType, keyID, type, screenname, pin,screennamepwd,tokencode))
   {
     SetOperationText(null);
     StopCylonAnimation("cylon1", "eye1");
   }
+  if(gAdminPage)
+  {
+     UpdateAdminListRow(keyType,keyID);
+     UpdateAdminKeyDetailsArea(keyType,keyID);
+     UpdateAdminKeyAreaDetailsLabel(getBundleString("enrollingToken"));
+  }
+}
+
+function DoCollectPassword(operation)
+{
+       var child =  window.openDialog("chrome://esc/content/password.xul", operation, "chrome,centerscreen,modal=yes");
 }
 
 function DoResetSelectedCoolKeyPIN()
@@ -1846,7 +2945,6 @@ function DoResetSelectedCoolKeyPIN()
 
   if (GetCoolKeyIsEnrolled(keyType, keyID))
   {
-
     SetOperationText(getBundleString("resettingTokenPIN")); 
     StartCylonAnimation("cylon1", "eye1");
 
@@ -1858,13 +2956,19 @@ function DoResetSelectedCoolKeyPIN()
   }
   else
   {
-      alert(getBundleString("errorEnrolledFirst"));
+      MyAlert(getBundleString("errorEnrolledFirst"));
+  }
+
+  if(gAdminPage)
+  {
+     UpdateAdminListRow(keyType,keyID);
+     UpdateAdminKeyDetailsArea(keyType,keyID);
+      UpdateAdminKeyAreaDetailsLabel(getBundleString("resettingTokenPIN"));
   }
 }
 
 function DoFormatCoolKey()
 {
-
   if (!gCurrentSelectedRow)
     return;
 
@@ -1879,7 +2983,7 @@ function DoFormatCoolKey()
   var screennamepwd = null;
   var tokencode = null;
 
-  SetOperationText(getBundleString("formattingToken"));
+  SetOperationText(getBundleString("formatingToken"));
   StartCylonAnimation("cylon1", "eye1");
 
   if (!FormatCoolKey(keyType, keyID, type, screenname, pin,screennamepwd,tokencode))
@@ -1887,10 +2991,16 @@ function DoFormatCoolKey()
     SetOperationText(null);
     StopCylonAnimation("cylon1", "eye1");
   }
+
+  if(gAdminPage)
+  {
+      UpdateAdminListRow(keyType,keyID);
+      UpdateAdminKeyDetailsArea(keyType,keyID);
+      UpdateAdminKeyAreaDetailsLabel(getBundleString("formatingToken"));
+  }
 }
 function DoCancelOperation()
 {
-
   if (!gCurrentSelectedRow)
     return;
 
@@ -1935,11 +3045,6 @@ function OnCoolKeyBlinkComplete(keyType,keyID)
    SetStatusMessage(" ");
 }
 
-function OnTreeSelected(tree)
-{
-}
-
-
 ////////////////////////////////////////////////////////////////
 //
 // Functions called directly from ESC native code.
@@ -1953,6 +3058,11 @@ function OnCoolKeyInserted(keyType, keyID)
 
   var uninitialized = 0;
 
+  if(gHiddenPage)
+  {
+      TrayShowNotificationIcon();
+  }
+
   if (GetCoolKeyIsEnrolled(keyType, keyID))
   {
       openEnrolledTokenURLBrowser();
@@ -1962,68 +3072,83 @@ function OnCoolKeyInserted(keyType, keyID)
        uninitialized = 1;
   }
 
+   if(gEnrollmentPage)
+   { 
+        row = InsertCoolKeyIntoEnrollmentPage(keyType,keyID);
 
-  if(gUsesTree)
-  {
-      row =  InsertCoolKeyIntoBindingTree(keyType,keyID);
-  }
-  else
-  {
-     row = InsertCoolKeyIntoBindingTable(keyType, keyID);
-  }
+        gCurrentSelectedRow = row;
+        UpdateEnrollmentArea(keyType,keyID,1);
+   }
 
-  if (!gCurrentSelectedRow)
-    SelectRowByKeyID(keyType, keyID);
+   if(gAdminPage)
+   {
+       row = InsertCoolKeyIntoAdminBindingList(keyType,keyID);
+
+       if (!gCurrentSelectedRow)
+          SelectRowByKeyID(keyType, keyID);
+   }
+
+  DoPhoneHome(keyType,keyID);
 
   ShowAllWindows();
 
-  if(uninitialized)
+  SelectESCPage(uninitialized);
+
+  UpdateESCSize();
+
+  if(gHiddenPage)
   {
-
-      window.setTimeout("loadESC()",2);
+      var issuer = GetCachedIssuer(keyID);
+      if(!issuer)
+         issuer = getBundleString("unknownIssuer");
+      TraySendNotificationMessage(getBundleString("keyInserted"),"\"" + issuer +"\"" + " " + getBundleString("keyInsertedComputer"),3,4000,GetESCNotifyIconPath(keyType,keyID));
   }
-
-
-  showHideNoKeysLabel(0);
-
-  TraySendNotificationMessage(getBundleString("keyInserted"));
 
 }
 
 function OnCoolKeyRemoved(keyType, keyID)
 {
-
   var table = null;
 
   var  row = GetRowForKey(keyType, keyID);
 
-   TraySendNotificationMessage(getBundleString("keyRemoved"));
-  if(gUsesTree)
+  if(gHiddenPage)
   {
-      table = document.getElementById("BindingTree");
+      var issuer = GetCachedIssuer(keyID);
+      if(!issuer)
+          issuer = getBundleString("unknownIssuer");
+      TraySendNotificationMessage(getBundleString("keyRemoved"),"\"" + issuer + "\"" + " " + getBundleString("keyRemovedComputer"),1,4000,GetESCNotifyIconPath(keyType,keyID));
+
   }
-  else
+
+   table = document.getElementById("BindingTable");
+
+   if(gEnrollmentPage)
   {
-      table = document.getElementById("BindingTable");
+      UpdateEnrollmentArea(keyType,keyID,0);
+  }
+
+  if(gAdminPage)
+  {
+      RemoveAdminRow(row);
+
+      if (row == gCurrentSelectedRow)
+          gCurrentSelectedRow = null;
+
+      UpdateAdminKeyDetailsArea(null,null);
   }
 
   if (row && table)
   {
-    if(gUsesTree)
-    {
-        RemoveTreeRow(table,row);
-    }
-    else
-    {
-        RemoveRow(table,row);
-
-    }
+    RemoveRow(table,row);
 
     if (row == gCurrentSelectedRow)
       gCurrentSelectedRow = null;
   }
 
   UpdateButtonStates();
+  UpdateESCSize();
+
 }
 
 function PolicyToKeyType(policy)
@@ -2040,6 +3165,9 @@ function BoolToYesNoStr(b)
 
 function OnCoolKeyEnrollmentComplete(keyType, keyID)
 {
+  if(gHiddenPage)
+      return;
+
   var keyStatus = PolicyToKeyType(GetCoolKeyPolicy(keyType, keyID));
   var keyReqAuth = BoolToYesNoStr(GetCoolKeyRequiresAuth(keyType, keyID));
   var keyIsAuthed = BoolToYesNoStr(GetCoolKeyIsAuthed(keyType, keyID));
@@ -2049,7 +3177,19 @@ function OnCoolKeyEnrollmentComplete(keyType, keyID)
 
   StopCylonAnimation("cylon1", "eye1");
   SetOperationText("");
-  alert(getBundleString("enrollmentFor") + " " + KeyToUIString(keyType, keyID) + " "  + getStringBundle("wasSucessful"));
+  MyAlert(getBundleString("enrollmentFor") + " "  + getBundleString("smartCard") + " " + getBundleString("wasSuccessful"));
+
+
+  if(gEnrollmentPage)
+  {
+      ShowEnrollmentAnimation(keyType,keyID,0);
+  }
+  if(gAdminPage)
+  {
+      UpdateAdminKeyDetailsArea(keyType,keyID);
+      UpdateAdminListRow(keyType,keyID);
+  }
+
   ClearProgressBar(KeyToProgressBarID(keyType, keyID));
 }
 
@@ -2064,12 +3204,22 @@ function OnCoolKeyPINResetComplete(keyType, keyID)
 
   StopCylonAnimation("cylon1", "eye1");
   SetOperationText("");
-  alert(getBundleString("pinResetSuccessful"));
+  MyAlert(getBundleString("pinResetSuccessful"));
   ClearProgressBar(KeyToProgressBarID(keyType, keyID));
+
+  if(gAdminPage)
+   {
+     UpdateAdminKeyDetailsArea(keyType,keyID);
+     UpdateAdminListRow(keyType,keyID);
+   }
+
 }
 
 function OnCoolKeyFormatComplete(keyType, keyID)
 {
+  if(gHiddenPage)
+      return;
+
   var keyStatus = GetStatusForKeyID(keyType, keyID);
   var keyReqAuth = BoolToYesNoStr(GetCoolKeyRequiresAuth(keyType, keyID));
   var keyIsAuthed = BoolToYesNoStr(GetCoolKeyIsAuthed(keyType, keyID));
@@ -2078,12 +3228,22 @@ function OnCoolKeyFormatComplete(keyType, keyID)
 
   StopCylonAnimation("cylon1", "eye1");
   SetOperationText("");
-  alert(getBundleString("formatOf") + " "  + KeyToUIString(keyType, keyID)+ " " + getBundleString("wasSuccessful"));
+  MyAlert(getBundleString("formatOf") + " " + getBundleString("smartCard") + " "  + getBundleString("wasSuccessful"));
   ClearProgressBar(KeyToProgressBarID(keyType, keyID));
+
+   if(gAdminPage)
+   {
+     UpdateAdminKeyDetailsArea(keyType,keyID);
+     UpdateAdminListRow(keyType,keyID);
+   }
+
 }
 
 function OnCoolKeyStateError(keyType, keyID, keyState, errorCode)
 {
+  if(gHiddenPage)
+      return;
+
   var keyStatus = GetStatusForKeyID(keyType, keyID);
   var keyReqAuth = BoolToYesNoStr(GetCoolKeyRequiresAuth(keyType, keyID));
   var keyIsAuthed = BoolToYesNoStr(GetCoolKeyIsAuthed(keyType, keyID));
@@ -2092,7 +3252,6 @@ function OnCoolKeyStateError(keyType, keyID, keyState, errorCode)
   {
       curChildWindow.close();
       curChildWindow = null;
-
   }
 
   UpdateInfoForKeyID(keyType, keyID, keyStatus, keyReqAuth, keyIsAuthed);
@@ -2100,22 +3259,33 @@ function OnCoolKeyStateError(keyType, keyID, keyState, errorCode)
   StopCylonAnimation("cylon1", "eye1");
   SetOperationText("");
 
-  var typeStr = getBundleString("error") + " " + errorCode ;
+  var typeStr = getBundleString("error") + ": " ;
 
-  var  messageStr = getBundleString("serverResponse")  + MyGetErrorMessage(errorCode) ;
+  var  messageStr = " "  + MyGetErrorMessage(errorCode) ;
 
   var keyIDStr = KeyToUIString(keyType, keyID);
 
   if (keyState == 1004)
-    typeStr = getBundleString("enrollmentOfKey") + " "   + keyIDStr + " " + getBundleString("failed") + " "  + typeStr + messageStr ;
+    typeStr = getBundleString("enrollmentOfKey") + " "  + getBundleString("failed") + " "  + typeStr + messageStr ;
   else if(keyState == 1016)
-      typeStr = getBundleString("formatingtOfKey") + " "   + keyIDStr + " " + getBundleString("failed") + " "  + typeStr + messageStr ;
+      typeStr = getBundleString("formatingOfKey") + " " + getBundleString("failed") + " "  + typeStr + messageStr ;
   else if(keyState == 1010)
-    typeStr = getBundleString("pinResetOfKey") + " "   + keyIDStr + " " + getBundleString("failed") + " "  + typeStr + messageStr ;
+    typeStr = getBundleString("pinResetOfKey") + " "   + getBundleString("failed") + " "  + typeStr + messageStr ;
   else if(keyState == 1020)
-    typeStr = getBundleString("operationForKey") + " "   + keyIDStr + " " + getBundleString("cancelled") + " "  + typeStr + messageStr ;
+    typeStr = getBundleString("operationForKey") + " "  + getBundleString("cancelled") + " "  + typeStr + messageStr ;
 
-  alert(typeStr);
+
+  if(gEnrollmentPage)
+  {
+    ShowEnrollmentAnimation(keyType,keyID,0);
+  }
+   if(gAdminPage)
+   {
+     UpdateAdminKeyDetailsArea(keyType,keyID);
+     UpdateAdminListRow(keyType,keyID);
+   }
+
+  MyAlert(typeStr);
   ClearProgressBar(KeyToProgressBarID(keyType, keyID));
 }
 
@@ -2135,8 +3305,8 @@ function Validate()
 
   if (type == "userKey")
   {
-//    screenname = GetScreenNameValue();
-//    if (! screenname)
+ //    screenname = GetScreenNameValue();
+ //    if (! screenname)
  //     return 0;
 
     pin =  GetPINValue();
@@ -2144,9 +3314,8 @@ function Validate()
     if (! pin)
       return 0;
 
-//    screennamepwd = GetScreenNamePwd();
-
-//    if(! screennamepwd)
+ //    screennamepwd = GetScreenNamePwd();
+ //    if(! screennamepwd)
  //       return 0;
 
    }
@@ -2161,6 +3330,7 @@ function OnCoolKeyStateChange(keyType, keyID, keyState, data,strData)
   //       "Data:     " + data);
   //alert("State Change ="+keyState);
 
+
   switch(keyState)
   {
     case 1000: // KeyInserted
@@ -2173,9 +3343,13 @@ function OnCoolKeyStateChange(keyType, keyID, keyState, data,strData)
       // OnCoolKeyEnrollmentStart(keyType, keyID);
       break;
     case 1003: // EnrollmentComplete
+      if(gExternalUI)
+          break;
       OnCoolKeyEnrollmentComplete(keyType, keyID);
       break;
     case 1004: // EnrollmentError
+       if(gExternalUI)
+          break;
       OnCoolKeyStateError(keyType, keyID, keyState, data);
       break;
     case 1008: // PINResetStart
@@ -2222,22 +3396,17 @@ function OnCoolKeyStateChange(keyType, keyID, keyState, data,strData)
 
 function SetOperationText(aText)
 {
-
     var text = document.getElementById("operationtext");
-
     
     if(text)
     {
         text.setAttribute("value",aText);
-
     }
-
 }
 function refresh()
 {
   window.resizeBy(0,1);
   window.resizeBy(0,-1);
-
 }
 
 function loadCONFIG()
@@ -2245,55 +3414,58 @@ function loadCONFIG()
     window.location = "chrome://esc/content/config.xul";
 }
 
-function loadESC()
-{
-    var esc_enroll_uri = null;
-
-    esc_enroll_uri = getESCEnrollmentUI();
-
-    if(esc_enroll_uri)
-    {
-        window.location = "chrome://esc/content/esc_browser.xul";
-        return;
-    }
-
-    window.location = "chrome://esc/content/esc.xul";
-}
-
 function loadSETTINGS()
 {
     window.location = "chrome://esc/content/settings.xul";
 }
 
-function loadExternalESC()
+function loadExternalESCUI()
 {
-   window.location = "chrome://esc/content/esc_browser.xul";
+   var esc_enroll_uri = null;
 
-}
+    var keyType= null;
+    var keyID = null;
+    var keyType = null;
 
-function loadESCEnrollUI()
-{
-    var esc_enroll_uri = null;
+    var inserted = true;
+    var showFullUI = true;
+    var showExternalUI = true;
 
-    esc_enroll_uri = getESCEnrollmentUI();
+    //get first key
+
+    var arr = GetAvailableCoolKeys();
+
+    if (arr && arr.length > 0)
+    {
+       keyID = arr[0][1];
+       keyType = arr[0][0];
+    }
+
+    if(keyID)
+    {
+         esc_enroll_uri = GetCachedTPSUI(keyID);
+    }
 
     if(esc_enroll_uri)
     {
+        //Deal with Moz external UI privileges
+
+        grantPrivilegesURL(esc_enroll_uri);
+
         var ui_id = document.getElementById("esc-ui");
 
         if(ui_id)
         {
             ui_id.setAttribute("src",esc_enroll_uri);
-            return;
+            UpdateEnrollmentArea(keyType,keyID,inserted,showFullUI,showExternalUI)
         }
-    }
 
-    window.location = "chrome://esc/content/esc.xul"; 
+    }
 
 }
 
-
-// test of nsIProcess
+// Special feature to open a default browser to
+// a configurable URL. 
 
 function openEnrolledTokenURLBrowser()
 {
@@ -2332,7 +3504,7 @@ function openEnrolledTokenURLBrowser()
 
     if(!platform)
     {
-        alert(getBundleString("errorFindESCPlatform"));
+        MyAlert(getBundleString("errorFindESCPlatform"));
         return;
     }
 
@@ -2347,7 +3519,7 @@ function openEnrolledTokenURLBrowser()
                 enrolled_token_uri = netkey.GetCoolKeyConfigValue("esc.enrolled.token.url");
 
             } catch(e) {
-                alert(getBundleString("errorConfigValue") + e);
+                MyAlert(getBundleString("errorConfigValue") + e);
                
             }
 
@@ -2364,13 +3536,11 @@ function openEnrolledTokenURLBrowser()
 
     file.initWithPath(executable);
 
-
    // create an nsIProcess
     var process = Components.classes["@mozilla.org/process/util;1"]
                         .createInstance(Components.interfaces.nsIProcess);
 
     process.init(file);
-
 
     // Run the process.
     // If first param is true, calling process will be blocked until
@@ -2405,13 +3575,12 @@ function getESCEnrollmentUI()
             esc_enroll_uri = netkey.GetCoolKeyConfigValue("esc.enroll.ui.url");
 
             } catch(e) {
-                alert(getBundleString("errorConfigValue") + e);
+                MyAlert(getBundleString("errorConfigValue") + e);
             }
  
     }
 
     return esc_enroll_uri;
-
 }
 
 function grantPrivilegesURL(aURL)
@@ -2446,7 +3615,7 @@ function grantPrivilegesURL(aURL)
             res = netkey.SetCoolKeyConfigValue("capability.principal.codebase.p0.id",prePath);
 
             } catch(e) {
-                alert(getBundleString("errorSetConfigValue") + " "  + e);
+                MyAlert(getBundleString("errorSetConfigValue") + " "  + e);
                 return;
             }
 
@@ -2457,37 +3626,42 @@ function grantPrivilegesURL(aURL)
 
 function showOrHideEscOnLaunch()
 {
-
-
     if(GetTrayIsInitialized())
         return;
 
-
     try {
       netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
-
-
       var hide = netkey.GetCoolKeyConfigValue("esc.hide.on.startup");
 
       if(hide == "yes")
       {
-
            window.setTimeout("HideAllWindows()",0);          
-
       }
 
       } catch(e) {
-          alert(getBundleString("errorConfigValue") + " "  + e);
+          MyAlert(getBundleString("errorConfigValue") + " "  + e);
       }
 
+}
 
+function showOrHideTabsUI()
+{
+  var tabs = document.getElementById("tablist");
+
+  if(!tabs)
+      return;
+
+  var show = DoCoolKeyGetConfigValue("esc.show.tabs.ui");
+
+  if(show == "yes")
+  {
+      tabs.setAttribute("hidden","false");
+  }
 }
 
 function showHideNoKeysLabel(aShow)
 {
-
     var noKeys = document.getElementById("NoKeysLabel");
-
 
     if(noKeys)
     {
@@ -2498,10 +3672,554 @@ function showHideNoKeysLabel(aShow)
         else
         {
             noKeys.setAttribute("hidden","true");
-
         }
-
     }    
+}
 
+//Utility function to set a CoolKey Configuration Value
+function DoCoolKeySetConfigValue(configValue,newValue)
+{
+   if(!configValue || !newValue)
+      return null;
+
+   var result = null;
+
+   if(netkey)
+   {
+      try {
+            netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+
+            result = netkey.SetCoolKeyConfigValue(configValue,newValue);
+
+            } catch(e) {
+                MyAlert(getBundleString("errorConfigValue") + " " + e);
+      }
+
+    }
+
+    return result;
+}
+
+//Utility function to get a CoolKey Configuration Value
+function DoCoolKeyGetConfigValue(configValue)
+{
+   var result = null;
+
+   if(!configValue)
+       return null;
+
+   if(netkey)
+   {
+      try {
+            netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+
+            result = netkey.GetCoolKeyConfigValue(configValue);
+
+            } catch(e) {
+                MyAlert(getBundleString("errorConfigValue") + " " + e);
+      }
+
+    }
+
+    return result;
+}
+
+function DoCoolKeyGetIssuerUrl(keyType,keyID)
+{
+    var url = null;
+
+    try {
+      netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+      url =  netkey.GetCoolKeyIssuerInfo(keyType, keyID);
+
+
+      if(url.length < 10)   // Check for bogus junk
+          url = null;
+
+      if(url)
+      {
+          var issuer_config_value = ConfigValueWithKeyID(keyID,KEY_ISSUER_URL);
+          var result = DoCoolKeySetConfigValue(issuer_config_value,url);
+      }
+    } catch (e) {
+      ReportException(getBundleString("errorIssuerInfo") + " " , e);
+      return url;
+  }
+
+  return url;
+}
+
+
+function CheckForFactoryMode()
+{
+  var factory= DoCoolKeyGetConfigValue("esc.factory.mode");
+
+  if(factory == "yes")
+  {
+      gFactoryMode = 1;
+
+  }
+
+}
+
+function launchCONFIG(keyType,keyID)
+{
+    var wind = window.openDialog("chrome://esc/content/config.xul",keyID,"chrome,centerscreen,resizable,modal=yes");
+}
+
+function launchCertViewer()
+{
+   var wind =  window.openDialog("chrome://pippki/content/certManager.xul", "","chrome,centerscreen,modal=yes");
+}
+
+function launchSETTINGS()
+{
+
+    var adminWnd  = IsPageWindowPresent(ADMIN_WINDOW);
+
+    if(!adminWnd)
+    {
+        var wind = window.open("chrome://esc/content/settings.xul","","chrome,resizable,centerscreen,dialog");
+
+    } else
+    {
+        adminWnd.focus();
+    }
+}
+
+function launchESC()
+{
+
+    var enrollWnd = IsPageWindowPresent(ENROLL_WINDOW);
+
+    if(!enrollWnd)
+    {
+        var wind = window.open("chrome://esc/content/esc.xul","","chrome,resizable,centerscreen,dialog");
+
+    }
+    else
+    {
+        enrollWnd.focus();
+    }
+
+}
+
+function UpdateESCSize(newWidth,newHeight)
+{
+
+    if(!gEnrollmentPage && !gAdminPage)
+        return;
+
+    if(newWidth && newHeight)
+    {
+        window.resizeTo(newWidth,newHeight);
+    }
+    else
+    {
+        window.sizeToContent();
+
+    }
+}
+
+//Receive Tray Notifications
+
+function NotifyESCOfTrayEvent(aEvent,aEventData,aKeyData,aData1,aData2)
+{
+   //alert("NotifyESCOfTrayEvent window" + window.location + "gHiddenPage " + gHiddenPage + " gHiddenPageDone " + gHiddenPageDone);
+
+    if(!gHiddenPage)
+        return;
+
+   //Get the primary page windows if present
+
+   var enrollWnd = IsPageWindowPresent(ENROLL_WINDOW);
+   var adminWnd  = IsPageWindowPresent(ADMIN_WINDOW);
+
+
+   if(!adminWnd)
+   {
+        launchSETTINGS();
+   }
+   else
+   {
+       adminWnd.focus();
+
+   }
+
+}
+
+//Utility DOM functions
+
+function HideItem(theItem)
+{
+    if(theItem)
+       theItem.setAttribute("hidden","true");
+}
+
+function ShowItem(theItem)
+{
+    if(theItem)
+       theItem.setAttribute("hidden","false");
+}
+
+function EnableItem(theItem)
+{
+    if(theItem)
+        theItem.setAttribute("disabled","false");
+}
+
+function DisableItem(theItem)
+{
+    if(theItem)
+        theItem.setAttribute("disabled","true");
+}
+
+
+// Phone Home Related Functions
+
+function IsPhoneHomeCached(aKeyID)
+{
+    if(!aKeyID)
+        return false;
+
+    var phoneHomeUrl = null;
+    var phoneHomeIssuer = null;
+    var tpsURL = null;
+    var tpsUI = null;
+
+    phoneHomeUrl = GetCachedPhoneHomeURL(aKeyID);
+
+
+    if(!phoneHomeUrl)
+        return false;
+
+    phoneHomeIssuer = GetCachedIssuer(aKeyID);
+
+
+    if(!phoneHomeIssuer)
+       return false;
+
+    tpsURL = GetCachedTPSURL(aKeyID);
+
+
+    if(!tpsURL)
+        return false;
+    tpsUI = GetCachedTPSUI(aKeyID);
+
+
+    return true;
+}
+
+function GetCachedPhoneHomeURL(aKeyID)
+{
+     var url = null;
+
+     if(!aKeyID)
+         return null;
+
+     var urlValue = ConfigValueWithKeyID(aKeyID,KEY_ISSUER_URL);
+
+
+     if(!urlValue)
+         return null;
+
+     url = DoCoolKeyGetConfigValue(urlValue);
+
+     return url;
+}
+
+function GetCachedTPSUI(aKeyID)
+{
+     var ui = null;
+
+     if(!aKeyID)
+         return null;
+
+     var uiValue = ConfigValueWithKeyID(aKeyID,TPS_UI);
+
+     if(!uiValue)
+         return null;
+
+     ui = DoCoolKeyGetConfigValue(uiValue);
+
+     return ui;
+}
+
+function GetCachedIssuer(aKeyID)
+{
+     var issuer = null;
+
+     if(!aKeyID)
+         return null;
+
+     var issuerValue = ConfigValueWithKeyID(aKeyID,KEY_ISSUER);
+
+     if(!issuerValue)
+         return null;
+
+     issuer = DoCoolKeyGetConfigValue(issuerValue);
+     return issuer;
+}
+
+function GetCachedTPSURL(aKeyID)
+{
+     var url = null;
+
+     if(!aKeyID)
+         return null;
+
+     var urlValue = ConfigValueWithKeyID(aKeyID,TPS_URL);
+
+
+     if(!urlValue)
+         return null;
+
+     url = DoCoolKeyGetConfigValue(urlValue);
+
+     return url;
+}
+
+function UpdateRowWithPhoneHomeData(keyType,keyID)
+{
+
+    if(gEnrollmentPage)
+    {
+        UpdateEnrollmentArea(keyType,keyID,1);
+    }
+
+    if(gAdminPage)
+    {
+          SelectRowByKeyID(keyType, keyID);
+          UpdateAdminListRow(keyType,keyID);
+    }
+
+}
+
+//Phone home and get values
+function phoneHome(theUrl,aKeyID,resultCB)
+{
+
+   var url = null ;
+
+   if(!theUrl || !aKeyID)
+       return false;
+
+    if(theUrl != null)
+        url = theUrl;
+
+    var req = new XMLHttpRequest();
+    req.overrideMimeType('text/xml');
+   
+    var async = true;
+
+    req.open('GET', url, true);
+
+    var callback = function () {
+
+        var result = false;
+        if (req.readyState == 4) {
+            var response = req.responseXML;
+
+            if(!response)
+            {
+                if(resultCB)
+                   resultCB(false);
+                return false;
+            }
+            var root = response.getElementsByTagName("ServiceInfo");
+
+            if(!root)
+            {
+               if(resultCB)
+                   resultCB(false);
+               return false;
+            }
+
+            var issuer = response.getElementsByTagName("IssuerName").item(0);
+
+            if(!issuer)
+            {
+               if(resultCB)
+                   resultCB(false);
+               return false;
+            }
+
+            var theIssuer = issuer.lastChild.data;
+
+            if(theIssuer)
+            {
+                 var issuer_config_value = ConfigValueWithKeyID(aKeyID,KEY_ISSUER);
+                 if(issuer_config_value)
+                 {
+                     DoCoolKeySetConfigValue(issuer_config_value,theIssuer);
+
+                 }
+            }
+
+            var services = response.getElementsByTagName("Services");
+
+            if(!services)
+            {
+                if(resultCB)
+                    resultCB(false);
+                return false;
+            }
+
+            var servicesNodes = services[0].childNodes;
+            var len = servicesNodes.length;
+
+            for (var i = 0; i < len; i++)
+            {
+                var oChild = servicesNodes.item(i);
+                var name = oChild.nodeName;
+                var value = oChild.firstChild.data;
+
+                if(name && value)
+                {
+                    var cValue = ConfigValueWithKeyID(aKeyID,name);
+
+                    if(cValue)
+                    {
+                        DoCoolKeySetConfigValue(cValue,value);
+                    }
+                }
+               
+            }
+
+            if(resultCB)
+            {
+               //Manually write out entry for phone home url
+
+                var issuer_config_value = ConfigValueWithKeyID(aKeyID,KEY_ISSUER_URL);
+                var result = DoCoolKeySetConfigValue(issuer_config_value,url);
+                resultCB(true);
+            }
+            return;
+        }
+     }
+
+     req.onreadystatechange = callback;
+     req.send(null);
+
+     return true;
+}
+
+function ReadESCLog()
+{
+
+    const logFileName = "esc.log";
+
+    // Get executable directory
+
+    var file = Components.classes["@mozilla.org/file/directory_service;1"]
+                     .getService(Components.interfaces.nsIProperties)
+                     .get("ProfD", Components.interfaces.nsIFile);
+
+    file = file.parent;
+    file.append(logFileName);
+    var istream = Components.classes["@mozilla.org/network/file-input-stream;1"]
+                        .createInstance(Components.interfaces.nsIFileInputStream);
+
+    try {
+        istream.init(file, 0x01, 0444, 0);
+        istream.QueryInterface(Components.interfaces.nsILineInputStream);
+
+    } catch (e){
+
+        return null;
+    }
+
+   // read lines into array
+    var line = {}, lines = [], hasmore;
+    do {
+        hasmore = istream.readLine(line);
+
+        var value = line.value;
+
+        var colonIndex = value.indexOf(":");
+
+        value = value.substring(colonIndex + 1);
+
+        lines.push(value); 
+    } while(hasmore);
+
+    istream.close();
+
+    return lines;
+
+}
+
+// Get the url form of the balloon tooltip icon
+// Only useful on Linux
+
+function GetESCNotifyIconPath(keyType,keyID)
+{
+    var path = null;
+    var def_image = "/components/icon.png";
+
+    var chrome_path = "/chrome/content/esc/";
+
+    var image = null;
+
+     var status;
+
+     try {
+         status = GetCoolKeyStatus(keyType, keyID);
+     } catch(e) {
+        status = 0;
+     }
+
+     if(status == 1) // no applet
+     {
+         image = chrome_path + "blank-card.png";
+     }
+     if(status == 2) // uninitialized
+     {
+         image = chrome_path + "initializecard.png";
+     }
+     if(status == 4) // enrolled
+     {
+         image = chrome_path + "enrolled-key.png";
+     }
+
+     if(!image)
+         image = def_image;
+
+     var file = Components.classes["@mozilla.org/file/directory_service;1"]
+                     .getService(Components.interfaces.nsIProperties)
+                     .get("CurProcD", Components.interfaces.nsIFile);
+
+    if(file)
+      file = file.parent;
+
+    if(file.path)
+        path = "file://" + file.path + image;
+
+    return path;
+}
+
+// New Alert Functions based on nsIPromptService
+
+function MyAlert(message)
+{
+    if(message)
+        DoMyAlert(message,getBundleString("escTitle")); 
+}
+
+function DoMyAlert(message,title)
+{
+
+   if(!message || !title)
+       return;     try {
+        netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+       var prompts = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService); 
+
+       prompts.alert(window,title,message);
+
+   } catch(e) {
+
+
+       alert("Problem with nsIPromptService " + e);
+   }
 
 }

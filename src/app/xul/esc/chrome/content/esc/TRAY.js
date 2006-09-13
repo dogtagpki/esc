@@ -23,8 +23,39 @@ var gTray = null;
 
 var gBaseWindow = 0;
 
+var gWindNotify = null;
+
 
 loadStringBundle();
+
+//
+// Tray event Notify callback
+//
+function jsWindNotify()  {}
+
+jsWindNotify.prototype = {
+
+  rhTrayWindEventNotify: function(aEvent,aEventData,aKeyData,aData1,aData2)
+  {
+     //alert("rhTrayWindEventNotify!!!! event " + aEvent);
+
+     NotifyESCOfTrayEvent(aEvent,aEventData,aKeyData,aData1,aData2);
+  },
+
+  QueryInterface: function(iid)
+  {
+     //alert("iid: " + iid);
+     if(!iid.equals(Components.interfaces.rhITrayWindNotify) &&
+         !iid.equals(Components.interfaces.nsISupports))
+      {
+          MyAlert(getBundleString("errorJsNotifyInterface"));
+          throw Components.results.NS_ERROR_NO_INTERFACE;
+      }
+      return this;
+  }
+};
+
+
 
 //Initialize tray XPCOM object
 
@@ -39,10 +70,20 @@ try {
       gBaseWindow = getBaseWindow();
 
 
+      if(gTray)
+      {
+           gWindNotify = new jsWindNotify;
+           if(gWindNotify)
+               gTray.setwindnotifycallback(gWindNotify);
+
+           //alert("setting tray notify callback " + gWindNotify);
+      }
+
 
  } catch(e) {
-}
 
+     MyAlert("e " + e);
+}
 
 TrayAddWindow();
 
@@ -92,7 +133,7 @@ function GetTrayIsInitialized()
    }
    catch (ex)
    {
-      alert(getBundleString("errorTrayIsInitialized"));
+      MyAlert(getBundleString("errorTrayIsInitialized"));
       rv = null;
       /* ignore no-interface exception */
    }
@@ -115,7 +156,7 @@ function ShowAllWindows()
         gTray.showall();
 
             } catch(e) {
-                alert(getBundleString("errorShowAllWindows") + e);
+                MyAlert(getBundleString("errorShowAllWindows") + e);
                 return;
             }
 
@@ -135,7 +176,7 @@ function HideAllWindows()
         gTray.hideall();
 
             } catch(e) {
-                alert(getStringBundle("errorHideAllWindows") + e);
+                MyAlert(getStringBundle("errorHideAllWindows") + e);
                 return;
             }
 
@@ -156,7 +197,7 @@ function ShowWindow()
         gTray.show(gBaseWindow);
 
             } catch(e) {
-                alert(getBundleString("errorShowWindow"));
+                MyAlert(getBundleString("errorShowWindow"));
                 return;
             }
 
@@ -176,30 +217,50 @@ function HideWindow()
         gTray.hide(gBaseWindow);
         
             } catch(e) {
-                alert(getBundleString("errorHideWindow"));
+                MyAlert(getBundleString("errorHideWindow"));
                 return;
             }   
             
 
 }
 
-function TrayRemoveWindow()
+function TrayRemoveWindowNotify()
 {
 
+    if(gTray && gBaseWindow && gWindNotify)
+    {
+         try {
+
+            netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+
+            gTray.unsetwindnotifycallback(gWindNotify);
+            
+
+            } catch(e) {
+                return;
+            }
+
+
+   }
+}
+
+function TrayRemoveWindow(doPreserveNotifyCallback)
+{
     if(gTray && gBaseWindow)
     {
-
-         try {
+        try {
 
         netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
 
             gTray.remove(gBaseWindow);
 
             } catch(e) {
-                alert(getBundleString("errorRemoveWindow") + e);
+                MyAlert(getBundleString("errorRemoveWindow") + e);
                 return;
             }
 
+        if(gWindNotify && !doPreserveNotifyCallback)
+               gTray.unsetwindnotifycallback(gWindNotify);
     }
 
 }
@@ -226,37 +287,87 @@ function TrayAddWindow()
 
     }
 
-
-
-
 }
 
-function TraySendNotificationMessage(aMessage)
+function TraySendNotificationMessage(aTitle,aMessage,aSeverity,aTimeout,aIcon)
 {
-
+    if(!gHiddenPage)
+        return;
 
     if(gTray && gBaseWindow)
-{
+    {
 
-     try {
+        try {
 
-    netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect")
+        netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect")
 
 
-        gTray.sendnotification(aMessage);
+        gTray.sendnotification(aTitle,aMessage,aSeverity,aTimeout,aIcon);
 
         } catch(e) {
             alert(getBundleString("errorTrayNotification") + e);
             return;
         }
 
+    }
+
+} 
+
+
+function TrayHideNotificationIcon()
+{
+    if(!gHiddenPage)
+        return;
+
+    if(gTray && gBaseWindow)
+    {
+
+        try {
+
+        netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect")
+
+        gTray.hideicon();
+
+        } catch(e) {
+            return;
+        }
+
+    }
 
 }
 
+function TrayLoadedOK()
+{
+      var result = 0;
 
+      if(gTray)
+          result = 1;
 
+      return result;
+}
+
+function TrayShowNotificationIcon()
+{
+    if(!gHiddenPage)
+        return;
+
+    if(gTray && gBaseWindow)
+    {
+
+        try {
+
+        netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect")
+        gTray.settooltipmsg(getBundleString("escTitle"));
+        gTray.showicon();
+
+        } catch(e) {
+            return;
+        }
+
+    }
 
 }
+
 
 //String bundling related functions
 
@@ -267,7 +378,6 @@ function loadStringBundle()
 
 function getBundleString(string_id)
 {
-
     var str = null;
 
     if(!string_id || !gStringBundle)
@@ -276,6 +386,5 @@ function getBundleString(string_id)
     str = gStringBundle.getString(string_id);
 
     return str;
-
 }
 

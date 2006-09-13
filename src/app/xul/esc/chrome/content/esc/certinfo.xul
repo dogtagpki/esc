@@ -20,7 +20,7 @@
 <!DOCTYPE window SYSTEM "chrome://esc/locale/esc.dtd">
 <window
     class="escwindow"
-    id="esc-cert-window"
+    id="esc-window"
     onload="ShowCertInfo();"
     onunload="cleanup();"
     title="&certInfoTitle;"

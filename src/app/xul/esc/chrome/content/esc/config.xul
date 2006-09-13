@@ -20,9 +20,9 @@
 <!DOCTYPE window SYSTEM "chrome://esc/locale/esc.dtd">
 <window 
     class="escwindow"
-    id="esc-config-window"
+    id="esc-window"
     title="&escTitle;"
-    onload="InitializeConfigUI()"
+    onload="InitializePhoneHomeConfigUI();"
     width ="600"
     height= "350"
     onunload="cleanup();"
@@ -30,33 +30,21 @@
 <stringbundle id="esc_strings" src="chrome://esc/locale/esc.properties"/>
 <script src="TRAY.js"/>
  <script src="ESC.js"/> 
- <toolbox flex="0">
-  <toolbar id="esc-menubar">
-    <menu id="nav-menu" label="&navigationMenu;">
-      <menupopup id="file-popup">
-        <menuitem label="&enrollmentMenuItem;" oncommand="loadESC();"/>
-        <menuitem label="&settingsMenuItem;" oncommand="loadSETTINGS();"/>
-      </menupopup>
-    </menu>
-  </toolbar>
-  </toolbox>
-
-   <groupbox>
-<hbox >
+<hbox class="logoBox" >
  <image id="logoImage"/>
- <spacer flex="1"/>
+ <spacer class="horSpacerVeryShort"/>
  <label class = "headLabelText" value="&configTitle;"/>
  <spacer flex="1"/>
 </hbox>
-</groupbox>
     <vbox flex="1" >
-
-    <groupbox  >
+    <description class="messageText">
+        &tpsConfigDesc; 
+    </description>
+    <groupbox class="outerGroupBox" >
     <caption label="&editConfigValues;"/>
     <spacer flex="1" style="min-height: 10px" />
     <grid id ="ConfigTable" >
     <columns>
-
      <column  />
      <column flex = "1" />
      <column flex = "1" />
@@ -64,24 +52,16 @@
     <rows id="ConfigTableRows">
         <row pack="center">
             <label class="titleText"  value="&tpsURIHeader;" /> 
-             <textbox size="70" class="configTextBox" id="tpsuri"  value="" /> 
-             <button id="testtpsurl" label="&doTest;" oncommand="testTPSURI(null);"/>
+             <textbox size="70" class="configTextBox" id="phonehomeuri"  value="" /> 
+             <button class="mediumButon" id="testtpsurl" label="&doTest;" oncommand="DoPhoneHomeTest();"/>
         </row>
-
-        <row pack="center">
-             <label class="titleText" value = "&escEnrollURIHeader;" />
-             <textbox size="70" class="configTextBox" id="tpsenrolluri" value="" />
-             <button id="testenrollurl" label="&doTest;" oncommand="testEnrollURI();"/>
-        </row>
-
-        <row>
-            <button id="commitconfig" label= "&updateValues;" oncommand="commitConfigValues();"/>
-        </row>
-
     </rows>
-
     </grid>
 
+    <hbox>
+         <spacer flex ="1"/>
+        <button label="&escOK;" oncommand="DoPhoneHomeConfigClose();" /> 
+    </hbox>
     <spacer flex="1" style="min-height: 20px"  />
      </groupbox>
 
