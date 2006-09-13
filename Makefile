@@ -19,29 +19,6 @@ include manifest.mn
 
 include $(CORE_DEPTH)/coreconf/config.mk
 
-all:: importnss
 
 include $(CORE_DEPTH)/coreconf/rules.mk
 
-# only build the card applet on Windows, and if the tools are setup
-
-ifeq ($(findstring WIN,$(OS_TARGET)),WIN)
-ifneq (,$(JAVACARD_KIT_DIR))
-ifneq (,$(JAVA_HOME))
-ifneq (,$(SLB_DIR))
-DIRS += applet
-endif
-endif
-endif
-endif
-
-# import xulrunner to get the gdk
-
-
-IMPORTS += src/xulrunner/v1.8.0.1/xulrunner-1.8.0.1-source.tar.gz
-importnss:
-ifeq ($(IMPORT_NSS),1)
-ifneq ($(wildcard $(NSSDIR)/$(OBJDIR)/include/prtypes.h),$(NSSDIR)/$(OBJDIR)/include/prtypes.h)
-	$(MAKE) import
-endif
-endif
