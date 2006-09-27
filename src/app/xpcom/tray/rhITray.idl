@@ -24,6 +24,8 @@ interface rhITray: nsISupports
 
     void    setwindnotifycallback(in rhITrayWindNotify jsNotify);
     void    unsetwindnotifycallback(in rhITrayWindNotify jsNotify);
+    void    setmenuitemtext(in unsigned long aIndex, in string aText);
+
     
 
 };

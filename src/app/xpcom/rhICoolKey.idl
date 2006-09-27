@@ -19,6 +19,7 @@
 #include "rhIKeyNotify.idl"
 #include "nsIObserver.idl"
 
+interface nsIDOMHTMLDocument;
 [scriptable,uuid(ea54eee4-9548-4b63-b94d-c519ffc91d09)]
 
 interface rhICoolKey: nsISupports
@@ -73,9 +74,15 @@ interface rhICoolKey: nsISupports
     void    SetCoolKeyDataValue(in unsigned long aKeyType,in string aKeyID,in string name,in string value);
 
     boolean    SetCoolKeyConfigValue(in string aName, in string aValue);
+
+    boolean   GetCoolKeyIsReallyCoolKey(in unsigned long aKeyType, in string aKeyID);
+
+    long      GetCoolKeyGetAppletVer(in unsigned long aKeyType, in string aKeyID , in boolean aIsMajor);
+
     string    GetCoolKeyConfigValue(in string aName);
 
     string    GetCoolKeyVersion();
+ 
 
 };
 

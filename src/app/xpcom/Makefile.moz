@@ -103,6 +103,7 @@ endif
 install::
 ifdef DESTDIR
 	$(NSINSTALL) $(DEPLOY_OBJDIR)/esc/* $(DESTDIR)
+	$(NSINSTALL) $(CORE_DIST)/bin/escd $(DESTDIR)
 endif
 all:: export libs 
 

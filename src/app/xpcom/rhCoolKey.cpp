@@ -39,6 +39,7 @@
 #include "nsXPCOMGlue.h"
 #include "prlink.h"
 #include "nscore.h"
+#include "content/nsCopySupport.h"
 #include <vector>
 #include <string>
 
@@ -1066,6 +1067,43 @@ NS_IMETHODIMP rhCoolKey::GetCoolKeyStatus(PRUint32 aKeyType, const char *aKeyID,
     return NS_OK;
 }
 
+
+/* boolean GetCoolKeyIsReallyCoolKey (in unsigned long aKeyType, in string aKeyID); */
+
+
+NS_IMETHODIMP rhCoolKey::GetCoolKeyIsReallyCoolKey(PRUint32 aKeyType, const char *aKeyID, PRBool *_retval)
+{
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::GetCoolKeyIsReallyCoolKey thread: %p \n",PR_GetCurrentThread()));
+
+    if (ASCCoolKeyIsAvailable(aKeyType, (char *) aKeyID)) {
+        if (aKeyID) {
+            AutoCoolKey key(aKeyType, aKeyID);
+            PRBool isCool = CoolKeyIsReallyCoolKey(&key);
+            PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::GetCoolKeyIsReallyCoolKey isCool: %d \n",(int) isCool));
+            *_retval= isCool;
+            return NS_OK;
+        }
+    }
+    *_retval = PR_FALSE;
+    return NS_OK;
+}
+
+/* long GetCoolKeyGetAppletVer (in unsigned long aKeyType, in string aKeyID, in boolean aIsMajor); */
+NS_IMETHODIMP rhCoolKey::GetCoolKeyGetAppletVer(PRUint32 aKeyType, const char *aKeyID, PRBool aIsMajor, PRInt32 *_retval)
+{
+
+    PR_LOG(coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::GetCoolKeyAppletVer thread: %p \n",PR_GetCurrentThread()));
+
+    AutoCoolKey key(aKeyType, aKeyID);
+
+    int ver = CoolKeyGetAppletVer(&key, aIsMajor);
+
+    *_retval = ver;
+
+    return S_OK;
+
+}
+
 /* boolean rhCoolKeyIsEnrolled (in unsigned long aKeyType, in string aKeyID); */
 
 NS_IMETHODIMP rhCoolKey::GetCoolKeyIsEnrolled(PRUint32 aKeyType, const char *aKeyID, PRBool *_retval)
@@ -1093,6 +1131,9 @@ NS_IMETHODIMP rhCoolKey::GetCoolKeyCertInfo(PRUint32 aKeyType, const char *aKeyI
 
     string certInfo = "";
     *aCertInfo = NULL;
+
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::GetCoolKeyCertInfo thread: %p \n",PR_GetCurrentThread()));
+
 
     AutoCoolKey key(aKeyType, aKeyID);
 
@@ -1317,7 +1358,7 @@ NS_IMETHODIMP rhCoolKey::GetCoolKeyVersion(char **_retval)
 {
     PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::GetCoolKeyVersion \n"));
 
-    char *version = "1.0.0-10";
+    char *version = "1.0.0-16";
     
     char *versionVal =  (char *) nsMemory::Clone(version,sizeof(char) * strlen(version) +  1);
 

@@ -269,7 +269,6 @@ HRESULT rhTray::Initialize()
 
     mInitialized = 1;
 
-    notify_icon_hide();
 
     return S_OK;
 }
@@ -421,18 +420,21 @@ void rhTray::IconCBProc(GtkWidget *button, GdkEventButton *event, void *data)
     if(event->button == 1)
     {
 
+         PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::IconCBProc Clicked!\n"));
+
+        NotifyTrayWindListeners(MENU_EVT,MENU_SHOW);
         rhTray::ShowAllListeners();
 
         return;
-
-
     }
 
-
-    if(mIconMenu)
+    if(event->button == 2 || event->button == 3)
     {
-            g_print("trying to create popup menu. \n");
-            gtk_menu_popup(GTK_MENU(mIconMenu),
+
+        if(mIconMenu)
+        {
+                g_print("trying to create popup menu. \n");
+                gtk_menu_popup(GTK_MENU(mIconMenu),
                                              NULL,
                                              NULL,
                                              NULL,
@@ -440,7 +442,8 @@ void rhTray::IconCBProc(GtkWidget *button, GdkEventButton *event, void *data)
                                              event->button,
                                              event->time);
 
-   }
+       }
+    }
 
 }
 
@@ -586,6 +589,52 @@ HRESULT rhTray::RemoveAllListeners()
 
 }
 
+/* void setmenuitemtext (in unsigned long aIndex, in string aText); */
+NS_IMETHODIMP rhTray::Setmenuitemtext(PRUint32 aIndex, const char *aText)
+{
+
+     PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::Setmenuitemtext:  index: %d text %s. \n",aIndex,aText));
+
+    if(!aText)
+        return S_OK;
+
+    if(!mIconMenu)
+        return S_OK;
+
+    if(aIndex < 0 || aIndex > 10)
+        return S_OK; 
+
+    GList *iterate = NULL;
+
+    GList*  children = gtk_container_get_children (GTK_CONTAINER (mIconMenu));
+
+    unsigned int i = 0;
+    for (iterate = children; iterate; iterate=iterate->next)
+    {
+        PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::Setmenuitemtext:  index: %d \n",i));
+        if(aIndex == i)
+        {
+             PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::Setmenuitemtext:  About to reset text of item %p. \n",(void *) iterate->data));
+             if(iterate->data)
+             {
+                GtkWidget *label = gtk_bin_get_child(GTK_BIN(iterate->data)); 
+
+                if(label)
+                {
+
+                    gtk_label_set_text(GTK_LABEL(label),aText);
+                }
+             }
+
+             break;
+        }
+
+        i++;
+    }
+
+    return S_OK;
+}
+
 //rhTrayWindNotify methods
 
 rhITrayWindNotify* rhTray::GetTrayWindNotifyListener(rhITrayWindNotify *listener)
@@ -719,15 +768,27 @@ HRESULT rhTrayWindowListener::Initialize()
     return S_OK;
 }
 
-
 void rhTrayWindowListener::ShowWindow()
 {
     if(mWnd)
     {
-         gtk_widget_show(mWnd);
+         GtkWidget *widget = NULL;
 
-         
-         gtk_window_deiconify(GTK_WINDOW(mWnd));
+         widget = GTK_WIDGET(mWnd);
+
+         if(widget->window)
+         {
+             if(GTK_WIDGET_VISIBLE(mWnd))
+             {
+                 gdk_window_show(widget->window);
+                 gdk_window_raise(widget->window); 
+
+             }
+             else
+             {
+                 gtk_widget_show(widget);
+             }
+         }
 
          PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener:: ShowWindow \n"));
     }

@@ -503,6 +503,13 @@ HRESULT rhTray::RemoveAllListeners()
 
 }
 
+/* void setmenuitemtext (in unsigned long aIndex, in string aText); */
+NS_IMETHODIMP rhTray::Setmenuitemtext(PRUint32 aIndex, const char *aText)
+{
+    return S_OK;
+}
+
+
 //rhTrayWindNotify methods
 
 rhITrayWindNotify* rhTray::GetTrayWindNotifyListener(rhITrayWindNotify *listener)
