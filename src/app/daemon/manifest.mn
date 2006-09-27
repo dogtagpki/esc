@@ -1,0 +1,43 @@
+# BEGIN COPYRIGHT BLOCK
+# This Program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; version 2 of the License.
+#
+# This Program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this Program; if not, write to the Free Software Foundation, Inc., 59 Temple
+# Place, Suite 330, Boston, MA 02111-1307 USA.
+#
+# Copyright (C) 2005 Red Hat, Inc.
+# All rights reserved.
+# END COPYRIGHT BLOCK
+
+CORE_DEPTH = ../../..
+
+CORE_DIST= $(CORE_DEPTH)/dist/
+
+SYS_INC= /usr/include
+ifndef MOZ_OFFSET
+MOZ_OFFSET      = mozilla-1.7.13
+endif
+
+DEFINES         +=  -I$(SYS_INC)/nspr4 -I$(SYS_INC)/nss3  -I$(SYS_INC)/$(MOZ_OFFSET)/nspr -I$(SYS_INC)/$(MOZ_OFFSET)/nss
+
+CPPFLAGS		+= $(DEFINES) -g
+
+LDFLAGS += -lstdc++ -L$(CORE_DIST)/$(OBJDIR)/lib  -lnss3 -lnspr4  -lssl3 -lckyapplet -lX11
+LDFLAGS +=  -lckymanager -lhttpchunked 
+# MODULE public and private header  directories are implicitly REQUIRED.
+
+CPPSRCS = \
+	escd.cpp \
+	$(NULL)
+
+# The MODULE is always implicitly required.
+# Listing it here in REQUIRES makes it appear twice in the cc command line.
+REQUIRES = ckymanager nss nspr NssHttpClient
+
+PROGRAM = escd 
