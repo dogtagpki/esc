@@ -1,0 +1,87 @@
+#!/bin/sh
+
+ESC_PROFILE_BASE=~/.redhat/esc
+ESC_LOG_FILE=esc.log
+
+ESC_PATH=$LIBDIR/esc-1.0.0
+ESC_BIN_PATH=/usr/bin
+ESC_EXEC=esc
+ESCD_EXEC=escd
+
+ESC_BIN=$ESC_PATH/xulrunner/xulrunner-bin
+ESCD_BIN=./$ESCD_EXEC
+
+LAST_PROG_PID=0
+SIGUSR1=10
+
+FORCE_START_ESC=$1
+
+XPTI_DAT=xpti.dat
+COMPREG_DAT=compreg.dat
+
+function isProgRunning {
+
+    userID=$(whoami)
+    isProgRunning=$(pgrep -U $userID -f $1)
+    if [ $isProgRunning  ];
+    then
+        LAST_PROG_PID=$isProgRunning
+        return 0
+    fi
+    LAST_PROG_PID=0
+    return 1 
+}
+
+function removeFile {
+
+    if [  -w  $1 ]
+    then
+       rm -f $1
+    fi
+}
+
+
+export NSPR_LOG_MODULES=tray:2,coolKeyLib:2,coolKey:2,coolKeyNSS:2,coolKeySmart:2,coolKeyHandler:2,escDLog:5
+
+
+if [ ! -d $ESC_PROFILE_BASE ]
+then
+mkdir -p  $ESC_PROFILE_BASE
+fi
+export NSPR_LOG_FILE=$ESC_PROFILE_BASE/$ESC_LOG_FILE
+
+cd $ESC_PATH
+
+isProgRunning $ESC_BIN
+
+if [  $LAST_PROG_PID  -gt 0 ]
+then
+./$ESC_EXEC
+exit 0
+fi
+
+if [ $FORCE_START_ESC ]
+then
+./$ESC_EXEC
+exit 0
+fi
+
+
+
+isProgRunning $ESCD_BIN
+
+
+if  [ $LAST_PROG_PID  -gt 0 ]
+then
+kill -$SIGUSR1 $LAST_PROG_PID
+else
+removeFile $ESC_PROFILE_BASE/*default/$XPTI_DAT
+removeFile $ESC_PROFILE_BASE/*default/$COMPREG_DAT
+./$ESCD_EXEC --key_Inserted=\"/usr/bin/esc\"  --on_Signal=\"/usr/bin/esc\"
+
+fi
+
+exit 0
+
+
+
