@@ -69,9 +69,8 @@ NSS_HTTP_CLIENT_API NSS_HTTP_HANDLE httpAllocateClient()
     {
         PRBool result = InitSecurity(NULL, NULL, NULL, NULL,1 );
 
-        if(result = PR_FALSE)
+        if(result == PR_FALSE)
         {
-            
             return 0;
         }
 

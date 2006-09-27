@@ -16,6 +16,7 @@
  * END COPYRIGHT BLOCK **/
 
 #include <string.h>
+#include <unistd.h>
 #include <gdk/gdkx.h>
 #include "notifyareaicon.h"
 
@@ -170,6 +171,44 @@ notify_area_icon_update_manager_wnd(NotifyAreaIcon *icon)
   
   icon->manager_wnd = XGetSelectionOwner (xdisplay, icon->selection_atom);
 
+  if(icon->manager_wnd == None)
+  {
+
+      /* Let's loop through for up to 7 seconds until the
+         notification applet comes on line */
+
+      const int maxIters = 7;
+      const int sleepInterval = 1000000;
+
+      int i = 0;
+      for(i = 0; i < maxIters ; i++)
+      {
+
+          XUngrabServer (xdisplay);
+          XFlush (xdisplay);
+          g_print("XGetSelectionOwner failed try again iter: %d ... \n",i);
+
+          usleep(sleepInterval);
+
+
+          XGrabServer (xdisplay);
+          icon->manager_wnd = XGetSelectionOwner (xdisplay, icon->selection_atom); 
+
+          if(icon->manager_wnd == None)
+          {
+              g_print("XGetSelectionOwner failed try again! \n");
+          }
+          else
+          {
+
+              g_print("XGetSelectionOwner succeeded ! \n");
+              break;
+          }
+
+      }
+
+  }
+
   if (icon->manager_wnd != None)
     XSelectInput (xdisplay,
 		  icon->manager_wnd, StructureNotifyMask);
@@ -207,6 +246,16 @@ notify_area_icon_new(const gchar *name)
   icon = (NotifyAreaIcon *) g_object_new(notify_area_icon_get_type ()
 , NULL);
 
+
+  g_print ("result of g_object_new() %p",icon);
+
+
+  if(!icon)
+  {
+       g_print ("icon is null returning...");
+       return icon;
+  }
+
   gtk_window_set_title (GTK_WINDOW (icon), name);
 
   gtk_plug_construct (GTK_PLUG (icon), 0);  
@@ -224,6 +273,8 @@ notify_area_icon_new(const gchar *name)
 					       "_NET_SYSTEM_TRAY_OPCODE", False);
 
   notify_area_icon_update_manager_wnd(icon); 
+
+   g_print ("attempted to update_manager_wnd: %p",(void *)icon->manager_wnd);
 
   root = gdk_window_lookup (gdk_x11_get_default_root_xwindow ());
  

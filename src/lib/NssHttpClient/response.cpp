@@ -16,6 +16,8 @@
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
+#define FORCE_PR_LOG 1
+
 /**
  * HTTP response handler
  */
@@ -35,10 +37,8 @@
 #endif
 #include "Util.h"
 
-PRLogModuleInfo *httpRespLog = PR_NewLogModule("coolkey");
+PRLogModuleInfo *httpRespLog = PR_NewLogModule("coolKeyHttpRes");
 
-void printBuf(int , char* );
-void dump_data(unsigned char *aData, int aLen);
 
 /**
  * Constructor. This class is used by  the HttpResponse class for reading and
@@ -174,16 +174,12 @@ PRBool RecvBuf::_getBytes(int size) {
 
     if(!_streamMode )
     {
-    _content = (char *) PR_Malloc(_curSize+1);
-    if (_content == NULL) {
-        return PR_FALSE;
+        _content = (char *) PR_Malloc(_curSize+1);
+        if (_content == NULL) 
+             return PR_FALSE;
     
-    memcpy((char*) _content, (const char *)_buf, _curSize+1);
-    _contentSize = _curSize +1;
-
-    }
-  
-    //dump_data(( unsigned char *) _content,_contentSize); 
+        memcpy((char*) _content, (const char *)_buf, _curSize+1);
+        _contentSize = _curSize +1;
 
     }
 
@@ -229,9 +225,6 @@ int RecvBuf::getAllContent() {
     return 0;
 }
 
-void printBuf(int len, char* buf) {
-}
-
 /**
  * gets the next char from the buffer. If all the data in the buffer is read,
  * read a chunk to the buffer
@@ -240,11 +233,7 @@ void printBuf(int len, char* buf) {
 char RecvBuf::_getChar() {
     if (_curPos >= _curSize) {
         if (!_getBytes(_allocSize)) {
-            /* bugscape #55624: Solaris RA exited 
-               with a signal ABRT if we raised exception
-               without handling it */
             return -1; 
-            /* throw RecvBuf::EndOfFile(); */
         }
     }
     
@@ -281,7 +270,7 @@ char RecvBuf::getChar() {
                 if (ch != '\r' || ch2 != '\n')
                 {
                      PR_LOG(httpRespLog, PR_LOG_DEBUG,
-                          ("did not find chunk trailer at end of chunk 1.  \n"));
+                          ("did not find chunk trailer at end of chunk .  \n"));
                 }
             }
        
@@ -316,7 +305,7 @@ char RecvBuf::getChar() {
                 if (ch1 != '\r' || ch2 != '\n')
                 {
                     PR_LOG(httpRespLog, PR_LOG_DEBUG,
-                          ("did not find chunk trailer at the end of chunk 2. ch1 %c ch2 %c  \n",ch1,ch2));
+                          ("did not find chunk trailer at the end of chunk . ch1 %c ch2 %c  \n",ch1,ch2));
                 };
 
                 _currentChunkSize = _currentChunkBytesRead = 0;
@@ -681,8 +670,6 @@ PRBool    PSHttpResponse::_handleChunkedConversation(RecvBuf &buf)
 
     char chunk[4096];
 
-    int len = sizeof(chunk);
-
     int i = 0;
 
     PSChunkedResponseCallback cb = _request->getChunkedCallback();
@@ -743,7 +730,6 @@ PRBool    PSHttpResponse::_handleChunkedConversation(RecvBuf &buf)
                 PR_LOG(httpRespLog, PR_LOG_DEBUG,
                        ("PSHttpResponse::_handleChunkedConversation"
                         "  chunk complete normal condition. chunk: %s\n",(char *) chunk));
-                //dump_data((unsigned char *)chunk,i);
                 (*cb)((unsigned char *) chunk,i,uw,HTTP_CHUNK_COMPLETE);
             }
             
@@ -779,7 +765,7 @@ PRBool PSHttpResponse::_handleBody( RecvBuf &buf ) {
 
         if(cb != NULL)
         {// We need to process the chunked encoded conversation
-            PRBool res = _handleChunkedConversation(buf);
+             _handleChunkedConversation(buf);
 
         }
     } else {
@@ -1061,28 +1047,4 @@ void PSHttpResponse::_checkResponseSanity() {
 
         }
     }
-}
-
-
-void dump_data(unsigned char *aData, int aLen) {
-
-  if(!aData || !aLen)
-      return;
-
-
-  for(int i = 0; i < aLen ; i++)
-  {
-
-
-
-      PR_LOG(httpRespLog, PR_LOG_DEBUG,
-                    ("dumpdata at %d: %c \n", i, aData[i] 
-                     ));
-      
-
-  }
-
-
-
-
 }

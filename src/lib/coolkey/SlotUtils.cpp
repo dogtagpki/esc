@@ -15,6 +15,8 @@
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
+#define FORCE_PR_LOG 1
+
 #include "nss.h"
 #include "secmod.h"
 #include "pk11func.h"
@@ -42,7 +44,7 @@
 static std::list<CoolKeyInfo*> gCoolKeyList;
 PRLock *gCoolKeyListLock = NULL;
 
-static PRLogModuleInfo *coolKeyLogSU = PR_NewLogModule("coolKey");
+static PRLogModuleInfo *coolKeyLogSU = PR_NewLogModule("coolKeySlot");
 #ifdef DEBUG
 int gCoolKeyListLockCount = 0;
 #endif // DEBUG
@@ -315,6 +317,10 @@ RefreshInfoFlagsForKeyID(const CoolKey *aKey)
 
   CoolKeyInfo *info = GetCoolKeyInfoByKeyIDInternal(aKey);
 
+  int alreadyCoolKey = 0;
+  if( IS_REALLY_A_COOLKEY(info->mInfoFlags))
+     alreadyCoolKey = 1;
+
   if (!info)
     return -1;
 
@@ -322,6 +328,11 @@ RefreshInfoFlagsForKeyID(const CoolKey *aKey)
     return -1;
 
   info->mInfoFlags = CKHGetInfoFlags(info->mSlot);
+
+  if(alreadyCoolKey)
+  {
+      info->mInfoFlags |= COOLKEY_INFO_IS_REALLY_A_COOLKEY_MASK;
+  }
 
   return 0;
 }

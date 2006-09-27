@@ -15,6 +15,8 @@
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
+#define FORCE_PR_LOG 1
+
 #include "NSSManager.h"
 #include "SmartCardMonitoringThread.h"
 
@@ -31,14 +33,19 @@
 #include "p12plcy.h"
 #include "secmod.h"
 #include "secerr.h"
+#include "secder.h"
 #include "certdb.h"
 #include "secmodt.h"
 #include "keythi.h"
 #include "keyhi.h"
 
+#include <iostream>
+ #include <sstream>
+
+
 #include "SlotUtils.h"
 
-static PRLogModuleInfo *coolKeyLogNSS = PR_NewLogModule("coolKey");
+static PRLogModuleInfo *coolKeyLogNSS = PR_NewLogModule("coolKeyNSS");
 
 NSSManager::NSSManager()
 {
@@ -58,6 +65,9 @@ NSSManager::~NSSManager()
 HRESULT NSSManager::InitNSS(const char *aAppDir)
 {
   // Init NSS
+
+  PR_LOG( coolKeyLogNSS, PR_LOG_ALWAYS, ("Initializing the NSS Crypto Library. \n"));
+
 
   if(aAppDir)
   {
@@ -85,7 +95,7 @@ HRESULT NSSManager::InitNSS(const char *aAppDir)
 
    char modSpec[512];
 
-   sprintf(modSpec,"library='%s' name='%s' parameters='%s'\n",COOLKEY_PKCS11_LIBRARY,COOLKEY_NAME,PROMISCUOUS_PARAMETER);
+   sprintf(modSpec,"library=\"%s\" name=\"%s\" parameters=\"%s\" NSS=\"slotParams={0x00000002=[slotFlags='PublicCerts']}\"\n",COOLKEY_PKCS11_LIBRARY,COOLKEY_NAME,PROMISCUOUS_PARAMETER);
 
 
    PR_LOG( coolKeyLogNSS, PR_LOG_DEBUG, ("InitNSS: modSpec %s\n",modSpec));
@@ -96,7 +106,7 @@ HRESULT NSSManager::InitNSS(const char *aAppDir)
 
   if(!userModule || !userModule->loaded)
   {
-      PR_LOG( coolKeyLogNSS, PR_LOG_DEBUG, ("NSSManager::InitNSS problem loading PKCS11 module. \n"));
+      PR_LOG( coolKeyLogNSS, PR_LOG_ALWAYS, ("NSSManager::InitNSS problem loading PKCS11 module. No keys will be recognized!\n"));
       return E_FAIL;
   }
 
@@ -122,13 +132,6 @@ void NSSManager::Shutdown()
   // Logout all tokens.
   PK11_LogoutAll();
 
- 
-  //No longer Shutdown NSS, we are using the PSM XPCOM service which
-  // takes care of this
- 
- // SECStatus rv =   NSS_Shutdown();
-
-  PR_LOG( coolKeyLogNSS, PR_LOG_DEBUG, ("NSSManager::Shutdown  \n"));
 }
 
 bool 
@@ -246,12 +249,10 @@ NSSManager::GetKeyCertNicknames( const CoolKey *aKey,  vector<string> & aStrings
 
   PR_LOG( coolKeyLogNSS, PR_LOG_DEBUG, ("NSSManager::GetKeyCertNickNames \n"));
 
-
   if(!aKey )
   {
     return E_FAIL;
   }
-
 
   PK11SlotInfo *slot = GetSlotForKeyID(aKey);
 
@@ -260,7 +261,33 @@ NSSManager::GetKeyCertNicknames( const CoolKey *aKey,  vector<string> & aStrings
     return E_FAIL;
   }
 
-  CERTCertList *certs = PK11_ListCertsInSlot(slot);
+  CERTCertList *certs = PK11_ListCerts(PK11CertListAll,NULL);
+
+    if (!certs)
+    {
+        PR_LOG( coolKeyLogNSS, PR_LOG_DEBUG, ("NSSManager::GetCertNicknames no certs found! \n"));
+        PK11_FreeSlot(slot);
+        return E_FAIL;
+    }
+    CERTCertListNode *node= NULL;
+    for( node = CERT_LIST_HEAD(certs);
+             ! CERT_LIST_END(node, certs);
+             node = CERT_LIST_NEXT(node))
+    {
+        if(node->cert)
+        {
+            CERTCertificate *cert = node->cert;
+            if(cert)
+            {
+                if(cert->slot != slot)
+                {
+                    CERT_RemoveCertListNode(node);
+                }
+            }
+        }
+
+    }
+
 
   if (!certs)
   {
@@ -306,10 +333,91 @@ NSSManager::GetKeyCertNicknames( const CoolKey *aKey,  vector<string> & aStrings
 
 }
 
+HRESULT NSSManager::GetKeyIssuedTo(const CoolKey *aKey, char *aBuf, int aBufLength)
+{
+
+    if(!aBuf)
+        return E_FAIL;
+
+    aBuf[0]=0;
+
+    PR_LOG( coolKeyLogNSS, PR_LOG_DEBUG, ("NSSManager::GetKeyIssuedTo \n"));
+
+    if(!aKey )
+    {
+        return E_FAIL;
+    }
+
+    PK11SlotInfo *slot = GetSlotForKeyID(aKey);
+
+    if (!slot)
+    {
+        return E_FAIL;
+    }
+
+
+    CERTCertList *certs = PK11_ListCerts(PK11CertListAll,NULL);
+
+    if (!certs)
+    {
+        PR_LOG( coolKeyLogNSS, PR_LOG_DEBUG, ("NSSManager::GetKeyIssuedTo no certs found! \n"));
+        PK11_FreeSlot(slot);
+        return E_FAIL;
+    }
+
+    CERTCertListNode *node= NULL;
+
+    char *certID = NULL;
+
+
+    for( node = CERT_LIST_HEAD(certs);
+             ! CERT_LIST_END(node, certs);
+             node = CERT_LIST_NEXT(node))     
+    {     
+        if(node->cert) 
+        {
+            CERTCertificate *cert = node->cert;
+
+            if(cert)
+            {
+
+
+                if(cert->slot == slot)
+                {
+        
+                    certID = CERT_GetCommonName(&cert->subject);
+                    PR_LOG( coolKeyLogNSS, PR_LOG_DEBUG, ("NSSManager::GetKeyIssuedTo ourSlot %p curSlot  %p certID %s \n",slot,cert->slot,certID));
+
+                }
+
+                if(certID)
+                    break;
+            }
+        }
+
+    }
+
+    if(certID && ((int)strlen(certID)  <  aBufLength))
+    {
+        strcpy(aBuf,certID);
+    }
+
+    if(certs)
+      CERT_DestroyCertList(certs);
+
+    if(slot)
+      PK11_FreeSlot(slot);
+
+    if(certID)
+        PORT_Free(certID);
+
+    return S_OK;
+}
+
 HRESULT NSSManager::GetKeyCertInfo(const CoolKey *aKey, char *aCertNickname, string & aCertInfo)
 {
 
-   PR_LOG( coolKeyLogNSS, PR_LOG_DEBUG, ("NSSManager::GetKeyCertInfo \n"));
+   PR_LOG( coolKeyLogNSS, PR_LOG_DEBUG, ("NSSManager::GetKeyCertInfo Nickname %s \n",aCertNickname));
 
   aCertInfo = "";
 
@@ -330,7 +438,7 @@ HRESULT NSSManager::GetKeyCertInfo(const CoolKey *aKey, char *aCertNickname, str
     return E_FAIL;
   }
 
-  CERTCertList *certs = PK11_ListCertsInSlot(slot);
+  CERTCertList *certs = PK11_ListCerts(PK11CertListAll,NULL);
 
   if (!certs)
   {
@@ -339,19 +447,75 @@ HRESULT NSSManager::GetKeyCertInfo(const CoolKey *aKey, char *aCertNickname, str
     return E_FAIL;
   }
 
-  CERTCertListNode *node= CERT_LIST_HEAD(certs);
+  PR_LOG(coolKeyLogNSS, PR_LOG_DEBUG, ("NSSManager::GetKeyCertInfo About to get CertList for slot. \n"));
 
-  if(!CERT_LIST_END(node,certs))
-  {
-      CERTCertificate *cert = CERT_FindCertByNickname(node->cert->dbhandle,aCertNickname);
-
-    if(cert)
+  CERTCertListNode *node= NULL;
+    for( node = CERT_LIST_HEAD(certs);
+             ! CERT_LIST_END(node, certs);
+             node = CERT_LIST_NEXT(node))
     {
-       aCertInfo = (char *) ""; 
-    } 
-  }
+        if(node->cert)
+        {
+            CERTCertificate *cert = node->cert;
+            if(cert)
+            {
+                if(cert->slot == slot)
+                {
+                    if(!strcmp(cert->nickname,aCertNickname))
+                    {
+                        PR_LOG(coolKeyLogNSS, PR_LOG_DEBUG, ("NSSManager::GetKeyCertInfo We have a matching cert to our slot. nickname %s \n",cert->nickname));
 
-  PR_LOG( coolKeyLogNSS, PR_LOG_DEBUG, ("NSSManager::GetKeyCertINfo info %s \n",aCertInfo.c_str())); 
+                        char *issuerCN   = NULL;
+                        char *issuedToCN = NULL;
+                       
+                        aCertInfo = (char *) "";
+                        issuedToCN = cert->subjectName;
+                        issuerCN   = cert->issuerName;
+                        
+                        string issuerCNStr =  "";
+                        if(issuerCN)
+                            issuerCNStr = issuerCN;
+
+                        string issuedToCNStr = "" ;
+                        if(issuedToCN)
+                           issuedToCNStr = issuedToCN;
+
+                        string notBeforeStr = "";
+                        string notAfterStr  = "";
+
+                        char *nBefore = (char *) DER_UTCTimeToAscii(&cert->validity.notBefore);
+                        char  *nAfter  = (char *) DER_UTCTimeToAscii(&cert->validity.notAfter);
+
+
+ 
+                        if(nBefore)
+                            notBeforeStr = nBefore;
+                        if(nAfter)
+                            notAfterStr  = nAfter;
+
+                        PR_LOG( coolKeyLogNSS, PR_LOG_DEBUG, ("NSSManager::GetKeyCertInfo notBefore %s notAfter %s \n",nBefore, nAfter));
+
+
+                        int serialNumber = DER_GetInteger(&cert->serialNumber);
+
+                        std::ostringstream o;
+                        string serialStr = "";
+                        if (o << serialNumber)
+                            serialStr = o.str();                        
+
+                        aCertInfo = issuedToCNStr + "\n" + issuerCNStr + "\n"
+                            + notBeforeStr + "\n" + notAfterStr + "\n" + serialStr ;
+                        PR_LOG( coolKeyLogNSS, PR_LOG_DEBUG, ("NSSManager::GetKeyCertInfo issuerCN %s issuedToCN %s \n",issuerCN, issuedToCN)); 
+
+                        
+                        break;
+                    }               
+                }
+            }
+        }
+    }
+
+  PR_LOG( coolKeyLogNSS, PR_LOG_DEBUG, ("NSSManager::GetKeyCertInfo info: %s \n",aCertInfo.c_str())); 
 
   if(certs)
       CERT_DestroyCertList(certs);
@@ -361,6 +525,7 @@ HRESULT NSSManager::GetKeyCertInfo(const CoolKey *aKey, char *aCertNickname, str
 
   return S_OK;
 }
+
 HRESULT
 NSSManager::GetKeyPolicy(const CoolKey *aKey, char *aBuf, int aBufLength)
 {
@@ -404,6 +569,7 @@ NSSManager::GetKeyPolicy(const CoolKey *aKey, char *aBuf, int aBufLength)
       if (aBufLength - policyLen - 1 >=0) {
 
         // if this policy ID isn't in the buffer, add it.
+
         if (!strstr(aBuf, policyID)) {
 
           // assuming that this isn't the start, add our delimiter

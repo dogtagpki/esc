@@ -43,7 +43,6 @@
 typedef bool ( *PSChunkedResponseCallback)(unsigned char *entity_data,unsigned entity_data_len,void *uw, int status);
 
 class PSHttpResponse;
-extern PSHttpResponse *httpSend(char *host_port, char *uri, char *method, char *body);
 
 PSHttpResponse *httpSendChunked(char *host_port, char *uri, char *method, char *body,PSChunkedResponseCallback cb,void *uw);
 

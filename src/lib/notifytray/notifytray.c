@@ -118,10 +118,16 @@ void
 notify_icon_create()
 {
 	if (notify) {
+             g_print ("Notify icon already created!");
             return;
 	}
 
 	notify = notify_area_icon_new("coolkey");
+
+        if(!notify)
+        {
+             g_print ("notify_area_icon_new() failed!");
+        }
 
         if(!notify_box)
         {
@@ -155,12 +161,21 @@ notify_icon_create()
 int notify_icon_created_ok()
 {
   if(!notify)
+  {
+       g_print ("notify_icon_created_ok returning 0 because notify is null.");
       return 0;
+
+   }
 
   if(notify->manager_wnd)
     return 1;
   else
+  {
+
+    g_print ("notify_icon_created_ok returning 0 because notify->manager_wnd is null.");
     return 0;
+
+  }
 
 }
 

@@ -31,7 +31,7 @@ DIRS +=  xulrunner app/xpcom/tray app/xpcom mac
 endif
 
 ifeq ($(OS_ARCH), Linux)
-DIRS += xulrunner lib/notifytray app/xpcom/tray app/xpcom  
+DIRS += xulrunner lib/notifytray app/daemon app/xpcom/tray app/xpcom  
 endif
 
 

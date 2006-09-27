@@ -53,45 +53,6 @@ HttpClientNss::~HttpClientNss()
 }
 
 /*
- * httpSend: sends to an HTTP server
- * Standard Http, may not work in this version.
- */
-PSHttpResponse *HttpClientNss::httpSend(char *host_port, char *uri, char *method, char *body)
-{
-    const char* nickname = NULL;
-
-    int timeout = 30;
-
-    PSHttpServer server(host_port, PR_AF_INET);
-    server.setSSL(PR_TRUE);
-    // use "HTTP10" if no chunking
-    PSHttpRequest request( &server, uri, HTTP11, 0 );
-   
-
-    _request = &request;
-    request.setSSL(PR_FALSE);
-   
-    request.setMethod(method);
-    if (body != NULL)
-        request.setBody( (int)strlen(body), body);
-
-    // use with "POST" only
-    request.addHeader( "Content-Type", "text/xml" );
-    request.addHeader( "Connection", "keep-alive" );
-    HttpEngine engine;
-    PSHttpResponse *resp =  engine.makeRequest( request, server, 30 /*_timeout*/ , PR_FALSE /* expect chunked*/);
-
-    _response = resp;
-
-    if(resp->getStatus() != 200)
-    {
-        return NULL;
-
-    }
-    return resp;
-}
-
-/*
 Send a http message with a persistant transfer chunked encoded message type
 
 */
@@ -147,17 +108,14 @@ PSHttpResponse *HttpClientNss::httpSendChunked(char *host_port, char *uri, char 
 }
 void HttpClientNss::CloseConnection()
 {
-
     if(_engine)
     {
         _engine->CloseConnection();
-
     }
 
 }
 PRBool HttpClientNss::sendChunkedEntityData(int body_len,unsigned char *body)
 {
-
     int timeout = PR_TicksPerSecond()*60;
 
     char chunked_message[4096];
@@ -170,7 +128,6 @@ PRBool HttpClientNss::sendChunkedEntityData(int body_len,unsigned char *body)
     {    
         return PR_FALSE;
     }
-
 
     HttpEngine *engine= getEngine();
 

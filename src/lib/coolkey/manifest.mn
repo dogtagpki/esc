@@ -17,10 +17,14 @@
 
 CORE_DEPTH	= ../../..
 
+SYS_INC		= /usr/include
 MODULE		= ckymanager
 LIBRARY_NAME	= $(MODULE)
 REQUIRES	= httpchunked nss nspr ckyapplet 
-DEFINES		+= -I$(CORE_DEPTH)/esc/app/xpcom
+ifndef MOZ_OFFSET
+MOZ_OFFSET	= mozilla-1.7.13
+endif
+DEFINES		+= -I$(CORE_DEPTH)/esc/app/xpcom -I$(SYS_INC)/nspr4 -I$(SYS_INC)/nss3 -I$(SYS_INC)/PCSC  -I$(SYS_INC)/$(MOZ_OFFSET)/nspr -I$(SYS_INC)/$(MOZ_OFFSET)/nss
 MAPFILE 	= $(OBJDIR)/ckymanager.def
 
 #EXTRA_LIBS	+= -L$(DIST)/lib -lckyapplet
@@ -31,12 +35,10 @@ CPPSRCS		= \
 		CoolKey_Message.cpp \
 		CoolKeyHandler.cpp \
 		CoolKey.cpp \
-		CoolKeyPref.cpp \
 		SmartCardMonitoringThread.cpp \
 		$(NULL)
 
 EXPORTS 	= \
 		CoolKey.h \
-		CoolKeyPref.h \
 		$(NULL)
 

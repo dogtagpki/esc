@@ -95,6 +95,15 @@ enum {
   FORMAT
 };
 
+enum {
+  CONFIG_ERROR = 44,
+  CARD_CONTEXT_ERROR,
+  PDU_WRITER_ERROR,
+  HTTP_CLIENT_ERROR,
+  CONN_READER_ERROR
+
+};
+
 class CoolKeyHandler 
 {
  public:

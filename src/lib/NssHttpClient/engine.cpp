@@ -27,7 +27,6 @@
 #include "certt.h"
 #include "sslerr.h"
 #include "secerr.h"
-#include "secutil.h"
 
 #include "engine.h"
 #include "http.h"
@@ -41,18 +40,6 @@ int cipherCount = 0;
 int _doVerifyServerCert = 1;
 
 PRIntervalTime Engine::globaltimeout = PR_TicksPerSecond()*30;
-
-static char * ownPasswd( PK11SlotInfo *slot, PRBool retry, void *arg) {
-    if (!retry) {
-       if( password != NULL ) {
-            return PL_strdup(password);
-       } else {
-            return PL_strdup( "httptest" );
-       }
-    } else {
-        return NULL;
-    }
-}
 
 /**
  * Function: SECStatus myBadCertHandler()
@@ -247,9 +234,6 @@ static SECStatus myAuthCertificate( void *arg,
 
         }
     }
-
-    PRErrorCode error =  PR_GetError();
-
 
     /* If this is a server, we're finished. */
     if (isServer || secStatus != SECSuccess) {

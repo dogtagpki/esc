@@ -17,13 +17,15 @@
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
+#define FORCE_PR_LOG 1
+
 #include <string.h>
 #include <stdio.h>
 #include "request.h"
 #include "engine.h"
 #include <prlog.h>
 
-PRLogModuleInfo *httpLog = PR_NewLogModule("coolkey");
+PRLogModuleInfo *httpLog = PR_NewLogModule("coolKeyHttpReq");
 
 /**
  * Constructor

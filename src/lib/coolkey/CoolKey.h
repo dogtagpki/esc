@@ -120,6 +120,8 @@ COOLKEY_API bool    CoolKeyRequiresAuthentication(const CoolKey *aKey);
 COOLKEY_API bool    CoolKeyHasApplet(const CoolKey *aKey);
 COOLKEY_API bool    CoolKeyIsEnrolled(const CoolKey *aKey);
 COOLKEY_API bool    CoolKeyHasReader(const CoolKey *aKey);
+COOLKEY_API bool    CoolKeyIsReallyCoolKey(const CoolKey *aKey);
+
 COOLKEY_API bool    CoolKeyAuthenticate(const CoolKey *aKey, const char *aPIN);
 COOLKEY_API HRESULT CoolKeyGenerateRandomData(unsigned char *aBuf, int aBufLen);
 COOLKEY_API HRESULT CoolKeyGetSignatureLength(const CoolKey *aKey, int *aLength);
@@ -132,6 +134,8 @@ COOLKEY_API HRESULT CoolKeyGetPolicy(const CoolKey *aKey, char *aBuf, int aBufLe
 COOLKEY_API HRESULT CoolKeyGetCertNicknames( const CoolKey *aKey , std::vector<std::string> & aNames);
 
 COOLKEY_API HRESULT CoolKeyGetCertInfo(const CoolKey *aKey, char *aCertNickname, std::string & aCertInfo);
+
+COOLKEY_API HRESULT CoolKeyGetIssuedTo(const CoolKey *aKey, char *aBuf, int aBufLength);
 
 COOLKEY_API bool    CoolKeyRequiresAuthentication(const CoolKey *aKey);
 COOLKEY_API bool    CoolKeyIsAuthenticated(const CoolKey *aKey);
@@ -165,6 +169,11 @@ COOLKEY_API HRESULT IsNodeInActiveKeyList(const CoolKey *aKey);
 
 
 COOLKEY_API HRESULT CoolKeySetDataValue(const CoolKey *aKey,const char *name, const char *value);
+
+COOLKEY_API HRESULT CoolKeyGetIssuerInfo(const CoolKey *aKey, char *aBuf, int aBufLen);
+
+COOLKEY_API int CoolKeyGetAppletVer(const CoolKey *aKey, const bool isMajor);
+
 }
 
 ////////////////////////////////////////////////////////////////////////

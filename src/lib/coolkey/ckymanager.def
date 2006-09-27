@@ -56,10 +56,6 @@ RemoveKeyFromActiveKeyList;
 CoolKeySetDataValue;
 CoolKeyGetTokenName;
 CoolKeyGetKeyID;
-CoolKeyGetPref;
-CoolKeyFreePref;
-CoolKeyPrefInit;
-CoolKeyPrefShutdown;
 ;+    local:
 ;+       *;
 ;+};

@@ -39,6 +39,9 @@ public:
      * @return The next element, if any, or NULL
      */
     virtual void *Next() = 0;
+
+    virtual ~Iterator(){}; 
+
 };
 
 #endif // _ITERATOR_H_

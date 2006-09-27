@@ -38,10 +38,12 @@
 #define COOLKEY_INFO_HAS_ATR_MASK          (1 << 0)
 #define COOLKEY_INFO_HAS_APPLET_MASK       (1 << 1)
 #define COOLKEY_INFO_IS_PERSONALIZED_MASK  (1 << 2) 
+#define COOLKEY_INFO_IS_REALLY_A_COOLKEY_MASK   (1 << 3)
 
 #define HAS_ATR(info)         ((info)&COOLKEY_INFO_HAS_ATR_MASK)
 #define HAS_APPLET(info)      ((info)&COOLKEY_INFO_HAS_APPLET_MASK)
 #define IS_PERSONALIZED(info) ((info)&COOLKEY_INFO_IS_PERSONALIZED_MASK)
+#define IS_REALLY_A_COOLKEY(info) ((info)&COOLKEY_INFO_IS_REALLY_A_COOLKEY_MASK)
 
 struct CoolKeyInfo
 {

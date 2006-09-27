@@ -144,6 +144,8 @@ const char *HttpProtocolToString(HttpProtocol proto) {
             return "HTTP/1.1";
         case HTTPBOGUS:
             return "BOGO-PROTO";
+        default:
+            break;
     }
 
     return NULL;

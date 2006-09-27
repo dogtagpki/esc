@@ -28,13 +28,14 @@
 <!ENTITY progressHeader "Progress">
 <!ENTITY unknownIssuer "Unknown Issuer">
 <!ENTITY unknown "Unknown">
+<!ENTITY copyToClipboard "Copy To Clipboard">
 <!ENTITY cancel "Cancel">
 <!ENTITY doEnroll "Enroll">
 <!ENTITY doCancel "Cancel">
 <!ENTITY doResetPin "Reset Password">
 <!ENTITY doFormat "Format"> 
-<!ENTITY keyPassword "Password">
-<!ENTITY pluggedInCards "Plugged-In-Cards">
+<!ENTITY keyPassword "Smart Card Password">
+<!ENTITY pluggedInCards "Active Smart Cards">
 <!ENTITY keyIssuer "Issuer">
 <!ENTITY keyIssuedTo "Issued To">
 <!ENTITY keyStatus "Status">
@@ -57,7 +58,7 @@
 <!ENTITY insertKey "To enroll your smart card, please insert your security card or USB key now.">
 <!ENTITY adminNoKeysMessage "In order to administer your security smart cards, you must have one  or more cards connected to the computer. Please do so now.">
 <!ENTITY progressHeader "Progress">
-<!ENTITY detectedKeyDetailsHeader "Security Information">
+<!ENTITY detectedKeyDetailsHeader "Smart Card Functions">
 <!ENTITY keyEnrollmentHeader "Create Password">
 <!ENTITY passwordQuality "Password Quality">
 <!ENTITY unknownIssuer "Unknown Issuer">
@@ -70,13 +71,16 @@
 <!ENTITY enrollKeyNow "Enroll My Smart Card Now">
 <!ENTITY enrollKey "Enroll Smart Card">
 <!ENTITY administerKeys "Manage Smart Cards">
-<!ENTITY administerMessage "Here you can perform various operations upon your smart card(s). For instance, Formatting a card results in preparing a card for future  enrollment.">
+<!ENTITY administerMessage "This tool helps you manage your smart cards and to examine their contents when you are having problems. To manage your smart cards, you must connect them to the computer.">
 <!ENTITY blankKeyLabel "Blank Key">
 <!ENTITY adminDetailsMessage "This smart card is not personalized.">
 <!ENTITY advancedInfo "Diagnostics">
-<!ENTITY doViewCerts "View My Certificates">
-<!ENTITY getESCPassword "Password Information">
+<!ENTITY doViewCerts "View Certificates">
+<!ENTITY getESCPassword "Password">
 <!ENTITY escOK "OK">
 <!ENTITY escCancel "Cancel">
-<!ENTITY tpsConfigDesc "Smart Card Manager has detected a totally blank smart card.  Smart Card Manager can not determine the location of the Smart Card Server for this card. Please enter the correct URL value so the Smart Card Server can be reached. The value should be of the form: http(s)://test.host.com:7888/home.cgi.">
+<!ENTITY tpsConfigDesc "You have inserted a smart card that the Smart Card Manager recognizes, but needs to be formatted.">
+<!ENTITY tpsConfigDesc1 "Before you can use this smart card, you need to do two things.  First, you need to specify the location (URL) of the smart card server in the text box below.  The Smart Card Manager will insert this location onto the smart card.">
+<!ENTITY tpsConfigDesc2 "Second, you must format it from the main Smart Card Manager window."> 
+<!ENTITY tpsConfigDesc3 "Enter the location of the smart card server (such as https://smartcardserver.example.com:7888)">
 <!ENTITY diagnosticsMessage "The information below is diagnostic information that your system generates as you use your smart card. If you are having smart card problems, you may be asked by your support engineer to send this information for analysis.">

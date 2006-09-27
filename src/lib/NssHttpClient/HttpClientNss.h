@@ -33,8 +33,6 @@ public:
     PSHttpRequest *        _request;
     PSHttpResponse*        _response;
 
-
-    PSHttpResponse *httpSend(char *host_port, char *uri, char *method, char *body);
     PSHttpResponse *httpSendChunked(char *host_port, char *uri, char *method, char *body,PSChunkedResponseCallback cb,void *uw,PRBool doSSL = PR_FALSE,int messageTimeout =30);
 
     PRBool sendChunkedEntityData(int body_len,unsigned char * body);

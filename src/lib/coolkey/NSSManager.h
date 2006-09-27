@@ -23,7 +23,9 @@
 
 #define COOLKEY_NAME             "COOL Key Module"
 #define MUSCLE_NAME             "SLB PKCS #11 module"
-#define PROMISCUOUS_PARAMETER   "promiscuous=yes"
+#define PROMISCUOUS_PARAMETER   "noAppletOK=yes"
+#define NSS_PUBLIC_CERTS	"slotFlags=PublicCerts"
+
 #ifndef NSSMANAGER_H
 #define NSSMANAGER_H
 
@@ -63,6 +65,8 @@ class NSSManager
   static HRESULT GetKeyCertInfo(const CoolKey *aKey, char *aCertNickname, string & aCertInfo);
 
   static HRESULT  GetKeyCertNicknames( const CoolKey *aKey,  vector<string> & aStrings  ); 
+
+  static HRESULT GetKeyIssuedTo(const CoolKey *aKey, char *aBuf, int aBufLength);
 
 
 

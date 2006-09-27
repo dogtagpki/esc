@@ -15,11 +15,12 @@
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
+#define FORCE_PR_LOG 1
+
 #include <memory.h>
 #include <assert.h>
 #include <stdio.h>
 #include <string>
-//#include <winscard.h>
 
 #include "prprf.h"
 #include "nss.h"
@@ -35,7 +36,6 @@
 
 #include "CoolKeyID.h"
 #include "CoolKey.h"
-#include "CoolKeyPref.h"
 #include "cky_base.h"
 #include "cky_applet.h"
 
@@ -55,7 +55,7 @@
 #define CKA_MOZILLA_ATR        (CKO_NETSCAPE+25)
 #endif
 
-static PRLogModuleInfo *coolKeyLogHN = PR_NewLogModule("netkey");
+static PRLogModuleInfo *coolKeyLogHN = PR_NewLogModule("coolKeyHandler");
 
 void NotifyEndResult(CoolKeyHandler* context, int operation, int result, int description);
 
@@ -446,7 +446,7 @@ HRESULT CoolKeyHandler::Init(const CoolKey *aKey,
 										   const char *tokenCode,int op) {
 
   int error_no = 0;
-  int config_error_no = 44;
+  int config_error_no = CONFIG_ERROR;
 
   PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("CoolKeyHandler::Init:\n"));
 
@@ -455,7 +455,7 @@ HRESULT CoolKeyHandler::Init(const CoolKey *aKey,
   const char *readerName =  NULL;
 
   if (!aKey || aKey->mKeyType != eCKType_CoolKey ||  !aKey->mKeyID) {
-      PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("CoolKeyHandler::Init: failure 1\n"));
+      PR_LOG( coolKeyLogHN, PR_LOG_ERROR, ("Cannot begin CoolKey operation. Insuficient input parameters. \n"));
     goto done;
   }
   
@@ -468,14 +468,14 @@ HRESULT CoolKeyHandler::Init(const CoolKey *aKey,
 
   
   if (!readerName) {
-     PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("CoolKeyHandler::Init: failure 2\n"));
+     PR_LOG( coolKeyLogHN, PR_LOG_ERROR, ("Cannot begin CoolKey operation. Cannot locate card reader name! \n"));
     goto done;
   }
  
    mDataLock = PR_NewLock();
   if (!mDataLock)
   {
-    PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("CoolKeyHandler::Init: failure Can't initialize Lock for data.\n"));
+    PR_LOG( coolKeyLogHN, PR_LOG_ERROR, ("Cannot begin CoolKey operation.  Cannnot initialize internal locking mechanism.\n"));
     return E_FAIL;
 
   }
@@ -483,41 +483,36 @@ HRESULT CoolKeyHandler::Init(const CoolKey *aKey,
   mDataCondVar = PR_NewCondVar(mDataLock);
   if (!mDataCondVar)
   {
-    PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("CoolKeyHandler::Init: failure Can't initialize Cond Var for data.\n"));
+    PR_LOG( coolKeyLogHN, PR_LOG_ERROR, ("Cannot begin CoolKey operation. Cannot initialize internal syncronization mechanism.\n"));
       return E_FAIL;
 
   }
 
   CollectPreferences();
 
-
   mHttpDisconnected = false;
   mCancelled = false;
 
-  //CoolKeyGetPref("TPS_HOST_USES_SSL", &temp);
- 
-
   if(!mCharHostName || !mRAUrl)
   {
-      PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("CoolKeyHandler::Init: Didn't collect proper config info..\n"));
+      PR_LOG( coolKeyLogHN, PR_LOG_ERROR, ("Cannot begin CoolKey operation. Didn't collect proper config information.\n"));
       error_no = config_error_no;
       goto done;
   }
- 
 
   PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("CoolKeyHandler::Init: Past configuration tests, about to attempt operation.\n"));  
 
   mCardContext = CKYCardContext_Create(SCARD_SCOPE_USER);
   if (!mCardContext) {
-     PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("CoolKeyHandler::Init: failure 3\n"));
-    error_no = 45;
+     PR_LOG( coolKeyLogHN, PR_LOG_ERROR, ("Cannot begin CoolKey operation. Cannot create card context! \n"));
+    error_no = CARD_CONTEXT_ERROR;
     goto done;
   }
   
   mPDUWriter = new PDUWriterThread(this);
   if (!mPDUWriter) {
-     error_no = 46;
-     PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("CoolKeyHandler::Init: failure 4\n"));
+     error_no = PDU_WRITER_ERROR;
+     PR_LOG( coolKeyLogHN, PR_LOG_ERROR, ("Cannot begin CoolKey operation. Cannot  create internal PDU writer thread!\n"));
     goto done;
   }
 
@@ -528,8 +523,8 @@ HRESULT CoolKeyHandler::Init(const CoolKey *aKey,
 
   if(mHttp_handle <= 0)
   {
-           PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("CoolKeyHandler::Init: failure 5\n"));
-          error_no = 47;
+           PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("Cannot begin CoolKey operation. Can't create internal Http Client!\n"));
+          error_no = HTTP_CLIENT_ERROR;
 	  goto done;
   }
 
@@ -537,8 +532,8 @@ HRESULT CoolKeyHandler::Init(const CoolKey *aKey,
   connected = ConnectToReader(readerName);
   
   if (!connected) {
-     PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("CoolKeyHandler::Init: failure 6\n"));
-    error_no = 48;
+     PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("Cannot begin CoolKey operation. Can't connect to card reader!\n"));
+    error_no = CONN_READER_ERROR;
     goto done;
   }
   
@@ -569,12 +564,8 @@ HRESULT CoolKeyHandler::Init(const CoolKey *aKey,
       CKYCardContext_Destroy(mCardContext);
       mCardContext = 0;
     }
-     PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("CoolKeyHandler::Init: failure 7\n"));
 
-
-     NotifyEndResult(this, op, 1, error_no);
-
-     PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("CoolKeyHandler::Init: failure attempted to NotifyEndResult error no %d\n",error_no));
+    NotifyEndResult(this, op, 1, error_no);
 
     return E_FAIL;
   }
@@ -586,21 +577,26 @@ void CoolKeyHandler::CollectPreferences()
 {
     PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("CoolKeyHandler::CollectPreferences !\n"));
 
+    //Grab the keyID which we will need
+
+    const char *keyID = mKey.mKeyID;
+
+    if(!keyID)
+    {
+        PR_LOG( coolKeyLogHN, PR_LOG_ERROR,("Collecting CoolKey preferences. Cannot get keyID , cannot proceed. \n"));
+
+        return;
+    }
 
     int httpMessageTimeout = 30;
 
-
     //Quickly grab the configurable http message timeout
-
 
     const char *msg_timeout = CoolKeyGetConfig("esc.tps.message.timeout");
 
-
     if(msg_timeout)
     {
-
         httpMessageTimeout = atoi(msg_timeout);
-
 
         PR_LOG( coolKeyLogHN, PR_LOG_DEBUG,("CoolKeyHandler::CollectPreferences! Message timeout %d\n",httpMessageTimeout));
 
@@ -610,12 +606,27 @@ void CoolKeyHandler::CollectPreferences()
  
     // Now grab the url for the tps server from config store.
 
-    const char *tps_url = CoolKeyGetConfig("esc.tps.url");
+    string tps_operation = "Operation";
+  
+    string tps_url_for_key =  tps_operation + "-" + keyID;
+
+    const char *tps_url_for_key_str = tps_url_for_key.c_str();
+
+    PR_LOG( coolKeyLogHN, PR_LOG_DEBUG,("CoolKeyHandler::CollectPreferences! tps_url %s\n",tps_url_for_key_str)); 
+    const char *tps_url = CoolKeyGetConfig(tps_url_for_key_str);
 
     if(!tps_url)
     {
-        PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("CoolKeyHandler::CollectPreferences Can't find value for  esc.tps.url \n"));
-        return;
+        //now try to get the hard coded entry out of the config file.
+
+        tps_url = CoolKeyGetConfig("esc.tps.url");
+
+        if(!tps_url)
+        {
+            PR_LOG( coolKeyLogHN, PR_LOG_ERROR, ("Collecting CoolKey preferences. Cannot find value for the TPS URL. \n"));
+
+            return;
+        }
     }
 
     PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("CoolKeyHandler::CollectPreferences esc.tps.url %s\n",tps_url));
@@ -642,7 +653,7 @@ void CoolKeyHandler::CollectPreferences()
         pos = tps_url_str.find(non_ssl_str,0);
         if(pos == string::npos)
         {
-            PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("CoolKeyHandler::CollectPreferences esc.tps.url illegal protocol! \n")); 
+            PR_LOG( coolKeyLogHN, PR_LOG_ERROR, ("Collecting CoolKey preferences.  TPS URL has specified an illegal protocol! \n")); 
             return;
         }
 
@@ -685,7 +696,7 @@ void CoolKeyHandler::CollectPreferences()
 
     if(!host_name_port_str.length())
     {
-        PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("CoolKeyHandler::CollectPreferences Bad hostname and port sttring!.\n"));
+        PR_LOG( coolKeyLogHN, PR_LOG_ERROR, ("Collecting CoolKey preferences.  Bad hostname and port value!.\n"));
         return;
      }
 
@@ -811,7 +822,7 @@ HRESULT CoolKeyHandler::SetTokenPin(const char *pin)
 HRESULT CoolKeyHandler::SetPassword(const char *password)
 {
 
-   PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("CoolKeyHandler::CloseConnection:\n"));
+   PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("CoolKeyHandler::SetPassword:\n"));
 
    PR_Lock(mDataLock);
    if(!mCharScreenNamePwd)
@@ -1162,7 +1173,7 @@ HRESULT CoolKeyHandler::HttpBeginOpRequest()
 
         string ext_buffer = "";
 
-	char *clientVer = "ESC 1.1";
+	char *clientVer = "ESC 1.0.0";
 	sprintf(buffer,"clientVersion=%s",clientVer);
 
         ext_buffer = buffer;
@@ -1224,23 +1235,25 @@ HRESULT CoolKeyHandler::HttpBeginOpRequest()
 void CoolKeyHandler::HttpProcessTokenPDU(CoolKeyHandler *context,eCKMessage_TOKEN_PDU_REQUEST *req)
 {
 
-        PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("CoolKeyHandler::ProcessTokenPDU:\n"));
-	if(!req)
-	{
-		return;
-	}
+    PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("CoolKeyHandler::ProcessTokenPDU:\n"));
+    if(!req || !context)
+    {
+        PR_LOG( coolKeyLogHN, PR_LOG_ERROR, ("Processing HTTP message.  Bad input data. \n"));
+        context->HttpOnDisconnect();
+        return;
+    }
 
-        int size = 4096;
-        unsigned char pduData[4096];
+    int size = 4096;
+    unsigned char pduData[4096];
 
+    req->getPduData(pduData,&size);
 
-        req->getPduData(pduData,&size);
-
-
-	if(size == 0)
-	{
-		return;
-	}
+    if(size == 0)
+    {
+        PR_LOG( coolKeyLogHN, PR_LOG_ERROR, ("Processing HTTP message.  Can't extract PDU data from message! \n"));
+        context->HttpOnDisconnect();
+        return;
+    }
   
   // Send the PDU to the token
   
@@ -1250,56 +1263,61 @@ void CoolKeyHandler::HttpProcessTokenPDU(CoolKeyHandler *context,eCKMessage_TOKE
   //      structure is a C struct that contains a single member
   //      which just so happens to be an CKYBuffer.
   
-  AutoCKYBuffer pduBuffer(pduData, size);
-  CKYAPDU *requestAPDU = (CKYAPDU*)((CKYBuffer*)&pduBuffer);
+    AutoCKYBuffer pduBuffer(pduData, size);
+    CKYAPDU *requestAPDU = (CKYAPDU*)((CKYBuffer*)&pduBuffer);
   
-  // XXX
+    AutoCKYBuffer response;
   
-   
-  AutoCKYBuffer response;
-  
-  CKYStatus status = CKYCardConnection_ExchangeAPDU(context->GetCardConnection(),
+    CKYStatus status = CKYCardConnection_ExchangeAPDU(context->GetCardConnection(),
                                                   requestAPDU, &response);
-    
-  if (status != CKYSUCCESS) {
-    return;
-  }
+    if (status != CKYSUCCESS) {
+        PR_LOG( coolKeyLogHN, PR_LOG_ERROR, 
+            ("Processing HTTP message.  Can't write apdu to card! status %d response[0] %x response[1] %x error %d \n"
+            ,status,CKYBuffer_GetChar(&response,0),CKYBuffer_GetChar(&response,1),
+        CKYCardConnection_GetLastError(context->GetCardConnection())));
+
+        context->HttpOnDisconnect();
+
+        return;
+    }
   
-	eCKMessage_TOKEN_PDU_RESPONSE pdu_response;
+    eCKMessage_TOKEN_PDU_RESPONSE pdu_response;
 
-	int pduSizeRet = (MESSAGE_u08) CKYBuffer_Size(&response);
-	MESSAGE_byte *pduDataRet = (MESSAGE_byte *) CKYBuffer_Data(&response);
+    int pduSizeRet = (MESSAGE_u08) CKYBuffer_Size(&response);
+    MESSAGE_byte *pduDataRet = (MESSAGE_byte *) CKYBuffer_Data(&response);
 
-	if(pduSizeRet == 0 || !pduDataRet)
-	{
-		return;
-	}
+    if(pduSizeRet == 0 || !pduDataRet)
+    {
+        PR_LOG( coolKeyLogHN, PR_LOG_ERROR, ("Processing HTTP message. No PDU response from card! \n"));
+        context->HttpOnDisconnect();
+        return;
+    }
 
-	pdu_response.setPduData(pduDataRet,pduSizeRet);
+    pdu_response.setPduData(pduDataRet,pduSizeRet);
+    string output = "";
 
-        string output = "";
-
-        pdu_response.encode(output);
+    pdu_response.encode(output);
   
-	NSS_HTTP_HANDLE handle = context->getHttpHandle();
+    NSS_HTTP_HANDLE handle = context->getHttpHandle();
 
-	if(handle && output.size())
-	{
-                 PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("CoolKeyHandler::sending to RA: %s \n",output.c_str()));
-		NSS_HTTP_RESULT res =  sendChunkedEntityData(output.size(),(unsigned char *) output.c_str(),handle);
+    if(handle && output.size())
+    {
+        PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("CoolKeyHandler::sending to RA: %s \n",output.c_str()));
+        NSS_HTTP_RESULT res =  sendChunkedEntityData(output.size(),(unsigned char *) output.c_str(),handle);
 
-                if(res == 0)
-                {
-                     PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("CoolKeyHandler::write back to RA failed , disconnecting: \n"));
+        if(res == 0)
+        {
+            PR_LOG( coolKeyLogHN, PR_LOG_ERROR, ("Processing HTTP message. Write back to TPS failed , disconnecting. \n"));
+            context->HttpOnDisconnect();
+        }
+        else
+        {
+            PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("CoolKeyHandler:ProcessTokenPDU data written to RA .\n"));
+        }
 
-                     context->CloseConnection();
-                     context->HttpOnDisconnect();
-                    
-                }
-
-	}
-	return;
   }
+
+}
   
 HRESULT CoolKeyHandler::HttpProcessStatusUpdate(eCKMessage_STATUS_UPDATE_REQUEST * msg)
 {
@@ -1624,25 +1642,33 @@ void NotifyEndResult(CoolKeyHandler* context, int operation, int result, int des
   switch (operation) {
   case ENROLL:
     if (result == 0) {
+
+      PR_LOG( coolKeyLogHN, PR_LOG_ALWAYS, ("Key Enrollment success.\n"));
       CoolKeyAuthenticate(context->GetAutoCoolKey(), context->GetPIN());
       CoolKeyNotify(context->GetAutoCoolKey(), eCKState_EnrollmentComplete,
                    context->GetScreenName() == NULL ? 1 : 0);
     } else {
+                PR_LOG( coolKeyLogHN, PR_LOG_ALWAYS, ("Key Enrollment failure. Error: %d.\n",description));
 		CoolKeyNotify(context->GetAutoCoolKey(), eCKState_EnrollmentError, description); // XXX: Need INIT_FAILED error code!
     }
     break;
   case RESET_PIN:
     if (result == 0) {
+     
+      PR_LOG( coolKeyLogHN, PR_LOG_ALWAYS, ("Key Reset Password success.\n")); 
       CoolKeyAuthenticate(context->GetAutoCoolKey(), context->GetPIN());
       CoolKeyNotify(context->GetAutoCoolKey(), eCKState_PINResetComplete, 0);
     } else {
+      PR_LOG( coolKeyLogHN, PR_LOG_ALWAYS, ("Key Reset Password failure. Error: %d.\n",description));
       CoolKeyNotify(context->GetAutoCoolKey(), eCKState_PINResetError, description); // XXX: Need PIN_RESET_FAILED error code!
     }
     break;
   case FORMAT:
     if (result == 0) {
+       PR_LOG( coolKeyLogHN, PR_LOG_ALWAYS, ("Key Format success.\n"));
       CoolKeyNotify(context->GetAutoCoolKey(), eCKState_FormatComplete, 0);
     } else {
+      PR_LOG( coolKeyLogHN, PR_LOG_ALWAYS, ("Key Format failure. Error: %d.\n",description));
       CoolKeyNotify(context->GetAutoCoolKey(), eCKState_FormatError, description); // XXX: Need FORMAT_FAILED error code!
     }
     break;
@@ -1981,6 +2007,7 @@ MapGetFlags(CK_TOKEN_INFO *tokenInfo)
   if (tokenInfo->flags & CKF_TOKEN_INITIALIZED) {
     mask |= COOLKEY_INFO_IS_PERSONALIZED_MASK;
   }
+
   return mask;
 
 }
@@ -2059,6 +2086,7 @@ CKHGetInfoFlags(PK11SlotInfo *aSlot)
   if (status != SECSuccess) {
     return 0;
   }
+
   return MapGetFlags(&tokenInfo);
 }
 
@@ -2075,9 +2103,14 @@ CKHGetCoolKeyInfo(PK11SlotInfo *aSlot)
   HRESULT hres;
   int atrSize;
   char *atrString;
+  SECItem isCOOLKey;
 
   ATR.data = NULL; // initialize for error processing
   label.data = NULL; // initialize for error processing
+  isCOOLKey.data = NULL;
+
+
+  int isACOOLKey = 0;
 
   /* if it's one of "ours" it'll have a reader object */
   obj = PK11_FindGenericObjects(aSlot, CKO_MOZILLA_READER);
@@ -2093,8 +2126,7 @@ CKHGetCoolKeyInfo(PK11SlotInfo *aSlot)
 
   // get the ATR (though, again, we probably don't need it 
   status = PK11_ReadRawAttribute(PK11_TypeGeneric, obj, CKA_MOZILLA_ATR, &ATR); 
-  PK11_DestroyGenericObjects(obj);
-  obj = NULL;
+ // PK11_DestroyGenericObjects(obj);
   if (status != SECSuccess) {
     goto failed;
   }
@@ -2103,6 +2135,34 @@ CKHGetCoolKeyInfo(PK11SlotInfo *aSlot)
   if (status != SECSuccess) {
     goto failed;
   }
+
+  //get the are we a CoolKey value
+
+  status = PK11_ReadRawAttribute(PK11_TypeGeneric, obj, CKA_MOZILLA_IS_COOL_KEY, &isCOOLKey);
+
+  PK11_DestroyGenericObjects(obj);
+  obj = NULL;
+
+  if (status != SECSuccess) {
+    goto  failed;
+  }
+
+  if(isCOOLKey.len == 1)
+  {
+       PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("CKHGetCoolKeyInfo: CKA_MOZILLA_IS_COOL_KEY  %d.\n",(int) isCOOLKey.data[0]));
+
+       isACOOLKey=(int) isCOOLKey.data[0]; 
+  } 
+
+  PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("CKHGetCoolKeyInfo: info->flags %u.\n",tokenInfo.flags));
+  
+  PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("CKHGetCoolKeyInfo: info->label %s.\n",(char *)tokenInfo.label));
+  PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("CKHGetCoolKeyInfo: info->manufacturerID %s.\n",(char *)tokenInfo.manufacturerID));
+  PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("CKHGetCoolKeyInfo: info->model %s.\n",(char *)tokenInfo.model));
+  PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("CKHGetCoolKeyInfo: info->serialNumber %s.\n",(char *)tokenInfo.serialNumber));
+
+  PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("CKHGetCoolKeyInfo: info->firmwareVersion.major %d info->firmwareVersion.minor %d \n",(int)tokenInfo.firmwareVersion.major,(int) tokenInfo.firmwareVersion.minor));
+
 
   // OK, we have everything we need, now build the COOLKEYInfo structure.
   info = new CoolKeyInfo();
@@ -2122,6 +2182,10 @@ CKHGetCoolKeyInfo(PK11SlotInfo *aSlot)
   SECITEM_FreeItem(&ATR,PR_FALSE);
   ATR.data = NULL;
 
+
+  PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("CKHGetCoolKeyInfo: info->atr %s.\n",(char *)atrString));
+
+
   info->mATR = atrString;
   info->mReaderName= (char *)malloc(label.len+1);
   if (!info->mReaderName) {
@@ -2130,6 +2194,12 @@ CKHGetCoolKeyInfo(PK11SlotInfo *aSlot)
   memcpy(info->mReaderName, label.data, label.len);
   info->mReaderName[label.len] = 0;
   info->mInfoFlags = MapGetFlags(&tokenInfo);
+
+  //Handle the isCOOLKey flag
+  if(isACOOLKey) {
+    info->mInfoFlags |= COOLKEY_INFO_IS_REALLY_A_COOLKEY_MASK;
+  }
+
   info->mCUID = (char *)malloc(35); /* should be a define ! */
   if (!info->mCUID) {
     goto failed;
@@ -2142,6 +2212,8 @@ CKHGetCoolKeyInfo(PK11SlotInfo *aSlot)
 
   SECITEM_FreeItem(&ATR,PR_FALSE);
   SECITEM_FreeItem(&label,PR_FALSE);
+  SECITEM_FreeItem(&isCOOLKey,PR_FALSE);
+
   info->mSlot = PK11_ReferenceSlot(aSlot);
   info->mSeries = PK11_GetSlotSeries(aSlot);
   return info;

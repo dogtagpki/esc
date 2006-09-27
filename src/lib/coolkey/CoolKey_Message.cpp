@@ -15,12 +15,14 @@
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
+#define FORCE_PR_LOG 1
+
 #include "nspr.h"
 #include "CoolKey_Message.h"
 #include "math.h"
 #include <iostream>
 
-PRLogModuleInfo *nkeyLogMS = PR_NewLogModule("netkey");
+PRLogModuleInfo *nkeyLogMS = PR_NewLogModule("coolKeyMessage");
 
 void URLEncode(unsigned char *buf,char *ret, int *ret_len,int buff_len);
 void URLDecode(char *buf,unsigned char *ret, int *ret_len,int buff_len);

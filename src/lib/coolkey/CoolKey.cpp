@@ -15,14 +15,8 @@
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
-//#ifdef WIN32
-//#include "windows.h"
-//#include "CoolKeyCSP.h"
-//#define ENABLE_CSP
-//#endif
+#define FORCE_PR_LOG 1
 
-#include "CoolKey.h"
-#include "CoolKeyPref.h"
 #include "SlotUtils.h"
 
 #include "prthread.h"
@@ -38,10 +32,10 @@
 #include <list>
 #include <algorithm>
 #include <prlog.h>
-
+#include "CoolKey.h"
 static NSSManager* g_NSSManager = NULL;
 
-static PRLogModuleInfo *coolKeyLog = PR_NewLogModule("netkey");
+static PRLogModuleInfo *coolKeyLog = PR_NewLogModule("coolKeyLib");
 
 static std::list<CoolKeyListener*> g_Listeners;
 
@@ -70,17 +64,16 @@ COOLKEY_API HRESULT CoolKeyInit(const char *aAppDir)
   
   if (!g_NSSManager) 
   {
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyInit:Failed to create NSSManager.\n"));
+    PR_LOG( coolKeyLog, PR_LOG_ERROR, ("CoolKeyInit:Failed to create NSSManager.\n"));
     return E_FAIL;
   }
   
   HRESULT rv = g_NSSManager->InitNSS(aAppDir);
   if (rv == E_FAIL)
   {
-       PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyInit:Failed to Init NSSManager. \n"));
+       PR_LOG( coolKeyLog, PR_LOG_ERROR, ("Failed to initialize Crypto library! \n"));
        return rv;
   }
-
 
   return S_OK;
 }
@@ -89,14 +82,6 @@ COOLKEY_API HRESULT CoolKeyShutdown()
 { 
   PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyShutdown:\n"));
 
-//  ShutdownUIThreadProxyService();
-
-  std::list<CoolKeyListener*>::iterator it;
-  for (it=g_Listeners.begin(); it!=g_Listeners.end(); ++it)
-  {
-      PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyShutdown: listener still in list %p\n",(*it)));
-  }
- 
   DestroyCoolKeyList();
  
   if (g_NSSManager) {
@@ -104,10 +89,6 @@ COOLKEY_API HRESULT CoolKeyShutdown()
     delete g_NSSManager;
     g_NSSManager = 0;
   }
-
-  //DestroyCoolKeyList();
-
-  CoolKeyPrefShutdown();
 
   return S_OK;
 }
@@ -118,6 +99,8 @@ static CoolKeyRelease g_Release = NULL;
 static CoolKeyGetConfigValue g_GetConfigValue = NULL;
 static CoolKeySetConfigValue g_SetConfigValue = NULL;
 
+char* CoolKeyVerifyPassword(PK11SlotInfo *,PRBool,void *);
+
 COOLKEY_API HRESULT CoolKeySetCallbacks(CoolKeyDispatch dispatch,
 	CoolKeyReference reference, CoolKeyRelease release,
         CoolKeyGetConfigValue getconfigvalue,CoolKeySetConfigValue setconfigvalue)
@@ -127,6 +110,10 @@ COOLKEY_API HRESULT CoolKeySetCallbacks(CoolKeyDispatch dispatch,
    g_Release = release;
    g_GetConfigValue = getconfigvalue;
    g_SetConfigValue = setconfigvalue;
+
+
+   PK11_SetPasswordFunc( CoolKeyVerifyPassword);
+   // Set the verify password callback here, no params needed we know what it is
    return 0;
 }
 
@@ -140,6 +127,11 @@ COOLKEY_API HRESULT CoolKeySetCallbacks(CoolKeyDispatch dispatch,
     (*g_Reference)(list); \
   }
 
+char *CoolKeyVerifyPassword(PK11SlotInfo *slot,PRBool retry,void *arg)
+{
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyVerifyPassword: \n"));
+    return NULL;
+}
 
 COOLKEY_API HRESULT CoolKeyRegisterListener(CoolKeyListener* aListener)
 {
@@ -169,7 +161,6 @@ COOLKEY_API HRESULT CoolKeyUnregisterListener(CoolKeyListener* aListener)
 
       PR_LOG( coolKeyLog, PR_LOG_DEBUG, 
              ("CoolKeyUnregisterListener: erasing listener %p \n",*it));
-      //CoolKeyListener *listener = *it;
       g_Listeners.erase(it);
       RELEASE_LISTENER(aListener);
   }
@@ -196,9 +187,6 @@ HRESULT CoolKeyNotify(const CoolKey *aKey, CoolKeyState aKeyState,
     }
   }
 
-  PR_LOG( coolKeyLog, PR_LOG_DEBUG, 
-        ("CoolKeyNotify: leaving: key %s state %d data %d",
-        aKey->mKeyID, aKeyState, aData));
   return S_OK;
 }
 
@@ -831,7 +819,7 @@ CoolKeyGetCertInfo(const CoolKey *aKey, char *aCertNickname, std::string & aCert
 
     }
 
-    return S_OK; // NSSManager::GetKeyCertInfo(aKey,aCertNickname,aCertInfo);
+    return NSSManager::GetKeyCertInfo(aKey,aCertNickname,aCertInfo);
 
 }
 
@@ -842,6 +830,178 @@ CoolKeyGetPolicy(const CoolKey *aKey, char *aBuf, int aBufLen)
     return E_FAIL;
   
   return NSSManager::GetKeyPolicy(aKey, aBuf, aBufLen);
+}
+HRESULT
+CoolKeyGetIssuedTo(const CoolKey *aKey, char *aBuf, int aBufLength)
+{
+    if (!aKey || !aKey->mKeyID || !aBuf || aBufLength < 1)
+        return E_FAIL;
+
+    return NSSManager::GetKeyIssuedTo(aKey,aBuf,aBufLength);
+
+}
+HRESULT CoolKeyGetIssuerInfo(const CoolKey *aKey, char *aBuf, int aBufLen)
+{
+     if (!aKey || !aKey->mKeyID || !aBuf || aBufLen < 1)
+         return E_FAIL;
+
+     aBuf[0] = 0;
+
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyGetIssuerInfo::\n"));
+
+    CKYBuffer ISSUER_INFO;
+    CKYBuffer_InitEmpty(&ISSUER_INFO);
+    CKYCardConnection *conn = NULL;
+    CKYISOStatus apduRC = 0;
+    CKYStatus status;
+    const char *readerName = NULL;
+    const CKYByte *infoData = NULL;
+    CKYSize infoSize = 0;
+
+    HRESULT result = S_OK;
+
+
+    CKYCardContext *cardCtxt = CKYCardContext_Create(SCARD_SCOPE_USER);
+
+     assert(cardCtxt);
+    if (!cardCtxt) {
+      PR_LOG( coolKeyLog, PR_LOG_ERROR, ("Attempting to get key issuer info. Can't create Card Context !.\n"));
+      result = E_FAIL;
+      goto done;
+    }
+
+    conn = CKYCardConnection_Create(cardCtxt);
+    assert(conn);
+    if (!conn) {
+      PR_LOG( coolKeyLog, PR_LOG_ERROR, ("Attempting to get key issuer info.  Can't create Card Connection!\n"));
+      result = E_FAIL;
+      goto done;
+    }
+
+    readerName = GetReaderNameForKeyID(aKey);
+    assert(readerName);
+    if (!readerName) {
+      PR_LOG( coolKeyLog, PR_LOG_ERROR, ("Attempting to get key issuer info.  Can't get reader name!\n"));
+      result = E_FAIL;
+      goto done;
+    }
+
+    status = CKYCardConnection_Connect(conn, readerName);
+    if (status != CKYSUCCESS) {
+      PR_LOG( coolKeyLog, PR_LOG_ERROR, ("Attempting to get key issuer info. Can't connect to Card!\n"));
+
+      result = E_FAIL;
+      goto done;
+    }
+
+CKYCardConnection_BeginTransaction(conn);
+    apduRC = 0;
+    status = CKYApplet_SelectCoolKeyManager(conn, &apduRC);
+    if (status != CKYSUCCESS) {
+
+      PR_LOG( coolKeyLog, PR_LOG_ERROR, ("Attempting to get key issuer info.  Can't select CoolKey manager!\n"));
+      goto done;
+    }
+
+    status = CKYApplet_GetIssuerInfo(conn, &ISSUER_INFO,
+                        &apduRC);
+
+    if(status != CKYSUCCESS)
+    {
+        PR_LOG( coolKeyLog, PR_LOG_ERROR, ("Attempting to get key issuer info.  Error actually getting IssuerInfo!\n"));
+        result = E_FAIL;
+        goto done;
+    }
+
+    infoSize =  CKYBuffer_Size(&ISSUER_INFO);
+
+    if(infoSize == 0)
+    {
+        PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyGetIssuerInfo:: IssuerInfo buffer size is zero!\n"));
+        result = E_FAIL;
+        goto done;
+    }
+
+    if(infoSize >= (CKYSize ) aBufLen)
+    {
+        PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyGetIssuerInfo:: Insufficient space to put Issuer Info!\n"));
+
+        result = E_FAIL;
+        goto done;
+    }
+
+    infoData = CKYBuffer_Data(&ISSUER_INFO);
+
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyGetIssuerInfo:: IssuerInfo actual data %s!\n",(char *) infoData));
+    if(infoData)
+    {
+        strcpy((char *) aBuf, (char *) infoData);
+    }
+
+    done:
+
+    if (conn) {
+      CKYCardConnection_EndTransaction(conn);
+      CKYCardConnection_Disconnect(conn);
+      CKYCardConnection_Destroy(conn);
+    }
+    if (cardCtxt) {
+      CKYCardContext_Destroy(cardCtxt);
+    }
+
+    CKYBuffer_FreeData(&ISSUER_INFO);
+
+    return result;
+}
+
+bool    CoolKeyIsReallyCoolKey(const CoolKey *aKey)
+{
+   bool res = false;
+
+   if(!aKey)
+       return res;
+
+
+   CoolKeyInfo *info =
+      GetCoolKeyInfoByKeyID(aKey);
+
+   if(!info)
+      return res;
+
+   if( IS_REALLY_A_COOLKEY(info->mInfoFlags))
+      res = true;
+
+   return res;
+}
+
+int CoolKeyGetAppletVer(const CoolKey *aKey, const bool isMajor)
+{
+
+  int result = -1;
+  if(!aKey)
+      return result;
+
+  CoolKeyInfo *info =
+      GetCoolKeyInfoByKeyID(aKey);
+
+  if(!info)
+      return result;
+
+  PK11SlotInfo *slot = GetSlotForKeyID(aKey);
+
+  if(!slot)
+      return result;
+
+  CK_TOKEN_INFO tokenInfo;
+  PK11_GetTokenInfo(slot, &tokenInfo);
+
+  if(isMajor)
+     result = (int) tokenInfo.firmwareVersion.major;
+  else
+     result = (int) tokenInfo.firmwareVersion.minor;
+
+   return result;
+
 }
 
 

@@ -15,13 +15,7 @@
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
-//#include "XptlBase.h"
-//#include "CoolBucky.h"
-//#include "CoolSec.h"
-//#include "CoolBos.h"
-//#include "ILocateManager.h"
-//#include "ICertificateBlob.h"
-//#include "atlbase.h"
+#define FORCE_PR_LOG 1
 
 #include "nspr.h"
 
@@ -32,14 +26,10 @@
 #include "NSSManager.h"
 #include "CoolKeyID.h"
 #include "SlotUtils.h"
-//#include "CoolKeyThreadEventService.h"
-
 
 #include <assert.h>
 
-static PRLogModuleInfo *coolKeyLogSC = PR_NewLogModule("coolKey");
-
-//WINOLEAPI  CoInitializeEx(IN LPVOID pvReserved, IN DWORD dwCoInit);
+static PRLogModuleInfo *coolKeyLogSC = PR_NewLogModule("coolKeySmart");
 
 SmartCardMonitoringThread::SmartCardMonitoringThread(SECMODModule *aModule)
   : mModule(aModule), mThread(NULL)
@@ -79,7 +69,7 @@ void SmartCardMonitoringThread::Insert(PK11SlotInfo *aSlot)
 {
 
   PR_LOG( coolKeyLogSC, PR_LOG_DEBUG, 
-          ("SmartCardMonitoringThread::Insert  pig: \n"));
+          ("SmartCardMonitoringThread::Insert  Key. \n"));
 
   CoolKeyInfo *info = CKHGetCoolKeyInfo(aSlot);
   if (info) {
@@ -95,7 +85,7 @@ void SmartCardMonitoringThread::Insert(PK11SlotInfo *aSlot)
 void SmartCardMonitoringThread::Remove(CoolKeyInfo *info)
 {
   PR_LOG( coolKeyLogSC, PR_LOG_DEBUG, 
-          ("SmartCardMonitoringThread::Remove : \n"));
+          ("SmartCardMonitoringThread::Remove Key: \n"));
 
   info->mInfoFlags = 0;
   AutoCoolKey key(eCKType_CoolKey, info->mCUID);
@@ -136,9 +126,8 @@ void SmartCardMonitoringThread::Execute()
     slot = SECMOD_WaitForAnyTokenEvent(mModule, 0, PR_SecondsToInterval(1)  );
 
 
-    PR_LOG( coolKeyLogSC, PR_LOG_DEBUG, 
-           ("SmartCardMonitoringThread::Execute Token Event fired :"
-            " slot %p \n", slot));
+    PR_LOG( coolKeyLogSC, PR_LOG_ALWAYS, 
+           ("SmartCard thread event detected. \n"));
 
     if (slot == NULL) {
 
