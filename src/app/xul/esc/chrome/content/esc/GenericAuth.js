@@ -25,6 +25,9 @@ var gTitle = null;
 var gDescription = null;
 var gStringBundle = null;
 
+var gFormSubmitted = 0;
+
+
 loadStringBundle();
 
 function ConfirmPassword(password_element)
@@ -122,9 +125,13 @@ function Validate()
     return 1;
 }
 
-function FormSubmit()
+function FormSubmit(noValidate)
 {
-    var result = Validate();
+    var result = true;
+
+    if(!noValidate)
+        Validate();
+
     var thisParent = window.opener;
 
     if(!thisParent)
@@ -185,6 +192,7 @@ function FormSubmit()
          }
 
     }
+     gFormSubmitted = 1;
      window.close(); 
 }
 
@@ -628,6 +636,18 @@ function UiLoad()
    {
        ConstructUI(type,keyID,ui);
    }
+}
+
+function UiUnload()
+{
+    if(gFormSubmitted)
+    {
+        return;
+    }
+
+    var noValidate = 1;
+ 
+    FormSubmit(noValidate);
 }
 
 function GetRowsNodeFromGrid(theGrid)

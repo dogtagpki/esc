@@ -87,7 +87,7 @@ background: #ffffff url(bg.jpg) repeat-x;
 }
 
 .messageText {
-  font-size: 9pt;
+  font-size: 10pt;
   text-align: justify;
 
 }
@@ -313,6 +313,13 @@ tr [COOLKeyPresent="yes"]{
   background-color: #ffffff;
 }
 
+.DiagnosicsTextBox {
+
+   width: 600px;
+   height: 725px;
+   border: black solid 4px;
+
+}
 
 .BorderedIFrame {
 
@@ -339,8 +346,14 @@ tr [COOLKeyPresent="yes"]{
   width: 100px;
 }
 
+.largeWideBox {
+
+ min-width: 42em;
+
+}
+
 .mediumWideBox {
 
- min-width: 20em;
+ min-width: 18em;
 
 }

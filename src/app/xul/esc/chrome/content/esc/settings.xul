@@ -24,7 +24,7 @@
     title="&escTitle;"
     onload="InitializeAdminBindingList()"
     onunload="cleanup()"
-    width ="720"
+    width ="730"
     height= "460"
     name="admin"
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
@@ -47,7 +47,7 @@
                      <spacer flex="1"/>
                  </vbox>
      </hbox>
-     <groupbox flex ="1" orient="vertical" class="outerGroupBox">
+  <!--   <groupbox flex ="1" orient="vertical" class="outerGroupBox"> -->
          <vbox id="administer-message-id">
              <spacer flex="1"/>
              <description class="messageText">
@@ -55,14 +55,15 @@
              </description>
          </vbox>
          <hbox flex="1">
-             <groupbox flex="1" >
+             <groupbox flex="6" class="largeWideBox" >
                   <caption label="&pluggedInCards;" class="captionText"/>
                   <vbox id="admin-no-keys-area">
-                  <spacer flex ="1"/>
+              <!--    <spacer flex ="1"/>
                   <description class="messageText">
                       &adminNoKeysMessage;
-                  </description>
+                  </description> 
                   <spacer flex = "1"/>
+               -->
                   </vbox>
                   <listbox id="AdminBindingList" flex="2" >
                       <listcols>
@@ -74,9 +75,9 @@
                       </listcols>
                       <listhead>
                           <listheader />
-                          <listheader flex="1" class="headerText" label="&keyIssuer;"/>
-                          <listheader flex="1" class="headerText" label="&keyIssuedTo;"/>
-                          <listheader flex="1" class="headerText" label="&keyStatus;"/>
+                          <listheader flex="3" class="headerText" label="&keyIssuer;"/>
+                          <listheader flex="4" class="headerText" label="&keyIssuedTo;"/>
+                          <listheader flex="3" class="headerText" label="&keyStatus;"/>
                           <listheader flex="1" class="headerText" label="&keyProgress;"/>
                       </listhead>
                   </listbox>
@@ -132,21 +133,25 @@
 
                           <button class="buttonText" id="formatbtn" label="&doFormat;" oncommand="DoFormatCoolKey()" disabled="true" hidden = "false"/>
 
-                          <button class="buttonText"  id="resetpinbtn" label="&doResetPin;" oncommand="DoCollectPassword('resetpin');" disabled="true" hidden="false"/>
-
                           <button class="buttonText" id="enrollbtn" label="&doEnroll;" oncommand="DoCollectPassword('enroll');" disabled="true" hidden="false"/>
 
-                          <button class="buttonText"  id="viewcertsbtn" label="&doViewCerts;" oncommand="launchCertViewer()" disabled="true" hidden="false"/>
+                          <button class="buttonText"  id="resetpinbtn" label="&doResetPin;" oncommand="DoCollectPassword('resetpin');" disabled="true" hidden="false"/>
+
+
+<!--                          <button class="buttonText"  id="viewcertsbtn" label="&doViewCerts;" oncommand="launchCertViewer()" disabled="true" hidden="false"/>
 
                           <button class="buttonText" id="advancedbtn" label="&advancedInfo;" disabled="true" hidden="false" oncommand="DoShowAdvancedInfo();"/>
-
+-->
                   </vbox> 
              </groupbox>
          </hbox>
         <hbox id = "enrollment_button_box" >
+            <button class="buttonText"  id="viewcertsbtn" label="&doViewCerts;" oncommand="launchCertViewer()" disabled="true" hidden="false"/>
+                          <button class="buttonText" id="advancedbtn" label="&advancedInfo;" disabled="true" hidden="false" oncommand="DoShowAdvancedInfo();"/>
+
             <spacer flex = "1"/>
             <button class="buttonText" id="closebtn" label ="&closeAdminLater;" oncommand="HideAdminPage();"/>
             <spacer class="horSpacerShort"/>
          </hbox>
-  </groupbox>
+  <!-- </groupbox> -->
 </window>

@@ -23,6 +23,7 @@
     id="esc-auth-window"
     title="&genericAuthTitle;"
     onload="UiLoad();"
+    onunload="UiUnload();"
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
 <stringbundle id="esc_strings" src="chrome://esc/locale/esc.properties"/>

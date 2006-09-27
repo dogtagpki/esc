@@ -15,21 +15,21 @@
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
+
+var gDiagnosticsDataText="";
+
 function ShowAdvancedInfo()
 {
-    var dump = window.arguments[0];
+    var textDump = window.arguments[0];
 
+    gDiagnosticsData=dump;
+    gDiagnosticsDataText=textDump;
 
-    var frame = window.document.getElementById("advanced-info");
+    var textbox = window.document.getElementById("advanced-info");
 
-    var doco = frame.contentDocument;
-
-    if(doco)
+    if(textbox)
     {
-        doco.open(); 
-        doco.write(dump);
-        doco.close();
-
+        textbox.setAttribute("value",textDump);
     }
 }
 

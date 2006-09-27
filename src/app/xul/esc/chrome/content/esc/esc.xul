@@ -71,7 +71,7 @@
       </vbox>
       <vbox id="yes_key_box">
          <spacer flex="1" class="verticalSpacer"/>
-         <description class="messageText">
+         <description class="messageText" id="enroll-proceed-message">
              &readyToProceed;
          </description> 
 

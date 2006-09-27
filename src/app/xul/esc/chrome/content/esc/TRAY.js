@@ -26,6 +26,7 @@ var gBaseWindow = 0;
 var gWindNotify = null;
 
 
+
 loadStringBundle();
 
 //
@@ -368,6 +369,33 @@ function TrayShowNotificationIcon()
 
 }
 
+function SetMenuItemsText()
+{
+
+  var manageKeys=getBundleString("menuManageKeys");
+
+  var exit= getBundleString("menuExit");
+
+  TrayChangeMenuItemText(0,manageKeys);
+  TrayChangeMenuItemText(1,exit);
+
+}
+
+function TrayChangeMenuItemText(aIndex, aText)
+{
+    if(gTray && gBaseWindow)
+    {
+        try {
+        netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect")
+        gTray.setmenuitemtext(aIndex,aText);
+        gTray.showicon();
+        } catch(e) {
+alert("exception " + e);
+            return;
+        }
+
+   }
+}
 
 //String bundling related functions
 
@@ -387,4 +415,5 @@ function getBundleString(string_id)
 
     return str;
 }
+
 

@@ -23,8 +23,8 @@
     id="esc-window"
     title="&escTitle;"
     onload="InitializePhoneHomeConfigUI();"
-    width ="600"
-    height= "350"
+    width ="650"
+    height= "400"
     onunload="cleanup();"
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 <stringbundle id="esc_strings" src="chrome://esc/locale/esc.properties"/>
@@ -39,6 +39,19 @@
     <vbox flex="1" >
     <description class="messageText">
         &tpsConfigDesc; 
+    </description>
+
+    <spacer class="verticalSpacerShort"/>
+    <description class="messageText">
+        &tpsConfigDesc1;
+    </description>
+    <spacer class="verticalSpacerShort"/>
+    <description class="messageText">
+        &tpsConfigDesc2;
+    </description>
+    <spacer class="verticalSpacerShort"/>
+    <description class="messageText">
+        &tpsConfigDesc3;
     </description>
     <groupbox class="outerGroupBox" >
     <caption label="&editConfigValues;"/>
@@ -58,7 +71,7 @@
     </rows>
     </grid>
 
-    <hbox>
+    <hbox flex="1">
          <spacer flex ="1"/>
         <button label="&escOK;" oncommand="DoPhoneHomeConfigClose();" /> 
     </hbox>
