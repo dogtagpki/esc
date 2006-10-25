@@ -32,6 +32,7 @@
 #endif
 
 #include "nsIPrefBranch.h"
+#include "nsIPrefService.h"
 #include "nsCOMPtr.h"
 #include "nsIProxyObjectManager.h"
 #include "nsIObserver.h"
@@ -42,6 +43,14 @@
 #include "content/nsCopySupport.h"
 #include <vector>
 #include <string>
+
+
+#define STRINGIFY(x) #x
+#define GETSTRING(x) STRINGIFY(x)
+
+#ifndef ESC_VERSION
+#define ESC_VERSION 1.0.0-0
+#endif
 
 #include <prlog.h>
 #define COOL_MAX_PATH 1024
@@ -259,7 +268,7 @@ HRESULT rhCoolKey::doSetCoolKeyConfigValue(const char *aName, const char *aValue
     }
 
 
-    nsCOMPtr<nsIPrefBranch> pref;
+    nsCOMPtr<nsIPrefService> pref;
     pref = do_GetService("@mozilla.org/preferences-service;1");
 
     if(!pref)
@@ -268,8 +277,15 @@ HRESULT rhCoolKey::doSetCoolKeyConfigValue(const char *aName, const char *aValue
     }
 
 
-    pref->SetCharPref(aName, aValue);
+    nsCOMPtr<nsIPrefBranch> pBranch;
 
+    pref->GetBranch(nsnull,getter_AddRefs(pBranch));
+
+    if(pBranch)
+    {
+      pBranch->SetCharPref(aName, aValue);
+      pref->SavePrefFile(nsnull);
+    }
 
     return S_OK;
 
@@ -1358,10 +1374,9 @@ NS_IMETHODIMP rhCoolKey::GetCoolKeyVersion(char **_retval)
 {
     PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::GetCoolKeyVersion \n"));
 
-    char *version = "1.0.0-16";
+    char *version = GETSTRING(ESC_VERSION);
     
     char *versionVal =  (char *) nsMemory::Clone(version,sizeof(char) * strlen(version) +  1);
-
     
     *_retval = versionVal;   
 

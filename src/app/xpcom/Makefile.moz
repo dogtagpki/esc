@@ -26,7 +26,6 @@ TOP             = $(MOZ_SRCDIR)
 CORE_DIST	= $(CORE_DEPTH)/dist/$(OBJDIR)
 CORE_INC	= $(CORE_DEPTH)/dist/public
 MDDEPDIR	:= $(OBJDIR)/.deps
-DESTDIR		= $(MOZ_OBJDIR)/install
 
 NO_DIST_INSTALL	= 1
 
@@ -37,6 +36,9 @@ NO_DIST_INSTALL	= 1
 DEPLOY_OBJDIR           = $(CORE_DEPTH)/dist/$(OBJDIR)/esc_build
 
 XULRUNNER_ZIP_NAME	= xulrunner-1.8.0.1.*.tar.gz 
+ifeq ($(OS_ARCH),WINNT)
+XULRUNNER_ZIP_NAME	= xulrunner-1.8.0.1.*.win32.zip
+endif
 XULRUNNER_BIN_PATH	= $(MOZ_OBJDIR)/dist/xulrunner
 XULRUNNER_EXEC		= xulrunner
 ifeq ($(OS_ARCH), Darwin)
@@ -44,6 +46,13 @@ XULRUNNER_BIN_PATH      = /Library/Frameworks/XUL.framework
 XULRUNNER_EXEC          = xulrunner-bin
 XULRUNNER_FRAME_DEST    = ESC.app/Contents/Frameworks/XUL.framework
 XULRUNNER_FRAME_BASE	= ESC.app/Contents/Frameworks
+endif
+
+DEPLOY_OFFSET=/esc
+
+ifeq ($(OS_ARCH),Linux)
+DEPLOY_OFFSET=/src
+DESTDIR=$(MOZ_OBJDIR)/install
 endif
 
 ifeq ($(OS_ARCH), WINNT)
@@ -73,6 +82,10 @@ MODULE_NAME	= rhCoolKey
 # do not export themselves
 DEFINES		+= -DXPCOM_GLUE  $(GECKO_INCLUDES) -I$(CORE_INC)/ckymanager -I$(CORE_INC)/httpchuncked -I./_xpidlgen
 
+
+ifdef ESC_VERSION
+DEFINES += -DESC_VERSION=$(ESC_VERSION)
+endif
 
 REQUIRES	= string \
 		  xpcom \
@@ -115,7 +128,7 @@ libs::	$(INSTALL_STUFF) rhCoolKey.h
 clean::
 	rm -f Makefile.in
 	rm -rf $(DEPLOY_OBJDIR)
-	rm -rf $(CORE_DEPTH)/src/app/xul/esc/esc
+	rm -rf $(CORE_DEPTH)$(DEPLOY_OFFSET)/app/xul/esc/esc
 
 deploy: $(DEPLOY_OBJDIR)
 	echo "deploy! on $(OS_ARCH)"
@@ -160,14 +173,14 @@ Makefile.in:
 
 $(DEPLOY_OBJDIR):
 	echo "Installing!"
-	$(NSINSTALL) ./$(LIB_PREFIX)rhCoolKey$(DLL_SUFFIX) $(CORE_DEPTH)/src/app/xul/esc/components
-	$(NSINSTALL) ./_xpidlgen/*.xpt $(CORE_DEPTH)/src/app/xul/esc/components
+	$(NSINSTALL) ./$(LIB_PREFIX)rhCoolKey$(DLL_SUFFIX) $(CORE_DEPTH)$(DEPLOY_OFFSET)/app/xul/esc/components
+	$(NSINSTALL) ./_xpidlgen/*.xpt $(CORE_DEPTH)$(DEPLOY_OFFSET)/app/xul/esc/components
 
 	echo  "Creating $(DEPLOY_OBJDIR)"
 	mkdir $(DEPLOY_OBJDIR)
 
-	cd $(CORE_DEPTH)/src/app/xul/esc; zip -r test.zip * -x *\CVS\* \*.fix*; unzip -d esc test.zip ; rm -f test.zip
-	$(XULRUNNER_BIN_PATH)/$(XULRUNNER_EXEC) --install-app $(CORE_DEPTH)/src/app/xul/esc/esc  $(DEPLOY_OBJDIR)
+	cd $(CORE_DEPTH)/$(DEPLOY_OFFSET)/app/xul/esc; zip -r test.zip * -x *\CVS\* \*.fix*; unzip -d esc test.zip ; rm -f test.zip
+	$(XULRUNNER_BIN_PATH)/$(XULRUNNER_EXEC) --install-app $(CORE_DEPTH)$(DEPLOY_OFFSET)/app/xul/esc/esc  $(DEPLOY_OBJDIR)
 
 ifeq ($(OS_ARCH), Darwin)
 
@@ -178,8 +191,11 @@ ifeq ($(OS_ARCH), Darwin)
 endif
 	#cp -Rf -v $(XULRUNNER_BIN_PATH) $(DEPLOY_OBJDIR)/$(XULRUNNER_FRAME_DEST)
 
+ifeq ($(OS_ARCH),Linux)
 	tar -xzvf $(MOZ_OBJDIR)/dist/$(XULRUNNER_ZIP_NAME)  -C $(DEPLOY_OBJDIR)/$(XULRUNNER_FRAME_DEST)/esc 
+endif
 ifeq ($(OS_ARCH),WINNT)
+	unzip $(MOZ_OBJDIR)/dist/$(XULRUNNER_ZIP_NAME) -d $(DEPLOY_OBJDIR)/$(XULRUNNER_FRAME_DEST)/esc
 	cp -f $(XPCOM_EXTRA)  $(DEPLOY_OBJDIR)/ESC/components
 endif
 ifdef DESTDIR

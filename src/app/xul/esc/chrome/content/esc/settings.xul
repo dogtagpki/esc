@@ -1,4 +1,5 @@
 <?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/"  type="text/css"?>
 <?xml-stylesheet href="esc.css" type="text/css"?>
 <!-- ***** BEGIN COPYRIGHT BLOCK *****
  * This Program is free software; you can redistribute it and/or modify it under
@@ -150,8 +151,12 @@
                           <button class="buttonText" id="advancedbtn" label="&advancedInfo;" disabled="true" hidden="false" oncommand="DoShowAdvancedInfo();"/>
 
             <spacer flex = "1"/>
+
+            <checkbox id="enrolled_key_browser" label="&dontLaunchBrowser;" checked="false" oncommand="DoHandleEnrolledBrowserLaunch(); " hidden="true" disabled="false" />  
+            <spacer flex = "1"/>
             <button class="buttonText" id="closebtn" label ="&closeAdminLater;" oncommand="HideAdminPage();"/>
             <spacer class="horSpacerShort"/>
+
          </hbox>
   <!-- </groupbox> -->
 </window>

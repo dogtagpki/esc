@@ -88,6 +88,8 @@ try {
 
 TrayAddWindow();
 
+TrayShowTooltip(getBundleString("escTitle"));
+
 function getBaseWindow(  ) {
     var rv;
     try
@@ -278,6 +280,7 @@ function TrayAddWindow()
 
             gTray.add(gBaseWindow);
 
+
             } catch(e) {
                 // no need to bother the user if the tray fails
 
@@ -357,7 +360,7 @@ function TrayShowNotificationIcon()
 
         try {
 
-        netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect")
+        netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
         gTray.settooltipmsg(getBundleString("escTitle"));
         gTray.showicon();
 
@@ -368,6 +371,29 @@ function TrayShowNotificationIcon()
     }
 
 }
+
+function TrayShowTooltip(aMessage)
+{
+    if(!aMessage)
+        return;
+
+    if(gTray && gBaseWindow)
+    {
+
+        try {
+
+        netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect")
+;
+        gTray.settooltipmsg(aMessage);
+
+        } catch(e) {
+            return;
+        }
+
+    }
+
+}
+
 
 function SetMenuItemsText()
 {

@@ -18,13 +18,13 @@
 #ifndef _OPENKEY_H
 #define _OPENKEY_H 1
 
-#define OPENKEY_CARD_NAME "OpenKey Card Type"
-#define OPENKEY_CARD_NAME_MS "OpenKey Card Type\0"  /* a multi-string */
+#define OPENKEY_CARD_NAME "CoolKey Card Type"
+#define OPENKEY_CARD_NAME_MS "CoolKey Card Type\0"  /* a multi-string */
 
 #define OPENKEY_PROV   "Identity Alliance CSP"
 #define OPENKEY_PROV_W L"Identity Alliance CSP"
 
-#define OPENKEY_NAME_W L"OpenKey"
+#define OPENKEY_NAME_W L"CoolKey"
 
 /*
  * User-defined certificate properties must faill in the range

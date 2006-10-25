@@ -43,11 +43,24 @@ const  TPS_UI            = "UI";
 const  SERVICES_TAG      = "Services";
 const  ISSUER_TAG        = "IssuerName"; 
 const  SERVICE_INFO_TAG  = "ServiceInfo";
+const  ENROLLED_TOKEN_BROWSER_URL = "EnrolledTokenBrowserURL";
+const  RESET_PHONE_HOME  = "ResetPhoneHome";
+const  ESC_IGNORE_TOKEN_BROWSER_URL = "esc.ignore.token.browser.url";
+const  ESC_TOKEN_BROWSER_URL_ESTABLISHED = "esc.token.browser.established";
+const  ESC_IGNORE_KEY_ISSUER_INFO = "esc.ignore.key.issuer.info";
 
 const  UNINITIALIZED        = 1;
 const  UNINITIALIZED_NOAPPLET = 2;
 const  ESC_ENROLL_WIDTH  = 600;
 const  ESC_ENROLL_HEIGHT = 570;
+
+//Enrolled Token Browser constants
+
+const MAC_PROG_OPEN = "/usr/bin/open";
+const LINUX_PROG_OPEN = "/usr/bin/gnome-open";
+const WIN_XP_PROG_OPEN = "C:\\Windows\\system32\\cmd.exe";
+const WIN_2000_PROG_OPEN = "C:\\WINNT\\system32\\cmd.exe";
+
 
 //Window names
 
@@ -224,6 +237,8 @@ function DoPhoneHome(keyType,keyID)
 {
   var callback = function (aResult) {
 
+    recordMessage("In DoPhoneHome callback");
+
     var issuer = "";
     if(aResult == true)
     {
@@ -232,6 +247,21 @@ function DoPhoneHome(keyType,keyID)
             issuer = getBundleString("unknownIssuer");
         TraySendNotificationMessage(getBundleString("keyInserted"),"\"" + issuer +"\"" + " " + getBundleString("keyInsertedComputer"),3,4000,GetESCNotifyIconPath(keyType,keyID));
         UpdateRowWithPhoneHomeData(keyType,keyID);
+
+        recordMessage("cached issuer " + issuer);
+
+        var browserURL =  GetCachedEnrolledTokenBrowserURL(keyID);
+
+        recordMessage("Cached browserURL " + browserURL);
+
+        if(browserURL)
+        {
+            DoCoolKeySetConfigValue(ESC_TOKEN_BROWSER_URL_ESTABLISHED,"yes");
+
+            DoHandleEnrolledBrowserLaunch();
+
+        }
+
     }
     else
     {
@@ -245,6 +275,15 @@ function DoPhoneHome(keyType,keyID)
   {
       issuer = GetCachedIssuer(keyID);
       TraySendNotificationMessage(getBundleString("keyInserted"),"\"" + issuer +"\"" + " " + getBundleString("keyInsertedComputer"),3,4000,GetESCNotifyIconPath(keyType,keyID));
+
+      var launchBrowserURL =  GetCachedEnrolledTokenBrowserURL(keyID);
+
+      if(launchBrowserURL && GetCoolKeyIsEnrolled(keyType, keyID) )
+      {
+          recordMessage("About to attempt to launch Browser URL.");
+          openEnrolledTokenURLBrowser(keyID); 
+      }
+
       return true;
   }
 
@@ -317,6 +356,7 @@ function DoPhoneHomeConfigClose()
 
     var name = this.name;
 
+    recordMessage("DoPhoneHomeConfigClose()  name " + name + " opener " + window.opener);
     if(window.opener && name)
     {
         window.opener.UpdateRowWithPhoneHomeData(1,name);
@@ -593,7 +633,7 @@ function GetAuthDataFromPopUp(aKeyType,aKeyID,aUiData)
    keyUITable[aKeyID] = aUiData;
    keyTypeTable[aKeyID] = aKeyType;
 
-   var child =  window.open("chrome://esc/content/GenericAuth.xul", aKeyID, "chrome,width=400,height=250");
+   var child =  window.open("chrome://esc/content/GenericAuth.xul", aKeyID, "chrome,centerscreen,width=400,height=250");
  
    curChildWindow = child; 
 
@@ -830,6 +870,7 @@ function DoShowAdvancedInfo()
 
     textDump +=   arr.length + "\n\n" ;
 
+    var i = 0;
     for(i = 0 ; i < arr.length ; i++)
     {
        keyID = arr[i][1];
@@ -842,7 +883,7 @@ function DoShowAdvancedInfo()
        if(!issuer)
            issuer = getBundleString("unknownIssuer");
 
-       textDump += "***" + getBundleString("smartCardU") + " " + i + ":" + "***" + "\n\n";
+       textDump += getBundleString("smartCardU") + " " + i + ":"  + "\n\n";
 
        textDump += "  " + getBundleString("appletVersion") + " " + appletVerMaj + "." + appletVerMin + "\n";
 
@@ -881,11 +922,11 @@ function DoShowAdvancedInfo()
        if(nicknames)
        {
            var cert_info = null;
-           for (i = 0; i < nicknames.length ; i ++)
+           for (j = 0; j < nicknames.length ; j ++)
            {
-                textDump += "    " + getBundleString("certificateNickname") + " " + nicknames[i] + " \n\n";
+                textDump += "    " + getBundleString("certificateNickname") + " " + nicknames[j] + " \n\n";
 
-                cert_info = GetCoolKeyCertInfo(keyType,keyID,nicknames[i]);
+                cert_info = GetCoolKeyCertInfo(keyType,keyID,nicknames[j]);
 
                 var cert_split = cert_info.split("\n");
 
@@ -1919,7 +1960,6 @@ function InitializeEnrollment()
   gEnrollmentPage = 1;
   UpdateCoolKeyAvailabilityForEnrollment();
   UpdateButtonStates();
-  //showOrHideEscOnLaunch();
   window.setTimeout("showOrHideTabsUI()",2);
 }
 
@@ -1927,7 +1967,6 @@ function InitializeBindingTable()
 {
   UpdateBindingTableAvailability();
   UpdateButtonStates();
-  //showOrHideEscOnLaunch();
 }
 
 function InitializeAdminBindingList()
@@ -1937,8 +1976,9 @@ function InitializeAdminBindingList()
 
  UpdateAdminBindingListAvailability();
  UpdateButtonStates();
- //showOrHideEscOnLaunch();
- //showOrHideTabsUI();
+
+ DoSetEnrolledBrowserLaunchState(); 
+ DoHandleEnrolledBrowserLaunch();
 }
 
 //Window related functions
@@ -1952,7 +1992,9 @@ function hiddenWindowStartup()
   // We do want notify events though
   var doPreserveNotify = true;
 
+  
   SetMenuItemsText(); 
+  HideWindow();
   TrayRemoveWindow(doPreserveNotify);
 }
 
@@ -2267,6 +2309,10 @@ function FindRow(node)
 
 function SelectRow(row)
 {
+
+  if(!row)
+      return;
+
   var theID = row.getAttribute("id");
   if (!row || gCurrentSelectedRow == row)
     return;
@@ -3208,16 +3254,14 @@ function OnCoolKeyInserted(keyType, keyID)
 
   var uninitialized = 0;
 
+  recordMessage("Key insterted!");
+
   if(gHiddenPage)
   {
       TrayShowNotificationIcon();
   }
 
-  if (GetCoolKeyIsEnrolled(keyType, keyID))
-  {
-      openEnrolledTokenURLBrowser();
-  }
-  else
+  if (!GetCoolKeyIsEnrolled(keyType, keyID) )
   {
        uninitialized = 1;
   }
@@ -3627,8 +3671,78 @@ function loadExternalESCUI()
 // Special feature to open a default browser to
 // a configurable URL. 
 
-function openEnrolledTokenURLBrowser()
+
+function DoSetEnrolledBrowserLaunchState()
 {
+
+    var launch_id = document.getElementById("enrolled_key_browser");
+
+    if(launch_id)
+    {
+
+        var doIgnoreBrowserUrl = DoCoolKeyGetConfigValue(ESC_IGNORE_TOKEN_BROWSER_URL);
+
+        recordMessage("DoSetEnrolledBrowserLaunchState: doIgnore: " + doIgnoreBrowserUrl);
+        var checked= "false";
+
+        if(doIgnoreBrowserUrl == "yes")
+        {
+
+            checked = "true";
+        }
+        else
+        {
+            checked = "false";
+        }
+     
+        launch_id.setAttribute("checked",checked); 
+    }
+
+}
+
+
+function DoHandleEnrolledBrowserLaunch()
+{
+
+    var launch_id = document.getElementById("enrolled_key_browser");
+
+    var doShow = DoCoolKeyGetConfigValue(ESC_TOKEN_BROWSER_URL_ESTABLISHED);
+    
+    if(launch_id)
+    {
+
+      if(doShow == "yes")
+      {
+          ShowItem(launch_id);
+      }
+      else
+      {
+          HideItem(launch_id);
+      }
+
+      var checked = launch_id.getAttribute("checked");
+
+      recordMessage("DoHandleEnrolledBrowserLaunch checked: " + checked );
+      if(checked == "true")
+      {
+          recordMessage("DoHandleEnrolledBrowserLaunch Setting ESC_IGNORE to yes");
+          DoCoolKeySetConfigValue(ESC_IGNORE_TOKEN_BROWSER_URL,"yes");
+      }
+      else
+      {
+          recordMessage("DoHandleEnrolledBrowserLaunch Setting ESC_IGNORE to no");
+          DoCoolKeySetConfigValue(ESC_IGNORE_TOKEN_BROWSER_URL,"no");
+      }
+
+    }
+}
+
+function openEnrolledTokenURLBrowser(aKeyID)
+{
+
+    if(!gHiddenPage)
+        return;
+
     var agent = navigator.userAgent.toLowerCase();
 
     var doWindows = 0;
@@ -3636,35 +3750,46 @@ function openEnrolledTokenURLBrowser()
     var platform = null;
     var executable = null;
 
+    //Check to see if we should ignore this
+
+     var doIgnoreBrowserUrl = DoCoolKeyGetConfigValue(ESC_IGNORE_TOKEN_BROWSER_URL);
+
+     if(doIgnoreBrowserUrl == "yes")
+     {
+         recordMessage("openEnrolledTokenURLBrowser don't open browser because config param is set to ignore!");
+
+         return;
+     }
+
     if(agent && agent.indexOf("mac") != -1)
     {
         platform = "mac";
-        executable = "/usr/bin/open" ;
+        executable = MAC_PROG_OPEN ;
     }
 
     if(agent && agent.indexOf("linux") != -1)
     {
        platform = "linux";
-       executable = "/usr/bin/firefox";
+       executable = LINUX_PROG_OPEN ;
     }
 
     if(agent && agent.indexOf("nt 5.0") != -1)
     {
         platform = "windows";
-        executable = "C:\\WINNT\\system32\\cmd.exe" ;
+        executable = WIN_2000_PROG_OPEN ;
         doWindows = 1;
     }
 
     if(agent && agent.indexOf("nt 5.1") != -1)
     {
         platform = "windows";
-        executable = "C:\\Windows\\system32\\cmd.exe" ;
+        executable = WIN_XP_PROG_OPEN ;
         doWindows = 1;
     }
 
+    recordMessage("openEnrolledTokenURLBrowser platform: " + platform);
     if(!platform)
     {
-        MyAlert(getBundleString("errorFindESCPlatform"));
         return;
     }
 
@@ -3672,22 +3797,16 @@ function openEnrolledTokenURLBrowser()
 
     var enrolled_token_uri = null;
 
-   if(netkey)
-   {
-             try {
-                    netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
-                enrolled_token_uri = netkey.GetCoolKeyConfigValue("esc.enrolled.token.url");
+    if(netkey)
+    {
+        enrolled_token_uri = GetCachedEnrolledTokenBrowserURL(aKeyID); 
 
-            } catch(e) {
-                MyAlert(getBundleString("errorConfigValue") + e);
-               
-            }
+        recordMessage("openEnrolledTokenURLBrowser uri: " + enrolled_token_uri);
 
         if(!enrolled_token_uri)
         {
             return; 
         }
-
     }
 
     // create an nsILocalFile for the executable
@@ -3712,7 +3831,6 @@ function openEnrolledTokenURLBrowser()
 
     if(doWindows)
     {
-
         args = ["/c","start",enrolled_token_uri];
     }
     else
@@ -3905,6 +4023,18 @@ function DoCoolKeyGetIssuerUrl(keyType,keyID)
 {
     var url = null;
 
+    //Back door for testing, ignore the value if so configured
+
+    var ignoreIssuer =  DoCoolKeyGetConfigValue(ESC_IGNORE_KEY_ISSUER_INFO);
+
+    recordMessage("DoCoolKeyGetIssuerUrl ignoreIssuer: " + ignoreIssuer);
+
+    if(ignoreIssuer == "yes")
+    {
+        recordMessage("Ignoring issuer url returning null!");
+        return url;
+    }
+
     try {
       netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
       url =  netkey.GetCoolKeyIssuerInfo(keyType, keyID);
@@ -3954,7 +4084,30 @@ function CheckForFactoryMode()
 
 function launchCONFIG(keyType,keyID)
 {
-    var wind = window.openDialog("chrome://esc/content/config.xul",keyID,"chrome,centerscreen,resizable,modal=yes");
+
+    var agent = navigator.userAgent.toLowerCase();
+
+    var platform = "";
+
+    if(agent && agent.indexOf("mac") != -1)
+    {
+        platform = "mac";
+    }
+
+    var wind = null;
+
+
+    if(platform == "mac")
+    {
+
+        wind = window.openDialog("chrome://esc/content/config.xul",keyID,"chrome,centerscreen,resizable,modal=no");
+    }
+    else
+    {
+        wind = window.openDialog("chrome://esc/content/config.xul",keyID,"chrome,centerscreen,resizable,modal=yes");
+
+
+    }
 }
 
 function launchCertViewer()
@@ -4117,6 +4270,30 @@ function IsPhoneHomeCached(aKeyID)
 
 
     return true;
+}
+
+function GetCachedPhoneHomeValue(aKeyID,aValue)
+{
+     var retValue = null;
+
+     if(!aKeyID || ! aValue)
+         return null;
+
+     var theValue = ConfigValueWithKeyID(aKeyID,aValue);
+
+
+     if(!theValue)
+         return null;
+
+     retValue = DoCoolKeyGetConfigValue(theValue);
+
+     return retValue;
+}
+
+function GetCachedEnrolledTokenBrowserURL(aKeyID)
+{
+
+     return GetCachedPhoneHomeValue(aKeyID,ENROLLED_TOKEN_BROWSER_URL);
 }
 
 function GetCachedPhoneHomeURL(aKeyID)
@@ -4289,14 +4466,29 @@ function phoneHome(theUrl,aKeyID,resultCB)
 
                     if(cValue)
                     {
+                        recordMessage("Writing out config : " +cValue + " value: " + value);
                         DoCoolKeySetConfigValue(cValue,value);
                     }
                 }
                
             }
 
+            recordMessage("Done writing out phone home config cache.");
+
+            var browserURL =  GetCachedEnrolledTokenBrowserURL(aKeyID);
+
+            recordMessage("Cached browserURL " + browserURL);
+
+            if(browserURL)
+            {
+                DoCoolKeySetConfigValue(ESC_TOKEN_BROWSER_URL_ESTABLISHED,"yes");
+                DoHandleEnrolledBrowserLaunch();
+
+            }
+
             if(resultCB)
             {
+                recordMessage("About to write out KEY_ISSUER_URL value.");
                //Manually write out entry for phone home url
 
                 var issuer_config_value = ConfigValueWithKeyID(aKeyID,KEY_ISSUER_URL);
@@ -4482,4 +4674,15 @@ function CopyDataToClipboard(aDataText)
     clip.setData(trans,null,clipid.kGlobalClipboard);
     MyAlert(getBundleString("dataCopiedToClipboard") );
 
+}
+
+
+function recordMessage( message ) {
+
+  var consoleService = Components
+  .classes['@mozilla.org/consoleservice;1']
+  .getService( Components.interfaces.nsIConsoleService );
+
+  if(consoleService)
+      consoleService.logStringMessage("esc: " + message  + "\n");
 }

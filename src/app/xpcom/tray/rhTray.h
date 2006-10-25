@@ -68,6 +68,7 @@ extern "C" {
 #endif
 
 #include <map>
+#include <string>
 using namespace std;
 // generate unique ID here with uuidgen
 
@@ -141,6 +142,8 @@ protected:
   // Collection of nsIBaseWindows
 
      static map< nsIBaseWindow *, rhTrayWindowListener *> mWindowMap;
+
+     static map<unsigned int,string> mMenuItemStringMap;
 
 
      static HRESULT ShowPopupMenu (WORD PopupMenuResource);
@@ -343,6 +346,8 @@ protected:
 
      static EventHandlerRef mEventHandlerRef;
      static EventHandlerUPP mEventHandlerUPP;
+     static MenuRef mDockMenu;
+     static MenuRef mRootMenu;
 
   // Icon menu related
 

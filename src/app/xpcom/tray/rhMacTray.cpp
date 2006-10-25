@@ -25,12 +25,16 @@ NS_IMPL_ISUPPORTS1(rhTray, rhITray)
 
 int rhTray::mInitialized = 0;
 WindowRef rhTray::mWnd = NULL;
+MenuRef   rhTray::mDockMenu = NULL;
+MenuRef   rhTray::mRootMenu = NULL;
 ProcessSerialNumber rhTray::mPSN;
 EventHandlerRef rhTray::mEventHandlerRef=NULL;
 EventHandlerUPP rhTray::mEventHandlerUPP=NULL;
 
 map< nsIBaseWindow *, rhTrayWindowListener *> rhTray::mWindowMap;
 
+#define MENU_ITEM_ID_BASE 5
+#define GO_MENU_ID 6
 
 std::list< nsCOMPtr<rhITrayWindNotify> > rhTray::gTrayWindNotifyListeners;
 
@@ -137,7 +141,6 @@ NS_IMETHODIMP rhTray::Show(nsIBaseWindow *aWindow)
 
     rhTrayWindowListener *listener = rhTray::mWindowMap[aWindow];
 
-    ShowApp();
     if(listener)
     {
         listener->ShowWindow();
@@ -220,7 +223,7 @@ void rhTray::ShowApp()
 {
 
     PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::Show app!  \n"));
-   
+  
     ::ShowHideProcess(&rhTray::mPSN,TRUE);
     ::SetFrontProcess(&rhTray::mPSN);
 
@@ -259,6 +262,64 @@ HRESULT rhTray::Initialize()
         return E_FAIL;
     }
 
+    //Take care of the menu stuff
+
+    MenuRef tMenu;
+    CreateNewMenu(1, 0, &tMenu);
+
+    MenuItemIndex item;
+    AppendMenuItemTextWithCFString( tMenu, CFSTR("Show Manage Smart Cards"),  0,MENU_ITEM_ID_BASE , &item );
+
+    if(tMenu)
+    {
+        OSStatus result =  SetApplicationDockTileMenu (tMenu);
+
+        if(result == noErr)
+        {
+            PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::Initialize result of SetApplicationDockTileMenu %d \n",result));
+            mDockMenu = GetApplicationDockTileMenu();
+
+            PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::Initialize result of GetApplicationDockTileMenu: %d . \n",mDockMenu));
+        }
+    }
+
+    MenuRef tGoMenu;
+    ::CreateNewMenu(1,0,&tGoMenu);
+
+    if(tGoMenu)
+    {
+        SetMenuID (tGoMenu,GO_MENU_ID);
+    }
+    else
+    {
+        return S_OK;
+    }
+
+    MenuRef tRootMenu;
+    ::CreateNewMenu(0, 0, &tRootMenu);
+
+    if(!tRootMenu)
+    {
+        return S_OK;
+    }
+
+    MenuItemIndex goItem;
+
+    ::AppendMenuItemTextWithCFString( tGoMenu, CFSTR("Show Manage Smart Cards"),  0,MENU_ITEM_ID_BASE , &goItem );
+
+    ::SetMenuTitleWithCFString( tGoMenu, CFSTR("Go") );
+
+    OSStatus rootResult = ::SetRootMenu(tRootMenu);
+
+    if(rootResult == noErr)
+    {
+        mRootMenu = AcquireRootMenu();
+
+        MenuItemIndex myMenuIndex;
+        AppendMenuItemTextWithCFString( tRootMenu, NULL, 0, 0, &myMenuIndex );
+        SetMenuItemHierarchicalMenu(tRootMenu, myMenuIndex, tGoMenu); 
+    }
+
     mInitialized = 1;
 
     return S_OK;
@@ -292,6 +353,24 @@ HRESULT rhTray::Cleanup()
         ::DisposeEventHandlerUPP(mEventHandlerUPP);
 
     }
+
+    if(mDockMenu)
+    {
+        ::ReleaseMenu(mDockMenu);
+    }
+
+
+    MenuRef goMenu = GetMenuHandle (GO_MENU_ID);
+
+    if(goMenu)
+    {
+        ::ReleaseMenu(goMenu);
+    }
+
+    if(mRootMenu)
+    {
+        ::ReleaseMenu(mRootMenu);
+    }
  
     return S_OK;
 }
@@ -323,7 +402,6 @@ HRESULT rhTray::CreateApplicationListener()
 void rhTray::ShowAllListeners()
 {
 
-    ShowApp();
     PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::ShowAllListeners.\n"));
     map< nsIBaseWindow *, rhTrayWindowListener *>::iterator i;
 
@@ -421,7 +499,6 @@ HRESULT rhTray::AddListener(nsIBaseWindow *aWindow)
 
     }
 
-
     PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::AddWindowListener top level widget  %p \n",hWnd));
 
     rhTrayWindowListener *create = new rhTrayWindowListener(hWnd);
@@ -437,7 +514,7 @@ HRESULT rhTray::AddListener(nsIBaseWindow *aWindow)
 
     if(res != S_OK)
        return E_FAIL;
-   
+  
     return S_OK; 
 }
 
@@ -506,6 +583,95 @@ HRESULT rhTray::RemoveAllListeners()
 /* void setmenuitemtext (in unsigned long aIndex, in string aText); */
 NS_IMETHODIMP rhTray::Setmenuitemtext(PRUint32 aIndex, const char *aText)
 {
+
+    // On the Mac , we support only one menu item
+
+    if(aIndex == 0 && aText)
+    {
+        PR_LOG( trayLog, PR_LOG_DEBUG, ("rhCoolKey::Setmenuitemtext  aIndex: %d text %s. \n",aIndex,aText));
+
+        MenuRef outMenu;
+        MenuItemIndex theIndex;
+
+        OSStatus result = GetIndMenuItemWithCommandID (
+             mDockMenu,
+             MENU_ITEM_ID_BASE + aIndex,
+             1,
+             &outMenu,
+             &theIndex
+        );
+
+
+        PR_LOG( trayLog, PR_LOG_DEBUG, ("rhCoolKey::Setmenuitemtext  Result of menu item: %d. \n",result));
+   
+        if(result == noErr)
+        {
+            PR_LOG( trayLog, PR_LOG_DEBUG, ("rhCoolKey::Setmenuitemtext changing item index:    %d . \n",theIndex));
+            CFStringRef cfStr= CFStringCreateWithCString (
+                NULL,
+                aText,
+                kCFStringEncodingASCII
+            );
+
+            OSStatus  result = SetMenuItemTextWithCFString (
+               mDockMenu,
+               theIndex ,
+               cfStr 
+            );
+
+            PR_LOG( trayLog, PR_LOG_DEBUG, ("rhCoolKey::Setmenuitemtext  Result of setting item text: %d. \n",result));
+
+        }
+
+
+        // Now take care of the root menu, provide exact same item here
+
+       MenuRef tGoMenu = GetMenuHandle (GO_MENU_ID);
+
+
+       if(!tGoMenu)
+       {
+           return S_OK;
+       }
+
+       MenuRef goOutMenu;
+       MenuItemIndex theGoIndex;
+
+       OSStatus resultRoot = GetIndMenuItemWithCommandID (
+             tGoMenu,
+             MENU_ITEM_ID_BASE + aIndex,
+             1,
+             &goOutMenu,
+             &theGoIndex
+        );
+
+
+        PR_LOG( trayLog, PR_LOG_DEBUG, ("rhCoolKey::Setmenuitemtext  Result of menu item for go menu: %d. \n",result));
+  
+        if(resultRoot == noErr)
+        {
+            PR_LOG( trayLog, PR_LOG_DEBUG, ("rhCoolKey::Setmenuitemtext changing item index:    %d . For go  menu. \n",theIndex));
+            CFStringRef cfStr= CFStringCreateWithCString (
+                NULL,
+                aText,
+                kCFStringEncodingASCII
+            );
+
+            OSStatus  result = SetMenuItemTextWithCFString (
+               tGoMenu,
+               theGoIndex ,
+               cfStr
+            );
+
+            PR_LOG( trayLog, PR_LOG_DEBUG, ("rhCoolKey::Setmenuitemtext  Result of setting item text for root menu: %d. \n",result));
+
+        }
+
+
+
+
+    }
+
     return S_OK;
 }
 
@@ -596,6 +762,7 @@ void rhTray::NotifyTrayWindListeners(PRUint32 aEvent, PRUint32 aEventData,PRUint
 
         PRBool claimed = 0;
 
+        PR_LOG(trayLog, PR_LOG_DEBUG, ("rhTray::NotifyTrayWindListener:   . \n"));
         ((rhITrayWindNotify *) (*it))->RhTrayWindEventNotify(aEvent,aEventData, aKeyData, aData1, aData2, &claimed);
 
 
@@ -626,6 +793,7 @@ pascal OSStatus rhTray::ApplicationProc(EventHandlerCallRef nextHandler, EventRe
 
                  case kEventAppActivated:
                    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::ApplicationProc App activated! \n"));
+                   result = noErr;
                    break;
 
                  case kEventAppDeactivated:
@@ -666,6 +834,12 @@ pascal OSStatus rhTray::ApplicationProc(EventHandlerCallRef nextHandler, EventRe
 
                  case kHICommandQuit:
                      PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::ApplicationProc App kHICommandQuit! \n"));
+
+                 break;
+
+                 case MENU_ITEM_ID_BASE:
+                     PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::ApplicationProc App Manage Smart Cards! \n"));
+                     NotifyTrayWindListeners(MENU_EVT,MENU_SHOW);
 
                  break;
             };
@@ -714,6 +888,8 @@ HRESULT rhTrayWindowListener::Initialize()
     //::InstallStandardEventHandler(target);
     ::InstallEventHandler(target,mEventHandlerUPP,numTypes,eventTypes, (void *) this,&mEventHandlerRef); 
 
+    ShowWindow();
+
     return S_OK;
 }
 
@@ -728,18 +904,18 @@ void rhTrayWindowListener::ShowWindow()
          if(IsWindowCollapsed(mWnd))
         { 
             PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener:: ShowWindow :  uncollapsing collapsed window. \n"));
-            ::CollapseWindow(mWnd,FALSE);
+            //::CollapseWindow(mWnd,FALSE);
          }
 
 
          if(!IsWindowVisible(mWnd))
          {
              PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener:: ShowWindow : Window not visible showing...  \n"));
-             ::ShowWindow(mWnd);
+             //::ShowWindow(mWnd);
          }
 
 
-         //::BringToFront(mWnd);
+         ::BringToFront(mWnd);
          PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener:: ShowWindow :  \n"));
 
          rhTray::ShowApp();
@@ -753,15 +929,6 @@ void rhTrayWindowListener::HideWindow()
     {
 
          PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener:: HideWindow \n"));
-
-         //OSStatus res = ::CollapseWindow(mWnd,TRUE);
-
-         //::HideWindow(mWnd);
-
-         rhTray::HideApp();
-
-         PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener:: HideWindow  \n"));
-
     }
 
 }
@@ -783,9 +950,6 @@ pascal OSStatus rhTrayWindowListener::WindowProc(EventHandlerCallRef nextHandler
 
             PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener::WindowProc attempting Window close! \n"));
 
-            if(self)
-                self->HideWindow();
-            //result = noErr;
         break;
 
         case kEventWindowHidden:

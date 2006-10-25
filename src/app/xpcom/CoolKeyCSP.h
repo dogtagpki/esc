@@ -32,10 +32,8 @@ public:
 
    
     static HCRYPTPROV GetCryptHandle();   
+    static HCRYPTPROV mCryptProv;
 
-private:
-
-    static HCRYPTPROV mCryptProv ;
 };
 
 #endif

@@ -58,8 +58,8 @@ IDR_MENU1 MENU
 BEGIN
     POPUP "System Tray Menu"
     BEGIN
-        MENUITEM "Show...",                     ID_SHOW
-        //MENUITEM "Hide...",                     ID_HIDE
+        MENUITEM "Show Manage Smart Cards",                     ID_SHOW
+        //MENUITEM "Hide",                     ID_HIDE
         MENUITEM "Exit",                        IDM_EXIT
     END
 END

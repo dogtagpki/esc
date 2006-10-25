@@ -23,7 +23,7 @@
 
 NS_IMPL_ISUPPORTS1(rhTray, rhITray)
 
-#include "Winuser.h"
+#include "WinUser.h"
 
 HWND rhTray::mWnd = 0;
 int rhTray::mInitialized = 0;
@@ -34,7 +34,10 @@ std::list< nsCOMPtr<rhITrayWindNotify> > rhTray::gTrayWindNotifyListeners;
 
 
 map< nsIBaseWindow *, rhTrayWindowListener *> rhTray::mWindowMap;
+map<unsigned int,string> rhTray::mMenuItemStringMap;
+
 NOTIFYICONDATA rhTray::mIconData;
+
 
 const TCHAR* LISTENER_INSTANCE = 
   TEXT("_RH_TRAY_WIND_LISTENER_INST");
@@ -192,6 +195,21 @@ NS_IMETHODIMP rhTray::Sendnotification(const char *aTitle,const char *aMessage,P
 /* void settooltipmsg (in string aMessage); */
 NS_IMETHODIMP rhTray::Settooltipmsg(const char *aMessage)
 {
+   PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::Settooltipmsg %s  \n",aMessage));
+strcpy(rhTray::mIconData.szTip, aMessage);
+
+   if(!aMessage)
+     return E_FAIL;
+
+   if(strlen(aMessage) >= 64)
+     return E_FAIL;
+
+   strcpy(rhTray::mIconData.szTip, aMessage);
+
+
+   ::Shell_NotifyIcon(NIM_MODIFY,&rhTray::mIconData);
+
+
     return NS_OK;
 }
 
@@ -249,6 +267,8 @@ HRESULT rhTray::Initialize()
 
     PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::Initialize  \n"));
 
+
+    CreateMutex(NULL, FALSE, "ESCMutex"); 
 
     HRESULT res = CreateEventWindow();
     
@@ -310,6 +330,8 @@ HRESULT rhTray::Cleanup()
     RemoveAllListeners();
     DestroyEventWindow();
     RemoveIcon();
+
+    rhTray::mMenuItemStringMap.clear();
 
     return S_OK;
 }
@@ -444,8 +466,10 @@ rhTray::WindowProc(
        switch(lParam)
        {
            case WM_LBUTTONDBLCLK:
+           case WM_LBUTTONDOWN:
 
                PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::WindowProc: WM_LBUTTONDBLCLK  \n"));
+               NotifyTrayWindListeners(MENU_EVT,MENU_SHOW);
                ShowAllListeners();
 
            break;
@@ -461,14 +485,11 @@ rhTray::WindowProc(
 
                     case ID_SHOW:
 
+                        NotifyTrayWindListeners(MENU_EVT,MENU_SHOW);
+
                         ShowAllListeners();
                     break;
                     
-                    case ID_HIDE:
-
-                        HideAllListeners();
-                    break;
-                 
                     case IDM_EXIT:
 
                         PostQuitMessage(0);
@@ -556,6 +577,8 @@ HRESULT rhTray::ShowPopupMenu (WORD PopupMenuResource)
 {
   HMENU hMenu, hPopup = 0;
 
+  const int numMenuItems = 2;
+
   hMenu = ::LoadMenu (::GetModuleHandle("rhTray.dll"),
                       MAKEINTRESOURCE (PopupMenuResource));
 
@@ -566,6 +589,68 @@ HRESULT rhTray::ShowPopupMenu (WORD PopupMenuResource)
     ::GetCursorPos (&pt);
 
     hPopup = ::GetSubMenu (hMenu, 0);
+
+    int numItems = rhTray::mMenuItemStringMap.size();
+
+
+    
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::ShowPopupMenu num menu item strings : %d\n",numItems));
+    // Change the menu items text if possible
+
+    MENUITEMINFO mii = {0};
+ 
+    unsigned int menuItemID = 0;
+
+    int i = 0;
+ 
+    if(numItems == numMenuItems)
+    {     
+        for (i = 0 ;i < numMenuItems; i++)
+        {
+             mii.cbSize = sizeof(MENUITEMINFO);
+             mii.fMask = MIIM_TYPE ;
+
+
+
+             char * itemText = (char *) (rhTray::mMenuItemStringMap[i]).c_str();
+
+             
+             PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::ShowPopupMenu menutext: %d text %s \n",i,itemText));
+             if(itemText)
+             {
+
+                 if(i == 0)
+                 {
+                     menuItemID= ID_SHOW;                          
+                 }
+                 else
+                 {
+                      menuItemID= IDM_EXIT;
+
+                 }
+
+                 if( GetMenuItemInfo(hPopup,menuItemID,FALSE,&mii))
+                 {
+                     char *tmpBuff = NULL;
+
+                     tmpBuff = strdup(itemText);
+
+                     mii.cch=strlen(itemText);
+                     mii.dwTypeData=tmpBuff;
+                     SetMenuItemInfo(hPopup,menuItemID,FALSE,&mii);
+
+                     free(tmpBuff);
+                 }
+                 else
+                 {
+                     PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::ShowPopupMenu Can't GetMenuItemInfo \n")); 
+
+                 }
+             }
+
+        }
+
+    }
 
     ::SetForegroundWindow (rhTray::mWnd);
 
@@ -644,6 +729,18 @@ HRESULT rhTray::RemoveAllListeners()
 /* void setmenuitemtext (in unsigned long aIndex, in string aText); */
 NS_IMETHODIMP rhTray::Setmenuitemtext(PRUint32 aIndex, const char *aText)
 {
+
+   
+   PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::Setmenuitemtext index: %d text: %s\n",aIndex, aText));
+
+   if(aIndex >= 0 && aIndex <= 10 && aText)
+   {
+       rhTray::mMenuItemStringMap[aIndex] = aText;
+
+   }
+
+
+
     return S_OK;
 }
 
@@ -794,16 +891,16 @@ rhTrayWindowListener::WindowProc(
 
                      if(me)
                      {
-                         me->HideWindow();
+                         //me->HideWindow();
                      }
 
                     PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener Minimize\n"));
-                     eventClaimed = 1;
+                     //eventClaimed = 1;
                 break;
 
                 case HTMAXBUTTON:
                     PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener:: Maximize  \n"));
-                    eventClaimed = 1;
+                    //eventClaimed = 1;
                 break;
                  
                 case HTCLOSE:
@@ -812,10 +909,10 @@ rhTrayWindowListener::WindowProc(
 
                     if(me)
                     {
-                        me->HideWindow();
+                        //me->HideWindow();
                     }
 
-                    eventClaimed = 1;
+                    //eventClaimed = 1;
 
                 break;
 
@@ -943,9 +1040,9 @@ void rhTrayWindowListener::ShowWindow()
     if(mWnd)
     {
          PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener:: ShowWindow \n"));
-         ::ShowWindow(mWnd,SW_SHOW);
+         //::ShowWindow(mWnd,SW_SHOW);
 
-         ::ShowWindow(mWnd,SW_RESTORE);
+         //::ShowWindow(mWnd,SW_RESTORE);
 
     }
 
@@ -958,7 +1055,13 @@ void rhTrayWindowListener::HideWindow()
 
         PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener:: Hide Window \n"));
 
-        ::ShowWindow(mWnd,SW_MINIMIZE);
+        ::ShowWindow(mWnd,SW_HIDE);
+
+        //Change style to nix the taskbar button
+
+        ::SetWindowLongPtr(mWnd,GWL_EXSTYLE,GetWindowLongPtr(mWnd,GWL_STYLE) | WS_EX_TOOLWINDOW);
+
+         PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener:: Hide Window , try to hide owner window too. \n"));
         ::ShowWindow(mWnd,SW_HIDE);
 
     }

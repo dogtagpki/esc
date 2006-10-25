@@ -24,6 +24,8 @@
 #include "openkey.h"
 #include "CoolKeyCSP.h"
 
+
+
 #define MAX_CONTAINER_NAME 128
 #define MAX_KEY_ID 128
 
@@ -45,7 +47,7 @@ HCRYPTPROV CoolKeyCSPKeyListener::GetCryptHandle()
     {
 
        CryptAcquireContext(&CoolKeyCSPKeyListener::mCryptProv, NULL, 
-           OPENKEY_PROV, PROV_RSA_FULL,CRYPT_VERIFYCONTEXT);
+           OPENKEY_PROV, PROV_RSA_FULL,NULL);
 
     }
 
@@ -73,6 +75,9 @@ AddCert(
   const char *keyID,
   HCERTSTORE hCertStore)
 {
+
+   PR_LOG( coolKeyCSPLog, PR_LOG_DEBUG, ("CoolKeyCSPListener::AddCert %p \n",(void *) pbCert));
+
   BOOL rv = TRUE;
   PCCERT_CONTEXT pCertContext = CertCreateCertificateContext(
                                 X509_ASN_ENCODING, pbCert, cbCert);
@@ -93,7 +98,7 @@ AddCert(
   blob.cbData = (DWORD) (wcslen(OPENKEY_NAME_W)+1) * sizeof(wchar_t);
   blob.pbData = (BYTE *) OPENKEY_NAME_W;
   if (!CertSetCertificateContextProperty(pCertContext,
-      CERT_FRIENDLY_NAME_PROP_ID, 0, &blob))
+     CERT_FRIENDLY_NAME_PROP_ID, 0, &blob))
   {
     rv = FALSE;
     goto failed;
@@ -108,7 +113,7 @@ AddCert(
   // CERT_SET_KEY_PROV_HANDLE_PROP_ID.
   keyProvInfo.dwKeySpec = dwKeySpec;
   if (!CertSetCertificateContextProperty(pCertContext,
-      CERT_KEY_PROV_INFO_PROP_ID, 0, &keyProvInfo))
+     CERT_KEY_PROV_INFO_PROP_ID, 0, &keyProvInfo))
   {
     rv = FALSE;
     goto failed;
@@ -144,12 +149,17 @@ failed:
 //
 // Return TRUE on success, FALSE on failure.
 
+
 static BOOL
 GetCert(
   HCRYPTKEY hKey,
   BYTE **ppbCert,
   DWORD *pcbCert)
 {
+
+
+  PR_LOG( coolKeyCSPLog, PR_LOG_DEBUG, ("GetCert kKey %d \n",hKey));
+
   BYTE *pbCert;
   DWORD cbCert;
   if (!CryptGetKeyParam(hKey, KP_CERTIFICATE, NULL,  &cbCert, 0))
@@ -171,6 +181,92 @@ GetCert(
   return TRUE;
 }
 
+// GetISCACert
+//
+// Return whether or not the presented cert is a CA cert. 
+//
+// Return TRUE on success, FALSE on failure.
+
+static
+BOOL GetISCACert(const BYTE *cert, DWORD certSize)
+{
+   BOOL rv = false;
+
+   PCCERT_CONTEXT certContext = 0;
+
+
+    PR_LOG( coolKeyCSPLog, PR_LOG_DEBUG, ("GETISCACert cert %p length %d \n.",cert,certSize));
+
+
+
+   PCERT_BASIC_CONSTRAINTS2_INFO pInfo; 
+
+
+   DWORD cbInfo = sizeof(CERT_BASIC_CONSTRAINTS2_INFO);
+   
+   PR_LOG( coolKeyCSPLog, PR_LOG_DEBUG, ("GETISCACert size of BASIC_CONSTRAINTS structure: %d . \n",cbInfo));
+
+   pInfo = (PCERT_BASIC_CONSTRAINTS2_INFO) LocalAlloc(LPTR,cbInfo);
+
+   if(!pInfo)
+       goto failed;
+
+   certContext =
+   CertCreateCertificateContext(X509_ASN_ENCODING | PKCS_7_ASN_ENCODING ,
+      &cert[0], certSize);
+
+   if (certContext == 0)
+       goto failed;
+
+
+   PCERT_EXTENSION pBC = CertFindExtension(szOID_BASIC_CONSTRAINTS2,
+      certContext->pCertInfo->cExtension, certContext->pCertInfo->rgExtension);
+
+   if(!pBC)
+   {
+       PR_LOG( coolKeyCSPLog, PR_LOG_DEBUG, ("GETISCACert Error in getting BASIC_CONSTRAINTS extension. \n."));
+
+      if (certContext)
+         CertFreeCertificateContext(certContext);
+
+      goto failed;
+
+   }
+
+   DWORD cbDecoded =  cbInfo;
+
+      
+   BOOL dResult = CryptDecodeObject(X509_ASN_ENCODING | PKCS_7_ASN_ENCODING ,
+       X509_BASIC_CONSTRAINTS2,
+       pBC->Value.pbData, pBC->Value.cbData, 0, (void *) pInfo  ,&cbDecoded
+   );
+
+   if(!dResult)
+   {
+      DWORD error = GetLastError();
+
+      PR_LOG( coolKeyCSPLog, PR_LOG_DEBUG, ("GETISCACert Error from CtypDecodeObect error: %d size needed %d \n.",error,cbDecoded));
+   }
+   else
+   {
+
+      PR_LOG( coolKeyCSPLog, PR_LOG_DEBUG, ("GETISCACert found result %d \n.",pInfo->fCA));
+      rv = (BOOL) pInfo->fCA;
+   }
+
+failed:
+
+   if (certContext)
+      CertFreeCertificateContext(certContext);
+
+   if(pInfo)
+       LocalFree(pInfo);
+
+   return rv;
+}
+
+
+
 // PropCertsInContainer
 //
 // Propagate the certs in the key container named szContainer to
@@ -183,8 +279,11 @@ static BOOL
 PropCertsInContainer(
   const char *keyID,
   const char *szContainer,
-  HCERTSTORE hCertStore)
+  HCERTSTORE hCertStore,HCERTSTORE hCACertStore = NULL)
 {
+
+   PR_LOG( coolKeyCSPLog, PR_LOG_DEBUG, ("PropCertsInContainer %s \n",(char *)szContainer));
+
   BOOL rv = TRUE;
 
   HCRYPTPROV hCryptProv = CoolKeyCSPKeyListener::GetCryptHandle();
@@ -211,22 +310,33 @@ PropCertsInContainer(
 
   // If anything fails, we go on to propagate the next cert.
 
+  PR_LOG( coolKeyCSPLog, PR_LOG_DEBUG, ("PropCertsInContainer dwNumKeySpec %d \n",dwNumKeySpec));
+
   for (i = 0; i < dwNumKeySpec; i++)
   {
     HCRYPTKEY hUserKey = NULL;
     if (!CryptGetUserKey(hCryptProv, dwKeySpec[i], &hUserKey))
     {
+      PR_LOG( coolKeyCSPLog, PR_LOG_DEBUG, ("PropCertsInContainer No user key in this cert. Check to see if it is a CA cert. Error %d. \n",GetLastError()));
       // NTE_NO_KEY means there is no key of this type and is
       // not a real error.
       if (GetLastError() != NTE_NO_KEY)
       {
         rv = FALSE;
       }
-      continue;
+     
+
+      continue; 
     }
+
     PBYTE pbCert = NULL;
     DWORD cbCert = 0;
     BOOL bOK = GetCert(hUserKey, &pbCert, &cbCert);
+
+     
+    PR_LOG( coolKeyCSPLog, PR_LOG_DEBUG, ("PropCertsInContainer Result of GetCert %d \n",bOK));
+
+
     if (!CryptDestroyKey(hUserKey))
     {
       // Should not happen.
@@ -248,13 +358,8 @@ PropCertsInContainer(
   }
 
 failed:
+  PR_LOG( coolKeyCSPLog, PR_LOG_DEBUG, ("PropCertsInContainer We have reached the failed block. \n"));
   free(wszContainer);
-/*  if (!CryptReleaseContext(hContext, 0))
-  {
-    rv = FALSE;
-  }
-
-*/
   return rv;
 }
 
@@ -271,6 +376,11 @@ PropCerts( CoolKey *aKey)
 {
   BOOL rv = TRUE;
   BOOL hasReader = (BOOL) CoolKeyHasReader(aKey);
+
+
+  PR_LOG( coolKeyCSPLog, PR_LOG_DEBUG, ("CoolKeyCSPListener::PropCerts. \n"));
+
+
   if (!hasReader)
   {
     return FALSE;
@@ -283,6 +393,15 @@ PropCerts( CoolKey *aKey)
   }
   HCERTSTORE hCertStore = CertOpenSystemStore(NULL, "My");
   if (!hCertStore)
+  {
+    rv = FALSE;
+    goto failed;
+  }
+
+  
+  HCERTSTORE hCACertStore = CertOpenSystemStore(NULL,"CA");
+
+  if(!hCACertStore)
   {
     rv = FALSE;
     goto failed;
@@ -304,8 +423,37 @@ PropCerts( CoolKey *aKey)
     // XXX the container name should be fully qualified:
     //     \\.\reader\container
     // But our CSP only recognizes simple container names.
-    PropCertsInContainer(aKey->mKeyID, szContainer, hCertStore);
-    dwContainerLen = sizeof szContainer;
+
+     PR_LOG( coolKeyCSPLog, PR_LOG_DEBUG, ("CoolKeyCSPListener::PropCerts container %s \n",(char *) szContainer));
+
+     dwContainerLen = sizeof szContainer;
+
+    if(dwContainerLen)
+    {
+
+       if(CryptAcquireContext(&CoolKeyCSPKeyListener::mCryptProv, szContainer,
+    OPENKEY_PROV, PROV_RSA_FULL,0))
+       {
+             PR_LOG( coolKeyCSPLog, PR_LOG_DEBUG, ("CoolKeyCSPListener::PropCerts: about to call PropCertsInContainer %s \n",szContainer)); 
+            PropCertsInContainer(aKey->mKeyID, szContainer, hCertStore);
+
+       }
+       else
+       {
+
+          PR_LOG( coolKeyCSPLog, PR_LOG_DEBUG, ("CoolKeyCSPListener::PropCerts: failed to acquire context: %s \n.",szContainer));
+
+       }
+    }
+
+
+    if(CoolKeyCSPKeyListener::mCryptProv)
+    {
+       CryptReleaseContext(CoolKeyCSPKeyListener::mCryptProv, 0);
+       CoolKeyCSPKeyListener::mCryptProv = 0;
+
+    }
+
     dwFlags = 0;
   }
 
@@ -314,12 +462,12 @@ failed:
   {
     rv = FALSE;
   }
-/*  if (!CryptReleaseContext(hCryptProv, 0))
+
+  if (!CertCloseStore(hCACertStore, CERT_CLOSE_STORE_CHECK_FLAG))
   {
     rv = FALSE;
   }
 
-*/
   return rv;
 }
 
@@ -410,6 +558,7 @@ NS_IMETHODIMP CoolKeyCSPKeyListener::RhNotifyKeyStateChange(PRUint32 aKeyType,co
 
   return NS_OK;
 }
+
 
 
 NS_IMPL_ISUPPORTS1(CoolKeyCSPKeyListener,rhIKeyNotify)

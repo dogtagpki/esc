@@ -39,6 +39,12 @@ endif
 
 -include $(MOZ_OBJDIR)/config/autoconf.mk
 
+DEPLOY_OFFSET=/esc
+ifeq ($(OS_ARCH),Linux)
+DEPLOY_OFFSET=/src
+endif
+
+
 OS_CXXFLAGS     +=  $(HOST_CXXFLAGS)
 
 #MODULE		= rhTray
@@ -133,8 +139,8 @@ clean::
 deploy::
 	echo "Deploying"
 	echo $(IMPORT_LIBRARY)
-	$(NSINSTALL) ./$(LIB_PREFIX)rhTray$(DLL_SUFFIX) $(CORE_DEPTH)/src/app/xul/esc/components
-	$(NSINSTALL) ./_xpidlgen/*.xpt $(INSTALL_STUFF) $(CORE_DEPTH)/src/app/xul/esc/components
+	$(NSINSTALL) ./$(LIB_PREFIX)rhTray$(DLL_SUFFIX) $(CORE_DEPTH)$(DEPLOY_OFFSET)/app/xul/esc/components
+	$(NSINSTALL) ./_xpidlgen/*.xpt $(INSTALL_STUFF) $(CORE_DEPTH)$(DEPLOY_OFFSET)/app/xul/esc/components
 
 
 # separate libraries linked in.
