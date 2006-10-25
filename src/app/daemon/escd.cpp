@@ -67,9 +67,6 @@ void ESC_D::cleanup()
 
     PR_DestroyLock(mDataLock);
 
-    if(single)
-        delete single;
-
     exit(0);
 
 }

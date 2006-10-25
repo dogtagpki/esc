@@ -18,15 +18,6 @@
 #pref("toolkit.defaultChromeURI", "chrome://esc/content/settings.xul");
 
 
-pref("esc.tps.url","http://test.host.com:7888/nk_service");
-
-#pref("esc.enroll.ui.url","http://test.host.com:7888/cgi-bin/esc.cgi?action=autoenroll");
-
-#pref("esc.enrolled.token.url","http://www.test.com");
-pref("esc.hide.on.startup","no");
-
-
-
 pref("signed.applets.codebase_principal_support",true);
 
 pref("capability.principal.codebase.p0.granted", "UniversalXPConnect");
@@ -37,7 +28,4 @@ pref("esc.tps.message.timeout","90");
 pref("esc.factory.mode","no");
 pref("esc.show.tabs.ui","no");
 
-pref("browser.dom.window.dump.enabled",true);
-pref("javascript.options.showInConsole",true);
-pref("nglayout.debug.disable_xul_cache",true);
-pref("nglayour.debug.disable_xul_fastload",true);
+pref("esc.windows.do.capi","yes");

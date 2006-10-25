@@ -20,15 +20,23 @@ CORE_DEPTH = ../../..
 CORE_DIST= $(CORE_DEPTH)/dist/
 
 SYS_INC= /usr/include
+
+XULRUNNER_LIBS_LDFLAGS=
 ifndef MOZ_OFFSET
 MOZ_OFFSET      = mozilla-1.7.13
+else
+XULRUNNER_LIBS_LDFLAGS=$(CORE_DIST)/$(OBJDIR)/xulrunner_build/dist/lib
 endif
+
+
 
 DEFINES         +=  -I$(SYS_INC)/nspr4 -I$(SYS_INC)/nss3  -I$(SYS_INC)/$(MOZ_OFFSET)/nspr -I$(SYS_INC)/$(MOZ_OFFSET)/nss
 
+DEFINES += $(shell pkg-config --cflags xft)
+
 CPPFLAGS		+= $(DEFINES) -g
 
-LDFLAGS += -lstdc++ -L$(CORE_DIST)/$(OBJDIR)/lib  -lnss3 -lnspr4  -lssl3 -lckyapplet -lX11
+LDFLAGS += -lstdc++ -L$(CORE_DIST)/$(OBJDIR)/lib -L$(XULRUNNER_LIBS_LDFLAGS)  -lnss3 -lnspr4  -lssl3 -lckyapplet $(shell pkg-config --libs xft) 
 LDFLAGS +=  -lckymanager -lhttpchunked 
 # MODULE public and private header  directories are implicitly REQUIRED.
 
