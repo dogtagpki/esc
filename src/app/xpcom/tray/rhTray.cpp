@@ -196,7 +196,6 @@ NS_IMETHODIMP rhTray::Sendnotification(const char *aTitle,const char *aMessage,P
 NS_IMETHODIMP rhTray::Settooltipmsg(const char *aMessage)
 {
    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::Settooltipmsg %s  \n",aMessage));
-strcpy(rhTray::mIconData.szTip, aMessage);
 
    if(!aMessage)
      return E_FAIL;
@@ -206,11 +205,7 @@ strcpy(rhTray::mIconData.szTip, aMessage);
 
    strcpy(rhTray::mIconData.szTip, aMessage);
 
-
-   ::Shell_NotifyIcon(NIM_MODIFY,&rhTray::mIconData);
-
-
-    return NS_OK;
+   return NS_OK;
 }
 
 /* void seticonimage (in string aIcon); */
