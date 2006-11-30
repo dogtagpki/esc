@@ -4112,7 +4112,7 @@ function launchCONFIG(keyType,keyID)
 
 function launchCertViewer()
 {
-   var wind = window.openDialog("chrome://esc/content/certManager.xul", "","chrome,centerscreen,modal=yes");
+   var wind = window.openDialog("chrome://esc/content/certManager.xul", "","chrome,centerscreen,resizable,modal=yes");
 //   var wind =  window.openDialog("chrome://pippki/content/certManager.xul", "","chrome,centerscreen,modal=yes");
 }
 
