@@ -69,6 +69,6 @@ PROCESS_MAP_FILE = grep -v ';+' $(LIBRARY_NAME).def | grep -v ';-' | \
                 sed -e 's; DATA ;;' -e 's,;;,,' -e 's,;.*,,' -e 's,^,_,' > $@
 
 G++INCLUDES	= -I/usr/include/g++
-OS_LIBS += /usr/lib/libstdc++.a
-EXTRA_LIBS += /usr/lib/libstdc++.a
+#OS_LIBS += /usr/lib/libstdc++.a
+#EXTRA_LIBS += /usr/lib/libstdc++.a
 
