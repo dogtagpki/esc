@@ -42,7 +42,9 @@ clean::
 
 $(MOZ_OBJDIR): $(MOZ_SRCDIR)/.mozconfig $(MOZ_SRCDIR)/client.mk
 	(cd $(MOZ_SRCDIR) ; make -f client.mk build ) 
+ifneq ($(OS_ARCH),Darwin)
 	(cd $(MOZ_OBJDIR)/xulrunner/installer ; make )
+endif
 	touch $(MOZ_OBJDIR)
 
 $(MOZ_SRCDIR)/.mozconfig: $(SOURCE_XP_DIR)/target.$(TYPE)
@@ -68,6 +70,11 @@ ifeq ($(OS_ARCH),Linux)
 	echo "ac_add_options --with-system-nspr" >> $@.$(TYPE)
 	echo "ac_add_options --with-system-nss" >> $@.$(TYPE)
 endif
+ifeq ($(OS_ARCH),Darwin)
+	echo ". \$$topsrcdir/build/macosx/universal/mozconfig" >> $@.$(TYPE)
+	echo "ac_add_options --with-macos-sdk=/Developer/SDKs/MacOSX10.4u.sdk" >> $@.$(TYPE)
+endif
+
 ifeq ($(OS_ARCH), WINNT)
 	echo "ac_add_options --disable-javaxpcom" >> $@.$(TYPE)
 endif
