@@ -40,7 +40,7 @@ all libs:
 	make -f common.mk clean
 	sudo gcc_select 3.3
 	echo "Build ppc."
-	make -f common.mk OSX_ARCH_FLAGS="-arch ppc" CKY_INCLUDE=/usr/local/CoolKey/include
+	make -f common.mk OSX_ARCH_FLAGS="-arch ppc" 
 	cp $(OBJDIR)/$(DARWIN_LIB_NAME) $(UNIVERSAL_OFFSET_PPC)
 
 	lipo -create $(UNIVERSAL_OFFSET_PPC)/$(DARWIN_LIB_NAME) $(UNIVERSAL_OFFSET_386)/$(DARWIN_LIB_NAME) -output $(OBJDIR)/$(DARWIN_LIB_NAME)
