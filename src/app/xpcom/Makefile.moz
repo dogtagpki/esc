@@ -1,4 +1,4 @@
-#
+
 # This Program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
 # Foundation; version 2 of the License.
@@ -16,7 +16,7 @@
 # ***** END COPYRIGHT BLOCK *****
 
 CORE_DEPTH	= ../../..
-#MOZ_OBJDIR	= $(CORE_DEPTH)/dist/$(OBJDIR)/xulrunner_build
+MOZ_OBJDIR	= $(CORE_DEPTH)/dist/$(OBJDIR)/xulrunner_build
 MOZ_SRCDIR	= $(CORE_DEPTH)/dist/src/mozilla
 DEPTH           = $(MOZ_OBJDIR)
 topsrcdir       = $(MOZ_SRCDIR)
@@ -42,14 +42,13 @@ endif
 XULRUNNER_BIN_PATH	= $(MOZ_OBJDIR)/dist/xulrunner
 XULRUNNER_EXEC		= xulrunner
 ifeq ($(OS_ARCH), Darwin)
-XULRUNNER_BIN_PATH      = $(MOZ_OBJDIR)/dist/universal/xulrunner/XUL.framework
+XULRUNNER_BIN_PATH      = /Library/Frameworks/XUL.framework
 XULRUNNER_EXEC          = xulrunner-bin
 XULRUNNER_FRAME_DEST    = ESC.app/Contents/Frameworks/XUL.framework
 XULRUNNER_FRAME_BASE	= ESC.app/Contents/Frameworks
 endif
 
-#DEPLOY_OFFSET=/esc
-DEPLOY_OFFSET=/src
+DEPLOY_OFFSET=/esc
 
 ifeq ($(OS_ARCH),Linux)
 DEPLOY_OFFSET=/src
@@ -67,23 +66,12 @@ MODULE		= rhCoolKey
 XPIDL_MODULE	= rhCoolKey
 LIBRARY_NAME	= rhCoolKey
 
-
-CKY_LIB_LDD=
-ifdef CKY_LIB   
-CKY_LIB_LDD	= -L$(CKY_LIB)
-endif
-
-
 ifeq ($(OS_ARCH),WINNT)
-COOLKEY_LIBS	= $(CORE_DIST)/lib/ckymanager.lib $(CORE_DIST)/lib/httpchunked.lib  $(CKY_LIB_LDD) $(CORE_DIST)/lib/ckyapplet.lib
+COOLKEY_LIBS	= $(CORE_DIST)/lib/ckymanager.lib $(CORE_DIST)/lib/httpchunked.lib  $(CORE_DIST)/lib/ckyapplet.lib
 TESTCPPSRCS	= CoolKeyCSP.cpp
 MOZ_NO_DEBUG_RTL=1
 else
-COOLKEY_LIBS	= -L$(CORE_DIST)/lib  -lhttpchunked -lckymanager  $(CKY_LIB_LDD) -lckyapplet
-endif
-
-ifeq ($(OS_ARCH),Darwin)
-COOLKEY_LIBS	+= -lsystemStubs
+COOLKEY_LIBS	= -L$(CORE_DIST)/lib -lckymanager -lhttpchunked -lckyapplet
 endif
 
 IS_COMPONENT	= 1
@@ -141,10 +129,6 @@ clean::
 	rm -f Makefile.in
 	rm -rf $(DEPLOY_OBJDIR)
 	rm -rf $(CORE_DEPTH)$(DEPLOY_OFFSET)/app/xul/esc/esc
-ifeq ($(OS_ARCH),Darwin)
-	rm -rf ppc
-	rm -rf i386
-endif
 
 deploy: $(DEPLOY_OBJDIR)
 	echo "deploy! on $(OS_ARCH)"

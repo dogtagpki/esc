@@ -17,9 +17,6 @@
 
 CORE_DEPTH	= ../../..
 
-XULRUNNER_BASE=$(CORE_DEPTH)/dist/$(OBJDIR)//xulrunner_build
-
-
 SYS_INC		= /usr/include
 MODULE		= ckymanager
 LIBRARY_NAME	= $(MODULE)
@@ -27,7 +24,7 @@ REQUIRES	= httpchunked nss nspr ckyapplet
 ifndef MOZ_OFFSET
 MOZ_OFFSET	= mozilla-1.7.13
 endif
-DEFINES		+= -I$(CORE_DEPTH)/esc/app/xpcom -I$(SYS_INC)/nspr4 -I$(SYS_INC)/nss3 -I$(SYS_INC)/PCSC  -I$(SYS_INC)/$(MOZ_OFFSET)/nspr -I$(SYS_INC)/$(MOZ_OFFSET)/nss -I$(XULRUNNER_BASE)/dist/public/nss -I$(XULRUNNER_BASE)/dist/include/nspr
+DEFINES		+= -I$(CORE_DEPTH)/esc/app/xpcom -I$(SYS_INC)/nspr4 -I$(SYS_INC)/nss3 -I$(SYS_INC)/PCSC  -I$(SYS_INC)/$(MOZ_OFFSET)/nspr -I$(SYS_INC)/$(MOZ_OFFSET)/nss
 MAPFILE 	= $(OBJDIR)/ckymanager.def
 
 #EXTRA_LIBS	+= -L$(DIST)/lib -lckyapplet

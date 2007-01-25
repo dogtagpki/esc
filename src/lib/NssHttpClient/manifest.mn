@@ -17,9 +17,6 @@
 
 CORE_DEPTH	= ../../..
 
-XULRUNNER_BASE=$(CORE_DEPTH)/dist/$(OBJDIR)//xulrunner_build
-
-
 SYS_INC		= /usr/include
 MODULE		= httpchunked
 LIBRARY_NAME	= $(MODULE)
@@ -28,10 +25,8 @@ REQUIRES	= nss nspr
 ifndef MOZ_OFFSET
 MOZ_OFFSET	= mozilla-1.7.13
 endif
-
-
 MAPFILE		= $(OBJDIR)/httpchunked.def
-DEFINES		= -I$(SYS_INC)/nspr4 -I$(SYS_INC)/nss3 -I$(SYS_INC)/$(MOZ_OFFSET)/nspr -I$(SYS_INC)/$(MOZ_OFFSET)/nss -I$(XULRUNNER_BASE)/dist/public/nss -I$(XULRUNNER_BASE)/dist/include/nspr
+DEFINES		= -I$(SYS_INC)/nspr4 -I$(SYS_INC)/nss3 -I$(SYS_INC)/$(MOZ_OFFSET)/nspr -I$(SYS_INC)/$(MOZ_OFFSET)/nss
 
 CPPSRCS		= \
 		Cache.cpp \

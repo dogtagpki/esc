@@ -21,13 +21,11 @@
 # (1) Include initial platform-independent assignments (MANDATORY).   #
 #######################################################################
 
-
-#include manifest.mn
+include manifest.mn
 
 
 include config.mk
 
-include manifest.mn
 
 #######################################################################
 # (2) Include "global" configuration information. (OPTIONAL)          #
@@ -70,11 +68,3 @@ include $(CORE_DEPTH)/coreconf/rules.mk
 # (7) Execute "local" rules. (OPTIONAL).                              #
 #######################################################################
 
-
-UNIVERSAL_OFFSET=
-ifeq ($(OS_ARCH), Darwin)
-UNIVERSAL_OFFSET=i386
-XULRUNNER_BASE=$(CORE_DEPTH)/dist/$(OBJDIR)//xulrunner_build/$(UNIVERSAL_OFFSET)
-
-DEFINES += -I$(XULRUNNER_BASE)/dist/public/nss -I$(XULRUNNER_BASE)/dist/include/nspr -arch i386 -arch ppc  -isysroot /Developer/SDKs/MacOSX10.4u.sdk
-endif
