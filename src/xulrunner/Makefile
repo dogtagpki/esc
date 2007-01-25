@@ -70,6 +70,11 @@ ifeq ($(OS_ARCH),Linux)
 	echo "ac_add_options --with-system-nspr" >> $@.$(TYPE)
 	echo "ac_add_options --with-system-nss" >> $@.$(TYPE)
 endif
+ifeq ($(OS_ARCH),Darwin)
+	echo ". \$$topsrcdir/build/macosx/universal/mozconfig" >> $@.$(TYPE)
+	echo "ac_add_options --with-macos-sdk=/Developer/SDKs/MacOSX10.4u.sdk" >> $@.$(TYPE)
+endif
+
 ifeq ($(OS_ARCH), WINNT)
 	echo "ac_add_options --disable-javaxpcom" >> $@.$(TYPE)
 endif
