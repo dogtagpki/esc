@@ -8,7 +8,7 @@
 # This Program is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-#       
+#
 # You should have received a copy of the GNU General Public License along with
 # this Program; if not, write to the Free Software Foundation, Inc., 59 Temple
 # Place, Suite 330, Boston, MA 02111-1307 USA.
@@ -17,30 +17,57 @@
 # All rights reserved.
 # END COPYRIGHT BLOCK
 
-UNIVERSAL_OFFSET_PPC=ppc
-UNIVERSAL_OFFSET_386=i386
 
-CORE_DEPTH=../../..
+#######################################################################
+# (1) Include initial platform-independent assignments (MANDATORY).   #
+#######################################################################
+
+include manifest.mn
+
+include config.mk
+
+#######################################################################
+# (2) Include "global" configuration information. (OPTIONAL)          #
+#######################################################################
+
 include $(CORE_DEPTH)/coreconf/config.mk
+
+#only want the library
+SHARED_LIBRARY=
+IMPORT_LIBRARY=
+
+#######################################################################
+# (3) Include "component" configuration information. (OPTIONAL)       #
+#######################################################################
+
+DEFINES += -DDLL_PREFIX=\"$(DLL_PREFIX)\"
+DEFINES += -DDLL_SUFFIX=\"$(DLL_SUFFIX)\"
+
+
+#######################################################################
+# (4) Include "local" platform-dependent assignments (OPTIONAL).      #
+#######################################################################
+
+#include config.mk
+
+#######################################################################
+# (5) Execute "global" rules. (OPTIONAL)                              #
+#######################################################################
 
 include $(CORE_DEPTH)/coreconf/rules.mk
 
-libs::
+#######################################################################
+# (6) Execute "component" rules. (OPTIONAL)                           #
+#######################################################################
 
-ifeq ($(OS_ARCH),Darwin)
 
-	echo "Build Darwin."
-	make -f Mac-universal.mk
-else
-	echo "Build Linux or Windows."
-	make -f common.mk
 
+#######################################################################
+# (7) Execute "local" rules. (OPTIONAL).                              #
+#######################################################################
+
+
+ifeq ($(OS_ARCH), WINNT)
+#CPPSRCS += CoolKeyCSP.cpp
 endif
 
-ifeq ($(OS_ARCH),Darwin)
-clean::
-	echo "Cleaning."
-	rm -rf $(UNIVERSAL_OFFSET_PPC)
-	rm -rf $(UNIVERSAL_OFFSET_386)
-	make -f common.mk clean
-endif

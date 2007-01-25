@@ -21,22 +21,16 @@ CORE_DEPTH = ../../../..
 include $(CORE_DEPTH)/coreconf/config.mk
 include $(CORE_DEPTH)/coreconf/rules.mk
 
-DARWIN_LIB_NAME=librhTray.dylib
-
-
 CORE_INC=$(SOURCE_XP_DIR)/public
 MOZ_SRCDIR=$(SOURCE_XP_DIR)/src/mozilla
 MOZ_OBJDIR=$(DIST)/xulrunner_build
 
-
-UNIVERSAL_OFFSET_PPC=ppc
-UNIVERSAL_OFFSET_386=i386
-MOZ_OBJDIR_PPC=
-ifeq ($(OS_ARCH),Darwin)
-MOZ_OBJDIR=$(DIST)/xulrunner_build/$(UNIVERSAL_OFFSET_386)
-MOZ_OBJDIR_PPC=$(DIST)/xulrunner_build/$(UNIVERSAL_OFFSET_PPC)
+ifeq ($(OS_ARCH), Darwin)
+#MOZ_OBJDIR=$(MOZ_SRCDIR)
 endif
 
+ifeq ($(OS_ARCH),Linux)
+endif
 
 all export install clean deploy args::  
 	echo "***** Dropping into the Mozilla build environment ***** $(MOZ_OBJDIR) $@"
@@ -48,16 +42,6 @@ all export install clean deploy args::
 		MOZ_SRCDIR=$(MOZ_SRCDIR) \
 		MOZ_OBJDIR=$(MOZ_OBJDIR) \
 
-ifeq ($(OS_ARCH),Darwin)
-		echo "Darwin all"
-		$(MAKE) -f Makefile.moz $@ \
-			OBJDIR=$(OBJDIR) \
-			CORE_DIST=$(DIST) \
-			CORE_INC=$(CORE_INC) \
-			MOZ_SRCDIR=$(MOZ_SRCDIR) \
-			MOZ_OBJDIR=$(MOZ_OBJDIR_PPC) 
-endif
-
 libs::
 
 	$(MAKE) -f Makefile.moz libs \
@@ -65,31 +49,13 @@ libs::
 		CORE_DIST=$(DIST) \
 		CORE_INC=$(CORE_INC) \
 		MOZ_SRCDIR=$(MOZ_SRCDIR) \
-		MOZ_OBJDIR=$(MOZ_OBJDIR) \
+		MOZ_OBJ_DIR=$(MOZ_OBJDIR) \
 
-ifeq ($(OS_ARCH),Darwin)
-		echo "Darwin libs"
-		mkdir -p $(UNIVERSAL_OFFSET_386)
-		mkdir -p $(UNIVERSAL_OFFSET_PPC)
-		mv -n $(DARWIN_LIB_NAME) i386
-		rm Makefile.in
-		rm *.o
-		$(MAKE) -f Makefile.moz libs \
-			OBJDIR=$(OBJDIR) \
-			CORE_DIST=$(DIST) \
-			CORE_INC=$(CORE_INC) \
-			MOZ_SRCDIR=$(MOZ_SRCDIR) \
-			MOZ_OBJDIR=$(MOZ_OBJDIR_PPC)
-		mv $(DARWIN_LIB_NAME) $(UNIVERSAL_OFFSET_PPC) 
-
-endif
-ifeq ($(OS_ARCH),Darwin)
-	echo "Darwin Creating UNI binary."
-	lipo -create $(UNIVERSAL_OFFSET_PPC)/$(DARWIN_LIB_NAME) $(UNIVERSAL_OFFSET_386)/$(DARWIN_LIB_NAME) -output $(DARWIN_LIB_NAME)
-endif
 	$(MAKE) -f Makefile.moz deploy \
 		OBJDIR=$(OBJDIR) \
 		CORE_DIST=$(DIST) \
 		CORE_INC=$(CORE_INC) \
 		MOZ_SRCDIR=$(MOZ_SRCDIR) \
-		MOZ_OBJDIR=$(MOZ_OBJDIR)
+		MOZ_OBJ_DIR=$(MOZ_OBJDIR)
+
+
