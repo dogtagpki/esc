@@ -16,7 +16,9 @@
 # ***** END COPYRIGHT BLOCK *****
 
 CORE_DEPTH	= ../../../..
-MOZ_OBJDIR	= $(CORE_DEPTH)/dist/$(OBJDIR)/xulrunner_build
+#MOZ_OBJDIR	= $(CORE_DEPTH)/dist/$(OBJDIR)/xulrunner_build
+#MOZ_OBJDIR=$(CORE_DEPTH)/dist/$(OBJDIR)/xulrunner_build/i386
+
 MOZ_SRCDIR	= $(CORE_DEPTH)/dist/src/mozilla
 DEPTH           = $(MOZ_OBJDIR)
 topsrcdir       = $(MOZ_SRCDIR)
@@ -32,14 +34,17 @@ NOTIFY_DEPTH	= $(CORE_DEPTH)/src/lib/notifytray
 NOTIFY_CXX_FLAGS	= -I$(NOTIFY_DEPTH) $(shell pkg-config --cflags glib-2.0)
 NOTIFY_LDFLAGS	= $(shell pkg-config --libs libnotify)
 
+
 NO_DIST_INSTALL	= 1
 ifeq ($(OS_ARCH),Linux)
 
 endif
 
+
 -include $(MOZ_OBJDIR)/config/autoconf.mk
 
-DEPLOY_OFFSET=/esc
+#DEPLOY_OFFSET=/esc
+DEPLOY_OFFSET=/src
 ifeq ($(OS_ARCH),Linux)
 DEPLOY_OFFSET=/src
 endif
@@ -96,7 +101,7 @@ CPPSRCS         =                  \
 endif
 
 ifeq ($(OS_ARCH),Darwin)
-
+#OS_CXXFLAGS	+= -arch i386 -arch ppc
 CPPSRCS         =                  \
                 rhMacTray.cpp         \
                 $(NULL) 
@@ -135,6 +140,10 @@ libs:: $(INSTALL_STUFF) rhTray.h
 
 clean::
 	rm -f Makefile.in
+ifeq ($(OS_ARCH),Darwin)
+	rm -rf i386
+	rm -rf ppc
+endif
 
 deploy::
 	echo "Deploying"
