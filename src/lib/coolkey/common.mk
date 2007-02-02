@@ -79,8 +79,8 @@ XULRUNNER_BASE=$(CORE_DEPTH)/dist/$(OBJDIR)//xulrunner_build/$(UNIVERSAL_OFFSET)
 DEFINES += -I$(XULRUNNER_BASE)/dist/public/nss -I$(XULRUNNER_BASE)/dist/include/nspr
 CFLAGS +=  $(OSX_ARCH_FLAGS)  
 
+endif
 ifdef CKY_INCLUDE
-CFLAGS += -I $(CKY_INCLUDE)
+CFLAGS +=  $(CKY_INCLUDE)
 endif
 
-endif
