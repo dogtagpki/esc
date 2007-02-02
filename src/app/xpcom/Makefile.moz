@@ -35,9 +35,9 @@ NO_DIST_INSTALL	= 1
 
 DEPLOY_OBJDIR           = $(CORE_DEPTH)/dist/$(OBJDIR)/esc_build
 
-XULRUNNER_ZIP_NAME	= xulrunner-1.8.0.1.*.tar.gz 
+XULRUNNER_ZIP_NAME	= xulrunner-1.8.0.4.*.tar.gz 
 ifeq ($(OS_ARCH),WINNT)
-XULRUNNER_ZIP_NAME	= xulrunner-1.8.0.1.*.win32.zip
+XULRUNNER_ZIP_NAME	= xulrunner-1.8.0.4.*.win32.zip
 endif
 XULRUNNER_BIN_PATH	= $(MOZ_OBJDIR)/dist/xulrunner
 XULRUNNER_EXEC		= xulrunner
@@ -75,7 +75,8 @@ endif
 
 
 ifeq ($(OS_ARCH),WINNT)
-COOLKEY_LIBS	= $(CORE_DIST)/lib/ckymanager.lib $(CORE_DIST)/lib/httpchunked.lib  $(CKY_LIB_LDD) $(CORE_DIST)/lib/ckyapplet.lib
+COOLKEY_LIBS	= $(CORE_DIST)/lib/ckymanager.lib $(CORE_DIST)/lib/httpchunked.lib  $(CKY_LIB_LDD)/libckyapplet.lib
+OS_LIBS+= /NODEFAULTLIB:libc.lib
 TESTCPPSRCS	= CoolKeyCSP.cpp
 MOZ_NO_DEBUG_RTL=1
 else
@@ -212,7 +213,7 @@ ifeq ($(OS_ARCH),Linux)
 endif
 ifeq ($(OS_ARCH),WINNT)
 	unzip $(MOZ_OBJDIR)/dist/$(XULRUNNER_ZIP_NAME) -d $(DEPLOY_OBJDIR)/$(XULRUNNER_FRAME_DEST)/esc
-	cp -f $(XPCOM_EXTRA)  $(DEPLOY_OBJDIR)/ESC/components
+	#cp -f $(XPCOM_EXTRA)  $(DEPLOY_OBJDIR)/ESC/components
 endif
 ifdef DESTDIR
 	$(NSINSTALL) $(DEPLOY_OBJDIR) $(DESTDIR)
