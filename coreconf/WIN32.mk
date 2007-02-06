@@ -170,10 +170,10 @@ ifndef RELEASE_TREE
 	ifdef USE_SHIPS
 	    RELEASE_TREE = $(NTBUILD_SHIP)
 	else
-	    RELEASE_TREE = http://tsunami.dsdev.sjc.redhat.com/share/builds/components
+	    RELEASE_TREE = 
 	endif
     else
-	RELEASE_TREE = http://tsunami.dsdev.sjc.redhat.com/share/builds/components
+	RELEASE_TREE =
     endif
 endif
 
