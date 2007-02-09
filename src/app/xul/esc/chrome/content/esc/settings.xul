@@ -132,7 +132,7 @@
                           <spacer class="verticalSpacer"/>
                       </description>
 
-                          <button class="buttonText" id="formatbtn" label="&doFormat;" oncommand="DoFormatCoolKey()" disabled="true" hidden = "false"/>
+                          <button class="buttonText" id="formatbtn" label="&doFormat;" oncommand="DoFormatCoolKey('userKey')" disabled="true" hidden = "false"/>
 
                           <button class="buttonText" id="enrollbtn" label="&doEnroll;" oncommand="DoCollectPassword('enroll');" disabled="true" hidden="false"/>
 
