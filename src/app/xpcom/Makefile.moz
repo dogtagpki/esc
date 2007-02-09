@@ -80,7 +80,7 @@ OS_LIBS+= /NODEFAULTLIB:libc.lib
 TESTCPPSRCS	= CoolKeyCSP.cpp
 MOZ_NO_DEBUG_RTL=1
 else
-COOLKEY_LIBS	= -L$(CORE_DIST)/lib  -lhttpchunked -lckymanager  $(CKY_LIB_LDD) -lckyapplet
+COOLKEY_LIBS	= -L$(CORE_DIST)/lib  -lckymanager  -lhttpchunked $(CKY_LIB_LDD) -lckyapplet
 endif
 
 ifeq ($(OS_ARCH),Darwin)
