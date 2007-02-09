@@ -29,3 +29,4 @@ pref("esc.factory.mode","no");
 pref("esc.show.tabs.ui","no");
 
 pref("esc.windows.do.capi","yes");
+pref("esc.disable.password.prompt","no");
