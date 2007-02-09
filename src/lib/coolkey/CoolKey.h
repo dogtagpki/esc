@@ -26,10 +26,8 @@
 // platforms (coreconf will do the appropriate processing.
 #define COOLKEY_API
 
-
 #include <string.h>
 #include <stdlib.h>
-
 #include <vector>
 #include <string>
 
@@ -171,6 +169,9 @@ COOLKEY_API HRESULT IsNodeInActiveKeyList(const CoolKey *aKey);
 COOLKEY_API HRESULT CoolKeySetDataValue(const CoolKey *aKey,const char *name, const char *value);
 
 COOLKEY_API HRESULT CoolKeyGetIssuerInfo(const CoolKey *aKey, char *aBuf, int aBufLen);
+
+COOLKEY_API HRESULT CoolKeyGetATR(const CoolKey *aKey, char *aBuf, int aBufLen);
+
 
 COOLKEY_API int CoolKeyGetAppletVer(const CoolKey *aKey, const bool isMajor);
 

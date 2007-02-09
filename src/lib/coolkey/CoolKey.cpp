@@ -51,7 +51,8 @@ ActiveKeyNode *GetNodeInActiveKeyList(const CoolKey *aKey);
 COOLKEY_API HRESULT CoolKeyInit(const char *aAppDir)
 {
 
-  PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyInit:\n appDir %s",aAppDir));
+  PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyInit: appDir %s \n",aAppDir));
+
   if (g_NSSManager) 
   {
     PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyInit:g_NSSManager already exists. \n"));
@@ -80,6 +81,7 @@ COOLKEY_API HRESULT CoolKeyInit(const char *aAppDir)
 
 COOLKEY_API HRESULT CoolKeyShutdown()
 { 
+
   PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyShutdown:\n"));
 
   DestroyCoolKeyList();
@@ -112,7 +114,14 @@ COOLKEY_API HRESULT CoolKeySetCallbacks(CoolKeyDispatch dispatch,
    g_SetConfigValue = setconfigvalue;
 
 
-   PK11_SetPasswordFunc( CoolKeyVerifyPassword);
+
+   char * suppressPINPrompt =(char*) CoolKeyGetConfig("esc.disable.password.prompt");
+
+
+   if(suppressPINPrompt && !strcmp(suppressPINPrompt,"yes"))
+   {
+       PK11_SetPasswordFunc( CoolKeyVerifyPassword);
+   }
    // Set the verify password callback here, no params needed we know what it is
    return 0;
 }
@@ -840,8 +849,35 @@ CoolKeyGetIssuedTo(const CoolKey *aKey, char *aBuf, int aBufLength)
     return NSSManager::GetKeyIssuedTo(aKey,aBuf,aBufLength);
 
 }
+
+HRESULT CoolKeyGetATR(const CoolKey *aKey, char *aBuf, int aBufLen)
+{
+
+    if (!aKey || !aKey->mKeyID || !aBuf || aBufLen < 1)
+         return E_FAIL;
+    aBuf[0] = 0;
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyGetATR::\n"));
+
+    HRESULT result = S_OK;
+
+    const char *atr = GetATRForKeyID(aKey);
+
+    if(!atr)
+        return result;
+
+    if((int) strlen(atr) < aBufLen)
+    {
+
+        sprintf(aBuf,"%s",(char *) atr);
+    }
+
+    return result;
+
+}
+
 HRESULT CoolKeyGetIssuerInfo(const CoolKey *aKey, char *aBuf, int aBufLen)
 {
+
      if (!aKey || !aKey->mKeyID || !aBuf || aBufLen < 1)
          return E_FAIL;
 
@@ -860,11 +896,9 @@ HRESULT CoolKeyGetIssuerInfo(const CoolKey *aKey, char *aBuf, int aBufLen)
 
     HRESULT result = S_OK;
 
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyGetIssuerInfo:: Before CKYCardCreate_Context.\n"));
 
     CKYCardContext *cardCtxt = CKYCardContext_Create(SCARD_SCOPE_USER);
 
-     PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyGetIssuerInfo:: After CKYCardCreate_Context. \n"));
      assert(cardCtxt);
     if (!cardCtxt) {
       PR_LOG( coolKeyLog, PR_LOG_ERROR, ("Attempting to get key issuer info. Can't create Card Context !.\n"));
@@ -872,9 +906,7 @@ HRESULT CoolKeyGetIssuerInfo(const CoolKey *aKey, char *aBuf, int aBufLen)
       goto done;
     }
 
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyGetIssuerInfo:: Before CKYCardConnection_Create.\n"));
     conn = CKYCardConnection_Create(cardCtxt);
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyGetIssuerInfo:: After CKYCardConnection_Create.\n"));
     assert(conn);
     if (!conn) {
       PR_LOG( coolKeyLog, PR_LOG_ERROR, ("Attempting to get key issuer info.  Can't create Card Connection!\n"));
@@ -882,9 +914,7 @@ HRESULT CoolKeyGetIssuerInfo(const CoolKey *aKey, char *aBuf, int aBufLen)
       goto done;
     }
 
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyGetIssuerInfo:: Before GetReaderNameForKeyID.\n"));
     readerName = GetReaderNameForKeyID(aKey);
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyGetIssuerInfo:: After GetReaderNameForKeyID.\n"));
     assert(readerName);
     if (!readerName) {
       PR_LOG( coolKeyLog, PR_LOG_ERROR, ("Attempting to get key issuer info.  Can't get reader name!\n"));
@@ -892,9 +922,7 @@ HRESULT CoolKeyGetIssuerInfo(const CoolKey *aKey, char *aBuf, int aBufLen)
       goto done;
     }
 
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyGetIssuerInfo:: Before CKYCardConnection_Connect.\n"));
     status = CKYCardConnection_Connect(conn, readerName);
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyGetIssuerInfo:: After CKYCardConnection_Connect.\n"));
     if (status != CKYSUCCESS) {
       PR_LOG( coolKeyLog, PR_LOG_ERROR, ("Attempting to get key issuer info. Can't connect to Card!\n"));
 
@@ -902,24 +930,19 @@ HRESULT CoolKeyGetIssuerInfo(const CoolKey *aKey, char *aBuf, int aBufLen)
       goto done;
     }
 
-    #ifndef DARWIN
-    CKYCardConnection_BeginTransaction(conn);
-    #endif
+#ifndef DARWIN
+CKYCardConnection_BeginTransaction(conn);
+#endif
     apduRC = 0;
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyGetIssuerInfo:: Before CKYApplet_SelectCoolKeyManager.\n"));
     status = CKYApplet_SelectCoolKeyManager(conn, &apduRC);
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyGetIssuerInfo:: After CKYApplet_SelectCoolKeyManager.\n"));
     if (status != CKYSUCCESS) {
 
       PR_LOG( coolKeyLog, PR_LOG_ERROR, ("Attempting to get key issuer info.  Can't select CoolKey manager!\n"));
       goto done;
     }
 
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyGetIssuerInfo:: Before CKYApplet_GetIssuerInfo.\n"));
     status = CKYApplet_GetIssuerInfo(conn, &ISSUER_INFO,
                         &apduRC);
-
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyGetIssuerInfo:: After CKYApplet_GetIssuerInfo.\n"));
 
     if(status != CKYSUCCESS)
     {
@@ -956,9 +979,9 @@ HRESULT CoolKeyGetIssuerInfo(const CoolKey *aKey, char *aBuf, int aBufLen)
     done:
 
     if (conn) {
-      #ifndef DARWIN
+#ifndef DARWIN
       CKYCardConnection_EndTransaction(conn);
-      #endif
+#endif
       CKYCardConnection_Disconnect(conn);
       CKYCardConnection_Destroy(conn);
     }
