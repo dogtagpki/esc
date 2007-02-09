@@ -67,8 +67,10 @@ ifeq ($(OS_ARCH),Linux)
 	echo "ac_add_options --enable-default-toolkit=gtk2" >> $@.$(TYPE)
 	echo "ac_add_options --enable-xft" >> $@.$(TYPE)
 	echo "ac_add_options --disable-freetype2" >> $@.$(TYPE)
+ifndef NO_SYSTEM_NSS 
 	echo "ac_add_options --with-system-nspr" >> $@.$(TYPE)
 	echo "ac_add_options --with-system-nss" >> $@.$(TYPE)
+endif
 endif
 ifeq ($(OS_ARCH),Darwin)
 	echo ". \$$topsrcdir/build/macosx/universal/mozconfig" >> $@.$(TYPE)
