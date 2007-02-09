@@ -1167,6 +1167,21 @@ NS_IMETHODIMP rhCoolKey::GetCoolKeyCertInfo(PRUint32 aKeyType, const char *aKeyI
     return NS_OK;
 }
 
+/* string GetCoolKeyATR (in unsigned long aKeyType, in string aKeyID); */
+  NS_IMETHODIMP rhCoolKey::GetCoolKeyATR(PRUint32 aKeyType, const char *aKeyID, char **_retval)
+  {
+     *_retval  = NULL;
+    AutoCoolKey key(aKeyType, aKeyID);
+    char atr[128];
+    HRESULT res =   CoolKeyGetATR(&key, (char *)&atr,sizeof(atr));
+     PR_LOG( coolKeyLog, PR_LOG_ALWAYS, ("Attempting to get the key's ATR: Key: %s, ATR  %s. \n",aKeyID, (char *) atr));
+    if(res == S_OK)
+    {
+        char *temp =  (char *) nsMemory::Clone(atr,sizeof(char) * strlen((char *)atr) + 1);
+        *_retval  = temp;
+    }
+      return NS_OK;
+  }
 
 /* string GetCoolKeyIssuerInfo (in unsigned long aKeyType, in string aKeyID); */  NS_IMETHODIMP rhCoolKey::GetCoolKeyIssuerInfo(PRUint32 aKeyType, const char *aKeyID, char **_retval)
   {
