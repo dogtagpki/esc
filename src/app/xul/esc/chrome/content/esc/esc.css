@@ -328,6 +328,12 @@ tr [COOLKeyPresent="yes"]{
     border: black solid 4px;
 }
 
+.BorderedIFrameShort {
+   width: 600px;
+   height: 500px;
+   border: black solid 4px;
+}
+
 .SelectedRow {
 
     color: white;
