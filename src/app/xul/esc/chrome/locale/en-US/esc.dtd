@@ -70,6 +70,7 @@
 <!ENTITY closeNow "Close">
 <!ENTITY enrollKeyNow "Enroll My Smart Card Now">
 <!ENTITY enrollKey "Enroll Smart Card">
+<!ENTITY enrollKeyNowGeneric "Continue">
 <!ENTITY administerKeys "Manage Smart Cards">
 <!ENTITY administerMessage "This tool helps you manage your smart cards and to examine their contents when you are having problems. To manage your smart cards, you must connect them to the computer.">
 <!ENTITY blankKeyLabel "Blank Key">
