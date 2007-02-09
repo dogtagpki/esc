@@ -48,10 +48,36 @@
            var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"].getService(Components.interfaces.nsIWindowMediator);
            var win = wm.getMostRecentWindow(null);
 
+           var doSecMode = false;
+           var secModeURL=null;
+
+           secModeURL = cmdLine.handleFlagWithParam("secmode",false);
+           if (secModeURL) {
+               doSecMode = true;
+               cmdLine.preventDefault = true;
+           }
+
            if(win)
            {
-               recordMessage("Subsequent invocation. Launch an Admin page.");
-               win.launchSETTINGS();
+               recordMessage("Subsequent command invocation. Launch appropriate  page.");
+
+               var locName = win.location.toString();
+
+               recordMessage("Base window . " + locName);
+
+               if(doSecMode)
+               {
+
+                  var uri = cmdLine.resolveURI(secModeURL);
+                  recordMessage("Attempting security mode. url: " + secModeURL);
+                  win.launchESCSecMode(secModeURL);
+               }
+               else
+               {
+                   win.launchSETTINGS();
+               }
+
+               recordMessage("Done command line handling...");
                return;
            }
            
@@ -59,11 +85,12 @@
 
            recordMessage(chromeURI);
 
-
            var wwatch = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
                          .getService(nsIWindowWatcher);
-           wwatch.openWindow(null, chromeURI, "_blank",
+           win = wwatch.openWindow(null, chromeURI, "_blank",
                      "chrome,dialog,height=-1,width=-1,popup=yes", cmdLine);
+
+
        }
        catch(e) {}
 
