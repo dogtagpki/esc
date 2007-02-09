@@ -284,7 +284,8 @@ static SECStatus ownGetClientAuthData(void *arg, PRFileDesc *socket,
     char *                localNickName = (char *)arg;
 
     proto_win = SSL_RevealPinArg(socket);
-   
+  
+ 
     if (localNickName) {
       
      cert = PK11_FindCertFromNickname(localNickName, proto_win);
@@ -342,8 +343,11 @@ static SECStatus ownGetClientAuthData(void *arg, PRFileDesc *socket,
 
         if (names != NULL) {
             for( i=0; i < names->numnicknames; i++ ) {
-                cert = PK11_FindCertFromNickname(names->nicknames[i],
-                                                 proto_win);
+
+
+                cert = CERT_FindUserCertByUsage(CERT_GetDefaultCertDB(),names->nicknames[i],certUsageSSLClient,PR_FALSE,proto_win);
+
+
                 if (!cert) {
                     continue;
                 }
@@ -456,7 +460,7 @@ PRFileDesc * Engine::_doConnect(PRNetAddr *addr, PRBool SSLOn,
             return NULL;
         }
 
-        //SSL_SetPKCS11PinArg (sock,password);
+        SSL_SetPKCS11PinArg (sock,0);
 
         int error = 0;
         PRBool rv = SSL_OptionSet(sock, SSL_SECURITY, 1);
