@@ -32,12 +32,6 @@
   <stringbundle id="esc_strings" src="chrome://esc/locale/esc.properties"/>
   <script src= "TRAY.js"/>
   <script src="ESC.js"/> 
-  <tabbox id="tablist" hidden="true">
-      <tabs>
-      <tab label="Settings" oncommand="loadSETTINGS();"/>
-      <tab label="Configuration" oncommand="loadCONFIG();"/>
-     </tabs>
-  </tabbox>
   <vbox flex ="1"  >
       <hbox class="logoBox" >
           <image id="logoImage"/>
