@@ -25,6 +25,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <math.h>
+#include <time.h>
 #include "nspr.h"
 
 
@@ -38,7 +39,6 @@
 #include "Util.h"
 
 PRLogModuleInfo *httpRespLog = PR_NewLogModule("coolKeyHttpRes");
-
 
 /**
  * Constructor. This class is used by  the HttpResponse class for reading and
@@ -92,7 +92,8 @@ PRBool RecvBuf::_getBytes(int size) {
 
     int num =1;
     int i =0;
-    
+   
+    char tBuff[56]; 
     PRBool endChunk= PR_FALSE;
 
     // actual reading from the socket happens here
@@ -106,12 +107,12 @@ PRBool RecvBuf::_getBytes(int size) {
                        _timeout );
 
         PR_LOG( httpRespLog, PR_LOG_DEBUG, 
-                              ("RecvBuf::_getBytes:: read  %d bytes\n",num));
+                              ("%s RecvBuf::_getBytes:: read  %d bytes\n",GetTStamp(tBuff,56),num));
 
         if(num < 0)
         {
             PR_LOG( httpRespLog, PR_LOG_DEBUG, 
-                              ("RecvBuf::_getBytes:: Conn Closed "));
+                              ("%s RecvBuf::_getBytes:: Conn Closed ",GetTStamp(tBuff,56)));
             return PR_FALSE;
         }
 
@@ -247,6 +248,7 @@ char RecvBuf::_getChar() {
  * @returns - the next char from the data
  */
 char RecvBuf::getChar() {
+    char tBuff[56];
     if (!_chunkedMode)
         return _getChar();
 
@@ -270,7 +272,7 @@ char RecvBuf::getChar() {
                 if (ch != '\r' || ch2 != '\n')
                 {
                      PR_LOG(httpRespLog, PR_LOG_DEBUG,
-                          ("did not find chunk trailer at end of chunk .  \n"));
+                          ("%s did not find chunk trailer at end of chunk .  \n",GetTStamp(tBuff,56)));
                 }
             }
        
@@ -305,7 +307,7 @@ char RecvBuf::getChar() {
                 if (ch1 != '\r' || ch2 != '\n')
                 {
                     PR_LOG(httpRespLog, PR_LOG_DEBUG,
-                          ("did not find chunk trailer at the end of chunk . ch1 %c ch2 %c  \n",ch1,ch2));
+                          ("%s did not find chunk trailer at the end of chunk . ch1 %c ch2 %c  \n",GetTStamp(tBuff,56),ch1,ch2));
                 };
 
                 _currentChunkSize = _currentChunkBytesRead = 0;
@@ -667,7 +669,7 @@ int PSHttpResponse::_verifyStandardBody(RecvBuf &buf,
 PRBool    PSHttpResponse::_handleChunkedConversation(RecvBuf &buf)
 {
     char ch = 0;
-
+    char tBuff[56];
     char chunk[4096];
 
     int i = 0;
@@ -681,15 +683,15 @@ PRBool    PSHttpResponse::_handleChunkedConversation(RecvBuf &buf)
     }
 
     PR_LOG(httpRespLog, PR_LOG_DEBUG, 
-                          ("PSHttpResponse::_handleChunkedConversation  \n"));
+                          ("%s PSHttpResponse::_handleChunkedConversation  \n",GetTStamp(tBuff,56)));
 
     while(1)
     {
         if(_client && _client->isConnectionClosed())
         {
             PR_LOG(httpRespLog, PR_LOG_DEBUG, 
-                   ("PSHttpResponse::_handleChunkedConversation  client"
-                    " claims conn closed!\n"));
+                   ("%s PSHttpResponse::_handleChunkedConversation  client"
+                    " claims conn closed!\n",GetTStamp(tBuff,56)));
 
             chunk[0] = 0;
             i = 0;
@@ -704,14 +706,14 @@ PRBool    PSHttpResponse::_handleChunkedConversation(RecvBuf &buf)
         if(ch == -1)
         {
              PR_LOG(httpRespLog, PR_LOG_DEBUG, 
-                    ("PSHttpResponse::_handleChunkedConversation getChar"
-                     " returned -1 ! \n"));
+                    ("%s PSHttpResponse::_handleChunkedConversation getChar"
+                     " returned -1 ! \n",GetTStamp(tBuff,56)));
             chunk[i] = 0;
             if(i >= 0)
             {
                 PR_LOG(httpRespLog, PR_LOG_DEBUG, 
-                       ("PSHttpResponse::_handleChunkedConversation"
-                        "  chunk complete EOF condition. chunk: %s\n",(char *) chunk));
+                       ("%s PSHttpResponse::_handleChunkedConversation"
+                        "  chunk complete EOF condition. chunk: %s\n",GetTStamp(tBuff,56),(char *) chunk));
                 (*cb)((unsigned char *) chunk,i,uw,HTTP_CHUNKED_EOF);
 
                 chunk[0] = 0;
@@ -728,8 +730,8 @@ PRBool    PSHttpResponse::_handleChunkedConversation(RecvBuf &buf)
             if(i > 0)
             {
                 PR_LOG(httpRespLog, PR_LOG_DEBUG,
-                       ("PSHttpResponse::_handleChunkedConversation"
-                        "  chunk complete normal condition. chunk: %s\n",(char *) chunk));
+                       ("%s PSHttpResponse::_handleChunkedConversation"
+                        "  chunk complete normal condition. chunk: %s\n",GetTStamp(tBuff,56),(char *) chunk));
                 (*cb)((unsigned char *) chunk,i,uw,HTTP_CHUNK_COMPLETE);
             }
             

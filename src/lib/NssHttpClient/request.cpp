@@ -24,7 +24,7 @@
 #include "request.h"
 #include "engine.h"
 #include <prlog.h>
-
+#include <time.h>
 PRLogModuleInfo *httpLog = PR_NewLogModule("coolKeyHttpReq");
 
 /**
@@ -249,6 +249,7 @@ PRBool PSHttpRequest::useLocalFileAsBody(const char* fileName) {
 
 PRBool PSHttpRequest::send( PRFileDesc *sock ) {
     const char *hostname;
+    char tBuff[56];
 
     PRBool rv = PR_FALSE;
     if (!sock) {
@@ -319,7 +320,7 @@ PRBool PSHttpRequest::send( PRFileDesc *sock ) {
     data = PR_sprintf_append(data,"\r\n");
 
     PR_LOG( httpLog, PR_LOG_DEBUG, 
-                       ("PSHttpRequest::PSHttpRequest: data %s\n",data));
+                       ("%s PSHttpRequest::PSHttpRequest: data %s\n",GetTStamp(tBuff,56),data));
 
     int len = PL_strlen(data);
     //send the data ..
