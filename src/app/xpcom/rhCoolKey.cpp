@@ -43,6 +43,7 @@
 #include "content/nsCopySupport.h"
 #include <vector>
 #include <string>
+#include <time.h>
 
 
 #define STRINGIFY(x) #x
@@ -90,7 +91,6 @@ PRBool rhCoolKey::gAutoEnrollBlankTokens = PR_FALSE;
 
 static PRLogModuleInfo *coolKeyLog = PR_NewLogModule("coolKey");
 
-
 rhCoolKey *single = NULL;
 
 class CoolKeyShutdownObserver : public nsIObserver
@@ -106,9 +106,8 @@ class CoolKeyShutdownObserver : public nsIObserver
 
  CoolKeyShutdownObserver::~CoolKeyShutdownObserver()
  {
-     PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyShutdownObserver::~CoolKeyShutdownObserver \n"));
-
-  
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s CoolKeyShutdownObserver::~CoolKeyShutdownObserver \n",GetTStamp(tBuff,56)));
  }
  
  NS_IMETHODIMP
@@ -116,25 +115,18 @@ class CoolKeyShutdownObserver : public nsIObserver
                                  const char *aTopic,
                                  const PRUnichar *someData)
  {
-   if (!strcmp(aTopic, NS_XPCOM_SHUTDOWN_OBSERVER_ID))
-   {
-
-         PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyShutdownObserver::Observe shutting down"));
-
-         if(single)
-         {
-             single->ShutDownInstance();
-
-         }
-
+     char tBuff[56];
+     if (!strcmp(aTopic, NS_XPCOM_SHUTDOWN_OBSERVER_ID))
+     {
+         PR_LOG(coolKeyLog, PR_LOG_DEBUG, ("%s CoolKeyShutdownObserver::Observe shutting down",GetTStamp(tBuff,56)));
+        if(single)
+        {
+            single->ShutDownInstance();
+        }
 
    }
    return NS_OK;
  }
-
-
-
-
 
 unsigned int
 ASCCalcBase64DecodedLength(const char *aBase64Str)
@@ -178,30 +170,30 @@ ASCCalcBase64EncodedLength(unsigned int aDataLength)
 rhCoolKey::rhCoolKey()
 :mJsNotify(nsnull),mProxy(nsnull)
 {
-       PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::rhCoolKey: %p \n",this));
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::rhCoolKey: %p \n",GetTStamp(tBuff,56),this));
 
-       if(!single)
-       {
-           single = this;
+    if(!single)
+    {
+        single = this;
 
-       }
-       else
-       {
-           return;
-       }
+    }
+    else
+    {
+        return;
+    }
 
-       #ifdef XP_WIN32 
-           mCSPListener = nsnull;
-       #endif
+    #ifdef XP_WIN32 
+        mCSPListener = nsnull;
+    #endif
 
-       PRBool res = InitInstance();
+    PRBool res = InitInstance();
 
-       if(res == PR_FALSE)
-       {
-            PR_LOG( coolKeyLog, PR_LOG_ERROR, ("ESC InitInstance failed,exiting. CoolKey instance %p\n",coolKey_instance));
-
-            exit(1);
-       }
+    if(res == PR_FALSE)
+    {
+        PR_LOG( coolKeyLog, PR_LOG_ERROR, ("%s ESC InitInstance failed,exiting. CoolKey instance %p\n",GetTStamp(tBuff,56),coolKey_instance));
+        exit(1);
+     }
 
   /* member initializers and constructor code */ 
 }
@@ -210,17 +202,18 @@ rhCoolKey::~rhCoolKey()
 {
    /* destructor code */
 
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::~rhCoolKey: %p \n",this));
-
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::~rhCoolKey: %p \n",GetTStamp(tBuff,56),this));
 }
 
 void rhCoolKey::ShutDownInstance()
 {
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::ShutDownInstance. %p \n",this));    
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::ShutDownInstance. %p \n",GetTStamp(tBuff,56),this));    
 
     if (mProxy)
     {
-       PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::ShutDownInstance: About to dereference Proxy Object. Proxy %p \n",mProxy));
+       PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::ShutDownInstance: About to dereference Proxy Object. Proxy %p \n",GetTStamp(tBuff,56),mProxy));
 
        CoolKeyUnregisterListener(mProxy);
 
@@ -291,16 +284,12 @@ HRESULT rhCoolKey::doSetCoolKeyConfigValue(const char *aName, const char *aValue
 
 }          
 
-
-
 const char *rhCoolKey::doGetCoolKeyConfigValue(const char *aName )
 {
-
     if(!aName)
     {
         return NULL;
     }
-
 
     nsCOMPtr<nsIPrefBranch> pref;
     char * prefValue = NULL;;
@@ -311,29 +300,24 @@ const char *rhCoolKey::doGetCoolKeyConfigValue(const char *aName )
         return NULL;
     }
 
-
     pref->GetCharPref(aName, &prefValue);
 
-
     return (const char *) prefValue;
-
-
 }
 
 
 PRBool rhCoolKey::InitInstance()
 {
+    char tBuff[56];
     PRBool ret = PR_TRUE;
 
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::InitInstance %p \n",this));
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::InitInstance %p \n",GetTStamp(tBuff,56),this));
 
     char *path = (char *) GRE_GetXPCOMPath();
 
-     PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::GREPath %s \n",path));
+     PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::GREPath %s \n",GetTStamp(tBuff,56),path));
 
     char xpcom_path[512];
-
-
 
     char *lib_name = XPCOM_LIB_NAME ;
 
@@ -344,14 +328,12 @@ PRBool rhCoolKey::InitInstance()
     sprintf(xpcom_path,"%s/%s",path,lib_name);
 #endif
   
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::xpcom_path %s \n",xpcom_path)); 
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::xpcom_path %s \n",GetTStamp(tBuff,56),xpcom_path)); 
 
     XPCOMGlueStartup(xpcom_path);
 
     nssComponent
     = do_GetService(PSM_COMPONENT_CONTRACTID); 
-
-
 
     CoolKeySetCallbacks(Dispatch,Reference, Release,doGetCoolKeyConfigValue ,doSetCoolKeyConfigValue);
 
@@ -360,13 +342,11 @@ PRBool rhCoolKey::InitInstance()
     if(mProxy)
     {
         CoolKeyRegisterListener(mProxy);
-
     }
     else
     {
-        PR_LOG( coolKeyLog, PR_LOG_ERROR, ("Can't create Proxy Object for ESC. \n"));
+        PR_LOG( coolKeyLog, PR_LOG_ERROR, ("%s Can't create Proxy Object for ESC. \n",GetTStamp(tBuff,56)));
     }
-
 
 #ifdef XP_WIN32
 
@@ -381,7 +361,6 @@ PRBool rhCoolKey::InitInstance()
          if(mCSPListener)
          {
              AddNotifyKeyListener(mCSPListener);
-
          }
 
      }
@@ -420,7 +399,7 @@ PRBool rhCoolKey::InitInstance()
  
      observerService->AddObserver(observer, NS_XPCOM_SHUTDOWN_OBSERVER_ID, PR_FALSE);
    } else {
-     PR_LOG(coolKeyLog,PR_LOG_ERROR,("Could not get an observer service.  We will leak on shutdown."));
+     PR_LOG(coolKeyLog,PR_LOG_ERROR,("%s Could not get an observer service.  We will leak on shutdown.",GetTStamp(tBuff,56)));
    }
 
   return ret;
@@ -429,10 +408,10 @@ PRBool rhCoolKey::InitInstance()
 
 rhICoolKey* rhCoolKey::CreateProxyObject()
 {
-
+    char tBuff[56];
     rhICoolKey *proxyObject = NULL;
 
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::CreateProxyObject: \n"));
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::CreateProxyObject: \n",GetTStamp(tBuff,56)));
 
     nsCOMPtr<nsIProxyObjectManager> manager =
             do_GetService(NS_XPCOMPROXY_CONTRACTID);
@@ -442,7 +421,7 @@ rhICoolKey* rhCoolKey::CreateProxyObject()
 
     manager->GetProxyForObject(NS_UI_THREAD_EVENTQ, NS_GET_IID(rhICoolKey), this, PROXY_SYNC | PROXY_ALWAYS, (void**)&proxyObject);
 
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::CreateProxyObject: original: %p proxy %p  \n",this,proxyObject));
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::CreateProxyObject: original: %p proxy %p  \n",GetTStamp(tBuff,56),this,proxyObject));
 
     return proxyObject;
    
@@ -450,36 +429,36 @@ rhICoolKey* rhCoolKey::CreateProxyObject()
 
 CoolKeyNode* rhCoolKey::GetCoolKeyInfo(unsigned long aKeyType, const char * aKeyID)
 {
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::GetCoolKeyInfo: gASCAvailableKeys %p looking for key %s type %d \n",GetTStamp(tBuff,56),&gASCAvailableKeys,aKeyID,aKeyType));
 
-  PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::GetCoolKeyInfo: gASCAvailableKeys %p looking for key %s type %d \n",&gASCAvailableKeys,aKeyID,aKeyType));
+    std::list<CoolKeyNode*>::const_iterator it;
+    for(it=gASCAvailableKeys.begin(); it!=gASCAvailableKeys.end(); ++it) {
 
-  std::list<CoolKeyNode*>::const_iterator it;
-  for(it=gASCAvailableKeys.begin(); it!=gASCAvailableKeys.end(); ++it) {
+        PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::GetCoolKeyInfo: current key %s type %d, looking for key %s type %d \n",GetTStamp(tBuff,56),(*it)->mKeyID.get(),(*it)->mKeyType,aKeyID,aKeyType));
 
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::GetCoolKeyInfo: current key %s type %d, looking for key %s type %d \n",(*it)->mKeyID.get(),(*it)->mKeyType,aKeyID,aKeyType));
+        if ((*it)->mKeyType == aKeyType && !strcmp((*it)->mKeyID.get(), aKeyID))
+            return *it;
+    }
 
-    if ((*it)->mKeyType == aKeyType && !strcmp((*it)->mKeyID.get(), aKeyID))
-      return *it;
-  }
-
-  return 0;
+    return 0;
 }
 
 // Internal methods
 
 PRBool rhCoolKey::ASCCoolKeyIsAvailable(unsigned long aKeyType, char * aKeyID)
 {
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::ASCCoolKeyIsAvailable type %d id %s \n",aKeyType,aKeyID));
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::ASCCoolKeyIsAvailable type %d id %s \n",GetTStamp(tBuff,56),aKeyType,aKeyID));
     return GetCoolKeyInfo(aKeyType, aKeyID) ? PR_TRUE : PR_FALSE;
 }
-
 
 HRESULT  rhCoolKey::ASCGetAvailableCoolKeyAt(unsigned long aIndex,
                                            unsigned long *aKeyType,
                                            nsEmbedCString *aKeyID)
 {
-   
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::ASCGetAvailableCoolKeyAt: index %d type %d id %s \n",aIndex,aKeyType,aKeyID)); 
+    char tBuff[56]; 
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::ASCGetAvailableCoolKeyAt: index %d type %d id %s \n",GetTStamp(tBuff,56),aIndex,aKeyType,aKeyID)); 
     if (!aKeyType || !aKeyID)
         return E_FAIL;
 
@@ -504,9 +483,9 @@ HRESULT  rhCoolKey::ASCGetAvailableCoolKeyAt(unsigned long aIndex,
 
 int   rhCoolKey::ASCGetNumAvailableCoolKeys(void)
 {
-
+    char tBuff[56];
     int size = (int) gASCAvailableKeys.size();
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::ASCGetNumAvailableCoolKeys %d \n",size));
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::ASCGetNumAvailableCoolKeys %d \n",GetTStamp(tBuff,56),size));
     return size;
 
 }
@@ -519,52 +498,49 @@ int rhCoolKey::GetNotifyKeyListenerListSize()
 
 rhIKeyNotify* rhCoolKey::GetNotifyKeyListener(rhIKeyNotify *listener){
 
-  PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::GetNotifyKeyListener: %p size %d \n",listener,gNotifyListeners.size() ));
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::GetNotifyKeyListener: %p size %d \n",GetTStamp(tBuff,56),listener,gNotifyListeners.size() ));
 
-  std::list<nsCOMPtr<rhIKeyNotify> >::const_iterator it;
-  for(it=gNotifyListeners.begin(); it!=gNotifyListeners.end(); ++it) {
+    std::list<nsCOMPtr<rhIKeyNotify> >::const_iterator it;
+    for(it=gNotifyListeners.begin(); it!=gNotifyListeners.end(); ++it) {
 
-      PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::GetNotifyKeyListener:  cur %p looking for %p \n",(*it).get(),listener));
+        PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::GetNotifyKeyListener:  cur %p looking for %p \n",GetTStamp(tBuff,56),(*it).get(),listener));
 
-      if((*it) == listener)
-      {
-          PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::GetNotifyKeyListener:   looking for %p returning %p \n",listener,(*it).get()));
-          return (*it);
-      }
-  }
+        if((*it) == listener)
+        {
+            PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::GetNotifyKeyListener:   looking for %p returning %p \n",GetTStamp(tBuff,56),listener,(*it).get()));
+            return (*it);
+        }
+    }
 
-  PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::GetNotifyKeyListener:  looking for %p returning NULL. \n",listener));
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::GetNotifyKeyListener:  looking for %p returning NULL. \n",GetTStamp(tBuff,56),listener));
 
   return nsnull;
 }
 
-
 void rhCoolKey::AddNotifyKeyListener(rhIKeyNotify *listener)
 {
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::AddNotifyKeyListener: %p \n",listener));
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::AddNotifyKeyListener: %p \n",GetTStamp(tBuff,56),listener));
 
     if(GetNotifyKeyListener(listener ))
     {
+         PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::AddNotifyKeyListener: %p listener already in list. \n",GetTStamp(tBuff,56),listener));
 
-         PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::AddNotifyKeyListener: %p listener already in list. \n",listener));
-
-         
          return ;
-
     }
 
     gNotifyListeners.push_back(listener);
-
 }
 
 void rhCoolKey::RemoveNotifyKeyListener(rhIKeyNotify *listener)
 {
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::RemoveNotifyKeyListener: %p \n",listener));
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::RemoveNotifyKeyListener: %p \n",GetTStamp(tBuff,56),listener));
 
     if(!GetNotifyKeyListener(listener ))
     { 
-
-        PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::RemoveNotifyKeyListener: %p trying to remove listener not in list \n",listener));
+        PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::RemoveNotifyKeyListener: %p trying to remove listener not in list \n",GetTStamp(tBuff,56),listener));
 
         return ;
     }
@@ -576,7 +552,8 @@ void rhCoolKey::RemoveNotifyKeyListener(rhIKeyNotify *listener)
 
 void rhCoolKey::ClearNotifyKeyList()
 {
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::ClearNotifyKeyList: \n"));
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::ClearNotifyKeyList: \n",GetTStamp(tBuff,56)));
 
     while (gNotifyListeners.size() > 0) {
         rhIKeyNotify * node = (gNotifyListeners.front()).get();
@@ -590,25 +567,22 @@ void rhCoolKey::ClearNotifyKeyList()
 
 void rhCoolKey::InsertKeyIntoAvailableList(unsigned long aKeyType, const char * aKeyID,CoolKeyStatus aStatus)
 {
-
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::InsertKeyIntoAvailableList: \n"));
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::InsertKeyIntoAvailableList: \n",GetTStamp(tBuff,56)));
     if (ASCCoolKeyIsAvailable(aKeyType, (char *)aKeyID))
     {
-         PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::InsertKeyIntoAvailableList: Key Not Available \n"));
+         PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::InsertKeyIntoAvailableList: Key Not Available \n",GetTStamp(tBuff,56)));
 
         return;
-
     }
-
 
     CoolKeyNode *node = new CoolKeyNode(aKeyType, aKeyID, aStatus);
 
     if (!node)
     {
-        PR_LOG( coolKeyLog, PR_LOG_ERROR, ("Can't create new  CoolKey Data Structure. \n"));
+        PR_LOG( coolKeyLog, PR_LOG_ERROR, ("%s Can't create new  CoolKey Data Structure. \n",GetTStamp(tBuff,56)));
         return;
     }
-
 
     gASCAvailableKeys.push_back(node);
 
@@ -616,8 +590,8 @@ void rhCoolKey::InsertKeyIntoAvailableList(unsigned long aKeyType, const char * 
 
 void rhCoolKey::RemoveKeyFromAvailableList(unsigned long aKeyType, const char * aKeyID)
 {
-
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::RemoveKeyFromAvailableList type %d id %s \n",aKeyType,aKeyID));
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::RemoveKeyFromAvailableList type %d id %s \n",GetTStamp(tBuff,56),aKeyType,aKeyID));
     CoolKeyNode *node = GetCoolKeyInfo(aKeyType, aKeyID);
 
     if (!node)
@@ -629,7 +603,8 @@ void rhCoolKey::RemoveKeyFromAvailableList(unsigned long aKeyType, const char * 
 
 void rhCoolKey::ClearAvailableList()
 {
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::ClearAvailableList \n"));
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::ClearAvailableList \n",GetTStamp(tBuff,56)));
     while (gASCAvailableKeys.size() > 0) {
         CoolKeyNode *node = gASCAvailableKeys.front();
         delete node;
@@ -639,28 +614,29 @@ void rhCoolKey::ClearAvailableList()
 
 HRESULT rhCoolKey::ASCSetCoolKeyPin(unsigned long aKeyType, const char * aKeyID, const char * aPin)
 {
-  PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::ASCSetCoolKeyPin type %d id %s pin %s \n",aKeyType,aKeyID,aPin));
-  CoolKeyNode *node = GetCoolKeyInfo(aKeyType, aKeyID);
-  if (!node)
-    return E_FAIL;
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::ASCSetCoolKeyPin type %d id %s pin %s \n",GetTStamp(tBuff,56),aKeyType,aKeyID,aPin));
+    CoolKeyNode *node = GetCoolKeyInfo(aKeyType, aKeyID);
+    if (!node)
+        return E_FAIL;
 
-  node->mPin = aPin;
-  return S_OK;
+    node->mPin = aPin;
+    return S_OK;
 }
 
 // Interface method implementations
 
 NS_IMETHODIMP rhCoolKey::RhNotifyKeyStateChange(PRUint32 aKeyType,const char *aKeyID, PRUint32 aKeyState, PRUint32 aData,const char* strData)
 {
-
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::RhNotifyKeyStateChange: id: %s type: %d state %d data: %d \n",aKeyID,aKeyType, aKeyState,aData));
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::RhNotifyKeyStateChange: id: %s type: %d state %d data: %d \n",GetTStamp(tBuff,56),aKeyID,aKeyType, aKeyState,aData));
 
     CoolKeyNode tempKey(aKeyType, aKeyID,(CoolKeyStatus) aKeyState);
     CoolKeyNode *node = NULL;
 
     AutoCoolKey key(aKeyType, aKeyID);
 
-     switch (aKeyState)
+    switch (aKeyState)
     {
         case eCKState_KeyInserted:
         {
@@ -671,14 +647,14 @@ NS_IMETHODIMP rhCoolKey::RhNotifyKeyStateChange(PRUint32 aKeyType,const char *aK
             if (CoolKeyIsEnrolled(&key))
                 keyStatus = eAKS_Available;       else if (CoolKeyHasApplet(&key))                keyStatus = eAKS_Uninitialized;
 
-              PR_LOG( coolKeyLog, PR_LOG_ALWAYS, ("Key Inserted. ID %s \n",aKeyID));
-              InsertKeyIntoAvailableList(tempKey.mKeyType,aKeyID ,(CoolKeyStatus) keyStatus);
+             PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s Key Inserted. ID %s \n",GetTStamp(tBuff,56),aKeyID));
+             InsertKeyIntoAvailableList(tempKey.mKeyType,aKeyID ,(CoolKeyStatus) keyStatus);
           break;
         }
         case eCKState_KeyRemoved:
-          PR_LOG( coolKeyLog, PR_LOG_ALWAYS, ("Key Removed. ID %s \n",aKeyID));
-          RemoveKeyFromAvailableList(tempKey.mKeyType, aKeyID);
-          break;
+            PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s Key Removed. ID %s \n",GetTStamp(tBuff,56),aKeyID));
+            RemoveKeyFromAvailableList(tempKey.mKeyType, aKeyID);
+        break;
         case eCKState_EnrollmentComplete:
         case eCKState_EnrollmentError:
         case eCKState_PINResetComplete:
@@ -688,8 +664,7 @@ NS_IMETHODIMP rhCoolKey::RhNotifyKeyStateChange(PRUint32 aKeyType,const char *aK
         case eCKState_BlinkComplete:
         case eCKState_BlinkError:
         case eCKState_OperationCancelled:
-{
-
+        {
           node = GetCoolKeyInfo(tempKey.mKeyType, aKeyID);
 
           if (node) {
@@ -700,7 +675,7 @@ NS_IMETHODIMP rhCoolKey::RhNotifyKeyStateChange(PRUint32 aKeyType,const char *aK
               node->mStatus = eAKS_Uninitialized;
            }
           break;
-        }
+         }
         case eCKState_EnrollmentStart:
         case eCKState_PINResetStart:
         case eCKState_FormatStart:
@@ -716,8 +691,7 @@ NS_IMETHODIMP rhCoolKey::RhNotifyKeyStateChange(PRUint32 aKeyType,const char *aK
 
           ((rhIKeyNotify *) (*it))->RhNotifyKeyStateChange(aKeyType,aKeyID,aKeyState,aData,strData);
            
-          PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::RhNotifyKeyStateChange after call to RhNotifyKeyStateChange listener: %p",(*it).get()));
-
+          PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::RhNotifyKeyStateChange after call to RhNotifyKeyStateChange listener: %p",GetTStamp(tBuff,56),(*it).get()));
 
      }
 
@@ -726,26 +700,25 @@ NS_IMETHODIMP rhCoolKey::RhNotifyKeyStateChange(PRUint32 aKeyType,const char *aK
 
 NS_IMETHODIMP rhCoolKey::RhCoolKeyUnSetNotifyCallback(rhIKeyNotify *jsNotify)
 {
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::RhCoolKeyUnSetNotifyCallback Object: input %p  this %p \n",jsNotify,this));
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::RhCoolKeyUnSetNotifyCallback Object: input %p  this %p \n",GetTStamp(tBuff,56),jsNotify,this));
 
     RemoveNotifyKeyListener(jsNotify);
 
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::RhCoolKeyUnSetNotifyCallback Object: removed listener, size now %d \n",GetNotifyKeyListenerListSize()));
-
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::RhCoolKeyUnSetNotifyCallback Object: removed listener, size now %d \n",GetTStamp(tBuff,56),GetNotifyKeyListenerListSize()));
 
    if(GetNotifyKeyListenerListSize() == 0)
    {
-       PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::RhCoolKeyUnSetNotifyCallback Object: input %p  this %p Listener size 0. \n",jsNotify,this));
-
+       PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::RhCoolKeyUnSetNotifyCallback Object: input %p  this %p Listener size 0. \n",GetTStamp(tBuff,56),jsNotify,this));
    }
 
-    return NS_OK;
+   return NS_OK;
  }
 
 NS_IMETHODIMP rhCoolKey::RhCoolKeySetNotifyCallback(rhIKeyNotify *jsNotify)
 {
-
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::RhCoolKeySetNotifyCallback Object: %p this %p\n",jsNotify,this));
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::RhCoolKeySetNotifyCallback Object: %p this %p\n",GetTStamp(tBuff,56),jsNotify,this));
 
     AddNotifyKeyListener(jsNotify);    
 
@@ -753,16 +726,29 @@ NS_IMETHODIMP rhCoolKey::RhCoolKeySetNotifyCallback(rhIKeyNotify *jsNotify)
 
 }
 
+/* void CoolKeyLogMsg (in unsigned long aLogLevel, in string aMessage); */
+NS_IMETHODIMP rhCoolKey::CoolKeyLogMsg(PRUint32 aLogLevel, const char *aMessage)
+{
+    char tBuff[56];
+
+    if(aMessage && ((PRLogModuleLevel) aLogLevel >=  PR_LOG_NONE && aLogLevel <= PR_LOG_MAX))
+    {
+        PR_LOG( coolKeyLog, (PRLogModuleLevel) aLogLevel, ("%s %s",GetTStamp(tBuff,56),aMessage));    
+    }
+
+    return NS_OK;
+}
+
 NS_IMETHODIMP rhCoolKey::BlinkCoolKey(PRUint32 aKeyType, const char *aKeyID, PRUint32 aRate, PRUint32 aDuration)
 {
-
-   PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::RhBlinkCoolKey thread: %p \n",PR_GetCurrentThread()));
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::RhBlinkCoolKey thread: %p \n",GetTStamp(tBuff,56),PR_GetCurrentThread()));
 
    CoolKeyNode *node = GetCoolKeyInfo(aKeyType, aKeyID);
 
   if (!node)
   {
-      PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::RhBlinkCoolKey: GetCoolKeyInfo failed. \n"));
+      PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::RhBlinkCoolKey: GetCoolKeyInfo failed. \n",GetTStamp(tBuff,56)));
       return NS_ERROR_FAILURE;
   }
 
@@ -789,7 +775,8 @@ NS_IMETHODIMP rhCoolKey::BlinkCoolKey(PRUint32 aKeyType, const char *aKeyID, PRU
 NS_IMETHODIMP rhCoolKey::EnrollCoolKey(PRUint32 aKeyType, const char *aKeyID, const char *aEnrollmentType, const char *aScreenName, const char *aPin, const char *aScreenNamePWord, const char *aTokenCode)
 {
 
-    PR_LOG( coolKeyLog, PR_LOG_ALWAYS, ("Attempting to Enroll Key ,ID: %s \n",aKeyID));
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_ALWAYS, ("%s Attempting to Enroll Key ,ID: %s \n",GetTStamp(tBuff,56),aKeyID));
     
     CoolKeyNode *node = GetCoolKeyInfo(aKeyType, aKeyID);
 
@@ -806,7 +793,6 @@ NS_IMETHODIMP rhCoolKey::EnrollCoolKey(PRUint32 aKeyType, const char *aKeyID, co
     AutoCoolKey key(aKeyType, aKeyID);
     HRESULT hres = CoolKeyEnrollToken(&key, aEnrollmentType, aScreenName, aPin,aScreenNamePWord,aTokenCode);
 
-
     if (hres == S_OK)
     {
         node->mStatus = eAKS_EnrollmentInProgress;
@@ -821,14 +807,14 @@ NS_IMETHODIMP rhCoolKey::EnrollCoolKey(PRUint32 aKeyType, const char *aKeyID, co
 
 NS_IMETHODIMP rhCoolKey::ResetCoolKeyPIN(PRUint32 aKeyType, const char *aKeyID, const char *aScreenName, const char *aPIN, const char *aScreenNamePwd)
 {
-    PR_LOG( coolKeyLog, PR_LOG_ALWAYS, ("Attempting to Reset Key PIN, ID: %s \n",aKeyID));
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_ALWAYS, ("%s Attempting to Reset Key PIN, ID: %s \n",GetTStamp(tBuff,56),aKeyID));
     CoolKeyNode *node = GetCoolKeyInfo(aKeyType, aKeyID);
 
     if (!node)
     {
-        PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::RhResetCoolKeyPIN no node: thread: %p \n",PR_GetCurrentThread()));
+        PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::RhResetCoolKeyPIN no node: thread: %p \n",GetTStamp(tBuff,56),PR_GetCurrentThread()));
         return NS_ERROR_FAILURE;
-
     }
 
   // Prevent multiple windows from trying to reset the pin for the same
@@ -842,15 +828,13 @@ NS_IMETHODIMP rhCoolKey::ResetCoolKeyPIN(PRUint32 aKeyType, const char *aKeyID, 
 
     if (node->mStatus != eAKS_Available)
     {
-        PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::RhResetCoolKeyPIN thread: token unavailable %p \n",PR_GetCurrentThread()));
+        PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::RhResetCoolKeyPIN thread: token unavailable %p \n",GetTStamp(tBuff,56),PR_GetCurrentThread()));
         return NS_ERROR_FAILURE;
-
     }
 
     AutoCoolKey key(aKeyType, aKeyID);
 
     HRESULT hres = CoolKeyResetTokenPIN(&key, aScreenName, aPIN,aScreenNamePwd);
-
 
     if (hres == S_OK) 
     {
@@ -865,7 +849,8 @@ NS_IMETHODIMP rhCoolKey::ResetCoolKeyPIN(PRUint32 aKeyType, const char *aKeyID, 
 
 NS_IMETHODIMP rhCoolKey::RenewCoolKey(PRUint32 aKeyType, const char *aKeyID)
 {
-    PR_LOG( coolKeyLog, PR_LOG_ERROR, ("rhCoolKey::RhRenewCoolKey (not implemented) thread: %p \n",PR_GetCurrentThread()));
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_ERROR, ("%s rhCoolKey::RhRenewCoolKey (not implemented) thread: %p \n",GetTStamp(tBuff,56),PR_GetCurrentThread()));
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -873,8 +858,8 @@ NS_IMETHODIMP rhCoolKey::RenewCoolKey(PRUint32 aKeyType, const char *aKeyID)
 
 NS_IMETHODIMP rhCoolKey::FormatCoolKey(PRUint32 aKeyType, const char *aKeyID, const char *aEnrollmentType, const char *aScreenName, const char *aPIN, const char *aScreenNamePWord, const char *aTokenCode)
 {
-
-    PR_LOG( coolKeyLog, PR_LOG_ALWAYS, ("Attempting to Format Key, ID: %s. ",aKeyID));
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_ALWAYS, ("%s Attempting to Format Key, ID: %s. ",GetTStamp(tBuff,56),aKeyID));
     CoolKeyNode *node = GetCoolKeyInfo(aKeyType, aKeyID);
 
     if (!node)
@@ -916,14 +901,13 @@ NS_IMETHODIMP rhCoolKey::FormatCoolKey(PRUint32 aKeyType, const char *aKeyID, co
 
 NS_IMETHODIMP rhCoolKey::CancelCoolKeyOperation(PRUint32 aKeyType, const char *aKeyID)
 {
-
+    char tBuff[56];
     CoolKeyNode *node = GetCoolKeyInfo(aKeyType, aKeyID);
 
     if (!node)
         return NS_ERROR_FAILURE;
 
-
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::RhCancelCoolKeyOperation type %d id %s status %d: \n",aKeyType,aKeyID,node->mStatus));
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::RhCancelCoolKeyOperation type %d id %s status %d: \n",GetTStamp(tBuff,56),aKeyType,aKeyID,node->mStatus));
 
   // If the key isn't busy, then there's nothing to do.
 
@@ -948,7 +932,7 @@ NS_IMETHODIMP rhCoolKey::CancelCoolKeyOperation(PRUint32 aKeyType, const char *a
 /* void GetCoolKeyCertNicknames (in unsigned long aKeyType, in string aKeyID, out PRUint32 count, [array, size_is (count), retval] out string str); */
 NS_IMETHODIMP rhCoolKey::GetCoolKeyCertNicknames(PRUint32 aKeyType, const char *aKeyID, PRUint32 *count, char ***str)
 {
-
+    char tBuff[56];
     if(!aKeyID || !count)
     {
         return NS_ERROR_FAILURE;
@@ -962,12 +946,10 @@ NS_IMETHODIMP rhCoolKey::GetCoolKeyCertNicknames(PRUint32 aKeyType, const char *
     if(res != S_OK)
     {
         return NS_OK;    
-
     }
 
     char **array = NULL;
     int num = nicknames.size();
-
 
     array = (char **) nsMemory::Alloc((sizeof(char *) *num));
 
@@ -982,7 +964,7 @@ NS_IMETHODIMP rhCoolKey::GetCoolKeyCertNicknames(PRUint32 aKeyType, const char *
     {
         char *tName = (char *) (*i).c_str();
 
-        PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::GetCoolKeyCertNicknames  name %s  \n",tName));
+        PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::GetCoolKeyCertNicknames  name %s  \n",GetTStamp(tBuff,56),tName));
 
         array[j] = NULL;
         if(tName)
@@ -1004,8 +986,8 @@ NS_IMETHODIMP rhCoolKey::GetCoolKeyCertNicknames(PRUint32 aKeyType, const char *
 
 NS_IMETHODIMP rhCoolKey::GetAvailableCoolKeys(PRUint32 *count, char ***str)
 {
-
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::RhGetAvailableCoolKeys thread: %p \n",PR_GetCurrentThread()));
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::RhGetAvailableCoolKeys thread: %p \n",GetTStamp(tBuff,56),PR_GetCurrentThread()));
 
     if(!count || !str)
     {
@@ -1016,7 +998,7 @@ NS_IMETHODIMP rhCoolKey::GetAvailableCoolKeys(PRUint32 *count, char ***str)
 
     long numKeys = ASCGetNumAvailableCoolKeys();
 
-    PR_LOG( coolKeyLog, PR_LOG_ALWAYS, ("Attempting to get number of keys. Value:  %d \n",numKeys));
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s Attempting to get number of keys. Value:  %d \n",GetTStamp(tBuff,56),numKeys));
 
     if(numKeys == 0)
     {
@@ -1065,7 +1047,8 @@ NS_IMETHODIMP rhCoolKey::GetAvailableCoolKeys(PRUint32 *count, char ***str)
 
 NS_IMETHODIMP rhCoolKey::GetCoolKeyStatus(PRUint32 aKeyType, const char *aKeyID, PRUint32 *_retval)
 {
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::RhGetCoolKeyStatus thread: %p \n",PR_GetCurrentThread()));
+    char tBuff[56]; 
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::RhGetCoolKeyStatus thread: %p \n",GetTStamp(tBuff,56),PR_GetCurrentThread()));
     CoolKeyNode *node = GetCoolKeyInfo(aKeyType, aKeyID);
 
     if(node)
@@ -1075,10 +1058,9 @@ NS_IMETHODIMP rhCoolKey::GetCoolKeyStatus(PRUint32 aKeyType, const char *aKeyID,
     else
     {
         *_retval = eAKS_Unavailable;
-
     }
     
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::RhGetCoolKeyStatus retval: %d \n",*_retval));
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::RhGetCoolKeyStatus retval: %d \n",GetTStamp(tBuff,56),*_retval));
 
     return NS_OK;
 }
@@ -1089,13 +1071,14 @@ NS_IMETHODIMP rhCoolKey::GetCoolKeyStatus(PRUint32 aKeyType, const char *aKeyID,
 
 NS_IMETHODIMP rhCoolKey::GetCoolKeyIsReallyCoolKey(PRUint32 aKeyType, const char *aKeyID, PRBool *_retval)
 {
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::GetCoolKeyIsReallyCoolKey thread: %p \n",PR_GetCurrentThread()));
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::GetCoolKeyIsReallyCoolKey thread: %p \n",GetTStamp(tBuff,56),PR_GetCurrentThread()));
 
     if (ASCCoolKeyIsAvailable(aKeyType, (char *) aKeyID)) {
         if (aKeyID) {
             AutoCoolKey key(aKeyType, aKeyID);
             PRBool isCool = CoolKeyIsReallyCoolKey(&key);
-            PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::GetCoolKeyIsReallyCoolKey isCool: %d \n",(int) isCool));
+            PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::GetCoolKeyIsReallyCoolKey isCool: %d \n",GetTStamp(tBuff,56),(int) isCool));
             *_retval= isCool;
             return NS_OK;
         }
@@ -1107,8 +1090,8 @@ NS_IMETHODIMP rhCoolKey::GetCoolKeyIsReallyCoolKey(PRUint32 aKeyType, const char
 /* long GetCoolKeyGetAppletVer (in unsigned long aKeyType, in string aKeyID, in boolean aIsMajor); */
 NS_IMETHODIMP rhCoolKey::GetCoolKeyGetAppletVer(PRUint32 aKeyType, const char *aKeyID, PRBool aIsMajor, PRInt32 *_retval)
 {
-
-    PR_LOG(coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::GetCoolKeyAppletVer thread: %p \n",PR_GetCurrentThread()));
+    char tBuff[56];
+    PR_LOG(coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::GetCoolKeyAppletVer thread: %p \n",GetTStamp(tBuff,56),PR_GetCurrentThread()));
 
     AutoCoolKey key(aKeyType, aKeyID);
 
@@ -1117,15 +1100,14 @@ NS_IMETHODIMP rhCoolKey::GetCoolKeyGetAppletVer(PRUint32 aKeyType, const char *a
     *_retval = ver;
 
     return S_OK;
-
 }
 
 /* boolean rhCoolKeyIsEnrolled (in unsigned long aKeyType, in string aKeyID); */
 
 NS_IMETHODIMP rhCoolKey::GetCoolKeyIsEnrolled(PRUint32 aKeyType, const char *aKeyID, PRBool *_retval)
 {
-
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::RhCoolKeyIsEnrolled thread: %p \n",PR_GetCurrentThread()));
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::RhCoolKeyIsEnrolled thread: %p \n",GetTStamp(tBuff,56),PR_GetCurrentThread()));
     if (ASCCoolKeyIsAvailable(aKeyType, (char *) aKeyID)) {
 
     if (aKeyID) {
@@ -1144,15 +1126,13 @@ NS_IMETHODIMP rhCoolKey::GetCoolKeyIsEnrolled(PRUint32 aKeyType, const char *aKe
 /* string GetCoolKeyCertInfo (in unsigned long aKeyType, in string aKeyID, in string aCertNickname); */   
 NS_IMETHODIMP rhCoolKey::GetCoolKeyCertInfo(PRUint32 aKeyType, const char *aKeyID, const char *aCertNickname, char **aCertInfo)
 {
-
+    char tBuff[56];
     string certInfo = "";
     *aCertInfo = NULL;
 
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::GetCoolKeyCertInfo thread: %p \n",PR_GetCurrentThread()));
-
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::GetCoolKeyCertInfo thread: %p \n",GetTStamp(tBuff,56),PR_GetCurrentThread()));
 
     AutoCoolKey key(aKeyType, aKeyID);
-
 
     HRESULT res =  CoolKeyGetCertInfo(&key,(char *) aCertNickname, certInfo);
 
@@ -1169,12 +1149,13 @@ NS_IMETHODIMP rhCoolKey::GetCoolKeyCertInfo(PRUint32 aKeyType, const char *aKeyI
 
 /* string GetCoolKeyATR (in unsigned long aKeyType, in string aKeyID); */
   NS_IMETHODIMP rhCoolKey::GetCoolKeyATR(PRUint32 aKeyType, const char *aKeyID, char **_retval)
-  {
-     *_retval  = NULL;
+{
+    char tBuff[56];
+    *_retval  = NULL;
     AutoCoolKey key(aKeyType, aKeyID);
     char atr[128];
     HRESULT res =   CoolKeyGetATR(&key, (char *)&atr,sizeof(atr));
-     PR_LOG( coolKeyLog, PR_LOG_ALWAYS, ("Attempting to get the key's ATR: Key: %s, ATR  %s. \n",aKeyID, (char *) atr));
+     PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s Attempting to get the key's ATR: Key: %s, ATR  %s. \n",GetTStamp(tBuff,56),aKeyID, (char *) atr));
     if(res == S_OK)
     {
         char *temp =  (char *) nsMemory::Clone(atr,sizeof(char) * strlen((char *)atr) + 1);
@@ -1184,8 +1165,8 @@ NS_IMETHODIMP rhCoolKey::GetCoolKeyCertInfo(PRUint32 aKeyType, const char *aKeyI
   }
 
 /* string GetCoolKeyIssuerInfo (in unsigned long aKeyType, in string aKeyID); */  NS_IMETHODIMP rhCoolKey::GetCoolKeyIssuerInfo(PRUint32 aKeyType, const char *aKeyID, char **_retval)
-  {
-
+{
+    char tBuff[56];
     *_retval  = NULL;
 
     AutoCoolKey key(aKeyType, aKeyID);
@@ -1194,7 +1175,7 @@ NS_IMETHODIMP rhCoolKey::GetCoolKeyCertInfo(PRUint32 aKeyType, const char *aKeyI
 
     HRESULT res =  CoolKeyGetIssuerInfo(&key, (char *)&issuerInfo,256);
 
-     PR_LOG( coolKeyLog, PR_LOG_ALWAYS, ("Attempting to get the key's Issuer: Key: %s, Issuer  %s. \n",aKeyID, (char *) issuerInfo));
+     PR_LOG( coolKeyLog, PR_LOG_ALWAYS, ("%s Attempting to get the key's Issuer: Key: %s, Issuer  %s. \n",GetTStamp(tBuff,56),aKeyID, (char *) issuerInfo));
 
     if(res == S_OK)
     {
@@ -1204,14 +1185,13 @@ NS_IMETHODIMP rhCoolKey::GetCoolKeyCertInfo(PRUint32 aKeyType, const char *aKeyI
     }
       return NS_OK;
 
-  }
-
+}
 
 /* void rhGetCoolKeyPolicy (in unsigned long aKeyType, in string aKeyID, out string policy); */
 NS_IMETHODIMP rhCoolKey::GetCoolKeyPolicy(PRUint32 aKeyType, const char *aKeyID, char **policy)
 {
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::RhGetCoolKeyPolicy thread: %p \n",PR_GetCurrentThread()));
-
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::RhGetCoolKeyPolicy thread: %p \n",GetTStamp(tBuff,56),PR_GetCurrentThread()));
 
     if (!aKeyID) {
         return NS_ERROR_FAILURE;
@@ -1223,14 +1203,14 @@ NS_IMETHODIMP rhCoolKey::GetCoolKeyPolicy(PRUint32 aKeyType, const char *aKeyID,
     AutoCoolKey key(aKeyType, aKeyID);
     HRESULT hres =  CoolKeyGetPolicy(&key, policyChar, MAX_STR_LEN);
 
-    PR_LOG(coolKeyLog,PR_LOG_DEBUG,("rhCoolKey::RhGetCoolKeyPolicy hres: %d \n",hres));
+    PR_LOG(coolKeyLog,PR_LOG_DEBUG,("%s rhCoolKey::RhGetCoolKeyPolicy hres: %d \n",GetTStamp(tBuff,56),hres));
     if (hres == E_FAIL)
     {
         return NS_ERROR_FAILURE;
 
     }
 
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::RhGetCoolKeyPolicy policy: %s \n",policyChar));
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::RhGetCoolKeyPolicy policy: %s \n",GetTStamp(tBuff,56),policyChar));
 
      char *temp =  (char *) nsMemory::Clone(policyChar,sizeof(char) * strlen(policyChar) + 1);
 
@@ -1242,6 +1222,7 @@ NS_IMETHODIMP rhCoolKey::GetCoolKeyPolicy(PRUint32 aKeyType, const char *aKeyID,
 /* string GetCoolKeyIssuedTo (in unsigned long aKeyType, in string aKeyID); */
 NS_IMETHODIMP rhCoolKey::GetCoolKeyIssuedTo(PRUint32 aKeyType, const char *aKeyID, char **issuedTo)
 {
+    char tBuff[56];
     if (!aKeyID) {
         return NS_ERROR_FAILURE;
     }
@@ -1256,13 +1237,12 @@ NS_IMETHODIMP rhCoolKey::GetCoolKeyIssuedTo(PRUint32 aKeyType, const char *aKeyI
     
     CoolKeyGetIssuedTo(&key, (char *) buff, bufLength);
 
-
     if(!buff[0])
     {
         return NS_OK;
     }
 
-    PR_LOG(coolKeyLog,PR_LOG_DEBUG,("rhCoolKey::RhGetCoolKeyGetIssuedTo  %s \n",(char *) buff));
+    PR_LOG(coolKeyLog,PR_LOG_DEBUG,("%s rhCoolKey::RhGetCoolKeyGetIssuedTo  %s \n",GetTStamp(tBuff,56),(char *) buff));
 
     char *temp =  (char *) nsMemory::Clone(buff,sizeof(char) * strlen(buff) + 1);
 
@@ -1274,7 +1254,8 @@ NS_IMETHODIMP rhCoolKey::GetCoolKeyIssuedTo(PRUint32 aKeyType, const char *aKeyI
 /* boolean SetCoolKeyConfigValue (in string aName, in string aValue); */
 NS_IMETHODIMP rhCoolKey::SetCoolKeyConfigValue(const char *aName, const char *aValue, PRBool *_retval)
 {
-     PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::SetCoolKeyConfigValue thread: %p \n",PR_GetCurrentThread()));
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::SetCoolKeyConfigValue thread: %p \n",GetTStamp(tBuff,56),PR_GetCurrentThread()));
     if(!aName || !aValue)
     {
         *_retval = 0;
@@ -1289,7 +1270,8 @@ NS_IMETHODIMP rhCoolKey::SetCoolKeyConfigValue(const char *aName, const char *aV
 /* string GetCoolKeyConfigValue (in string aName); */
 NS_IMETHODIMP rhCoolKey::GetCoolKeyConfigValue(const char *aName, char **_retval)
 {
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::GetCoolKeyConfigValue thread: %p \n",PR_GetCurrentThread()));
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::GetCoolKeyConfigValue thread: %p \n",GetTStamp(tBuff,56),PR_GetCurrentThread()));
 
     if(!aName)
     {
@@ -1306,8 +1288,8 @@ NS_IMETHODIMP rhCoolKey::GetCoolKeyConfigValue(const char *aName, char **_retval
 
 NS_IMETHODIMP rhCoolKey::GetCoolKeyRequiresAuthentication(PRUint32 aKeyType, const char *aKeyID, PRBool *_retval)
 {
-
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::RhCoolKeyRequiresAuthentication thread: %p \n",PR_GetCurrentThread()));
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::RhCoolKeyRequiresAuthentication thread: %p \n",GetTStamp(tBuff,56),PR_GetCurrentThread()));
     PRBool requiresAuth = PR_FALSE;
 
     *_retval = PR_TRUE;
@@ -1326,7 +1308,8 @@ NS_IMETHODIMP rhCoolKey::GetCoolKeyRequiresAuthentication(PRUint32 aKeyType, con
 
 NS_IMETHODIMP rhCoolKey::GetCoolKeyIsAuthenticated(PRUint32 aKeyType, const char *aKeyID, PRBool *_retval)
 {
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::RhGetCoolKeyIsAuthenticated thread: %p \n",PR_GetCurrentThread()));
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::RhGetCoolKeyIsAuthenticated thread: %p \n",GetTStamp(tBuff,56),PR_GetCurrentThread()));
     PRBool isAuthed = PR_FALSE;
 
     *_retval = PR_TRUE;
@@ -1345,22 +1328,23 @@ NS_IMETHODIMP rhCoolKey::GetCoolKeyIsAuthenticated(PRUint32 aKeyType, const char
 
 NS_IMETHODIMP rhCoolKey::AuthenticateCoolKey(PRUint32 aKeyType, const char *aKeyID, const char *aPIN, PRBool *_retval) 
 {
-  PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::RhAuthenticateCoolKey thread: %p \n",PR_GetCurrentThread()));
-  *_retval = PR_FALSE;
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::RhAuthenticateCoolKey thread: %p \n",GetTStamp(tBuff,56),PR_GetCurrentThread()));
+    *_retval = PR_FALSE;
 
-  if(!aKeyID || !aPIN)
-  {
-      return NS_ERROR_FAILURE;
-  }
+    if(!aKeyID || !aPIN)
+    {
+        return NS_ERROR_FAILURE;
+    }
 
-  AutoCoolKey key(aKeyType, aKeyID);
+    AutoCoolKey key(aKeyType, aKeyID);
 
-  PRBool didAuth = CoolKeyAuthenticate(&key, aPIN);
+    PRBool didAuth = CoolKeyAuthenticate(&key, aPIN);
 
-  if (didAuth)
-    ASCSetCoolKeyPin(aKeyType, aKeyID, aPIN);
+    if (didAuth)
+        ASCSetCoolKeyPin(aKeyType, aKeyID, aPIN);
 
-   *_retval = PR_TRUE;
+    *_retval = PR_TRUE;
 
     return NS_OK;
 }
@@ -1369,8 +1353,8 @@ NS_IMETHODIMP rhCoolKey::AuthenticateCoolKey(PRUint32 aKeyType, const char *aKey
 
 NS_IMETHODIMP rhCoolKey::SetCoolKeyDataValue(PRUint32 aKeyType, const char *aKeyID, const char *name, const char *value)
 {
-
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::SetCoolKeyDataValue \n"));
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::SetCoolKeyDataValue \n",GetTStamp(tBuff,56)));
     CoolKeyNode *node = GetCoolKeyInfo(aKeyType, aKeyID);
 
     if (!node)
@@ -1381,13 +1365,13 @@ NS_IMETHODIMP rhCoolKey::SetCoolKeyDataValue(PRUint32 aKeyType, const char *aKey
     CoolKeySetDataValue(&key,name, value);
 
     return NS_OK;
-
 }
 
 /* string GetCoolKeyVersion (); */
 NS_IMETHODIMP rhCoolKey::GetCoolKeyVersion(char **_retval)
 {
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKey::GetCoolKeyVersion \n"));
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::GetCoolKeyVersion \n",GetTStamp(tBuff,56)));
 
     char *version = GETSTRING(ESC_VERSION);
     
@@ -1532,7 +1516,8 @@ rhCoolKeyModule::~rhCoolKeyModule()
 NS_IMETHODIMP_(nsrefcnt)
 rhCoolKeyModule::AddRef(void)
 {
-PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKeyModule::AddRef \n"));
+char tBuff[56];
+PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKeyModule::AddRef \n",GetTStamp(tBuff,56)));
 ++mRefCnt;
 return mRefCnt;
 }
@@ -1541,10 +1526,12 @@ return mRefCnt;
 NS_IMETHODIMP_(nsrefcnt)
 rhCoolKeyModule::Release(void)
 {
-PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKeyModule::Release \n"));
+char tBuff[56];
+PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKeyModule::Release : mRefCnt %d \n",GetTStamp(tBuff,56),mRefCnt - 1));
 --mRefCnt;
 if (mRefCnt == 0) {
 mRefCnt = 1; /* stabilize */
+PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKeyModule::Release deleting Module \n",GetTStamp(tBuff,56)));
 delete this;
 return 0;
 }
@@ -1555,7 +1542,8 @@ return mRefCnt;
 NS_IMETHODIMP
 rhCoolKeyModule::QueryInterface(REFNSIID aIID, void** aInstancePtr)
 {
-PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKeyModule::QueryInterface \n"));
+char tBuff[56];
+PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKeyModule::QueryInterface \n",GetTStamp(tBuff,56)));
 if ( !aInstancePtr )
 return NS_ERROR_NULL_POINTER;
 
@@ -1588,8 +1576,8 @@ const nsCID& aClass,
 const nsIID& aIID,
 void** result)
 {
-
-PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKeyModule::GetClassObject \n"));
+char tBuff[56];
+PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKeyModule::GetClassObject \n",GetTStamp(tBuff,56)));
 if (!kCoolKeyCID.Equals(aClass))
 return NS_ERROR_FACTORY_NOT_REGISTERED;
 
@@ -1618,9 +1606,10 @@ const char* registryLocation,
 const char* componentType)
 {
 
+char tBuff[54];
 nsIComponentRegistrar* compReg = nsnull;
 
-PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKeyModule::RegisterSelf \n"));
+PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKeyModule::RegisterSelf \n",GetTStamp(tBuff,56)));
 nsresult rv = aCompMgr->QueryInterface(kIComponentRegistrarIID, (void**)&compReg);
 if (NS_FAILED(rv))
 return rv;
@@ -1642,8 +1631,8 @@ rhCoolKeyModule::UnregisterSelf(nsIComponentManager* aCompMgr,
 nsIFile* aPath,
 const char* registryLocation)
 {
-
-PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKeyModule::UnregisterSelf \n"));
+char tBuff[56];
+PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKeyModule::UnregisterSelf \n",GetTStamp(tBuff,56)));
 nsIComponentRegistrar* compReg = nsnull;
 
 nsresult rv = aCompMgr->QueryInterface(kIComponentRegistrarIID, (void**)&compReg);
@@ -1673,7 +1662,8 @@ nsIModule** return_cobj)
 {
 nsresult rv = NS_OK;
 
-PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("rhCoolKeyModule::NSGetModule \n"));
+char tBuff[56];
+PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKeyModule::NSGetModule \n",GetTStamp(tBuff,56)));
 
 // Create and initialize the module instance
 rhCoolKeyModule *m = new rhCoolKeyModule();
@@ -1688,5 +1678,3 @@ delete m;
 }
 return rv;
 }
-
-
