@@ -32,6 +32,7 @@
 #include <list>
 #include <algorithm>
 #include <prlog.h>
+#include <time.h>
 #include "CoolKey.h"
 static NSSManager* g_NSSManager = NULL;
 
@@ -42,57 +43,56 @@ static std::list<CoolKeyListener*> g_Listeners;
 struct ActiveKeyNode;
 
 HRESULT AddNodeToActiveKeyList(ActiveKeyNode *aNode);
-//extern HRESULT RemoveKeyFromActiveKeyList(const CoolKey *aKey);
 HRESULT ClearActiveKeyList(void);
 ActiveKeyNode *GetNodeInActiveKeyList(const CoolKey *aKey);
 
-
-
 COOLKEY_API HRESULT CoolKeyInit(const char *aAppDir)
 {
+    char tBuff[56];
 
-  PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyInit: appDir %s \n",aAppDir));
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s CoolKeyInit: appDir %s \n",GetTStamp(tBuff,56),aAppDir));
 
-  if (g_NSSManager) 
-  {
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyInit:g_NSSManager already exists. \n"));
-    return E_FAIL;
-  }
+    if (g_NSSManager) 
+    {
+        PR_LOG( coolKeyLog, PR_LOG_DEBUG, ( "%s CoolKeyInit:g_NSSManager already exists. \n",GetTStamp(tBuff,56)));
+        return E_FAIL;
+    }
 
-  InitCoolKeyList();
+    InitCoolKeyList();
 
-  g_NSSManager = new NSSManager();
+    g_NSSManager = new NSSManager();
   
-  if (!g_NSSManager) 
-  {
-    PR_LOG( coolKeyLog, PR_LOG_ERROR, ("CoolKeyInit:Failed to create NSSManager.\n"));
-    return E_FAIL;
-  }
+    if (!g_NSSManager) 
+    {
+      PR_LOG( coolKeyLog, PR_LOG_ERROR, ("%s CoolKeyInit:Failed to create NSSManager.\n",GetTStamp(tBuff,56)));
+      return E_FAIL;
+    }
   
-  HRESULT rv = g_NSSManager->InitNSS(aAppDir);
-  if (rv == E_FAIL)
-  {
-       PR_LOG( coolKeyLog, PR_LOG_ERROR, ("Failed to initialize Crypto library! \n"));
-       return rv;
-  }
+    HRESULT rv = g_NSSManager->InitNSS(aAppDir);
+    if (rv == E_FAIL)
+    {
+         PR_LOG( coolKeyLog, PR_LOG_ERROR, ("%s Failed to initialize Crypto library! \n",GetTStamp(tBuff,56)));
+         return rv;
+    }
 
-  return S_OK;
+    return S_OK;
 }
 
 COOLKEY_API HRESULT CoolKeyShutdown()
 { 
+    char tBuff[56];
 
-  PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyShutdown:\n"));
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s CoolKeyShutdown:\n",GetTStamp(tBuff,56)));
 
-  DestroyCoolKeyList();
+    DestroyCoolKeyList();
  
-  if (g_NSSManager) {
-    g_NSSManager->Shutdown();
-    delete g_NSSManager;
-    g_NSSManager = 0;
-  }
+    if (g_NSSManager) {
+        g_NSSManager->Shutdown();
+        delete g_NSSManager;
+        g_NSSManager = 0;
+    }
 
-  return S_OK;
+    return S_OK;
 }
 
 static CoolKeyDispatch g_Dispatch = NULL;
@@ -107,23 +107,20 @@ COOLKEY_API HRESULT CoolKeySetCallbacks(CoolKeyDispatch dispatch,
 	CoolKeyReference reference, CoolKeyRelease release,
         CoolKeyGetConfigValue getconfigvalue,CoolKeySetConfigValue setconfigvalue)
 {
-   g_Dispatch = dispatch;
-   g_Reference = reference;
-   g_Release = release;
-   g_GetConfigValue = getconfigvalue;
-   g_SetConfigValue = setconfigvalue;
+    g_Dispatch = dispatch;
+    g_Reference = reference;
+    g_Release = release;
+    g_GetConfigValue = getconfigvalue;
+    g_SetConfigValue = setconfigvalue;
 
+    char * suppressPINPrompt =(char*) CoolKeyGetConfig("esc.disable.password.prompt");
 
-
-   char * suppressPINPrompt =(char*) CoolKeyGetConfig("esc.disable.password.prompt");
-
-
-   if(suppressPINPrompt && !strcmp(suppressPINPrompt,"yes"))
-   {
-       PK11_SetPasswordFunc( CoolKeyVerifyPassword);
-   }
-   // Set the verify password callback here, no params needed we know what it is
-   return 0;
+    if(suppressPINPrompt && !strcmp(suppressPINPrompt,"yes"))
+    {
+        PK11_SetPasswordFunc( CoolKeyVerifyPassword);
+    }
+    // Set the verify password callback here, no params needed we know what it is
+    return 0;
 }
 
 #define REFERENCE_LISTENER(list) \
@@ -138,246 +135,247 @@ COOLKEY_API HRESULT CoolKeySetCallbacks(CoolKeyDispatch dispatch,
 
 char *CoolKeyVerifyPassword(PK11SlotInfo *slot,PRBool retry,void *arg)
 {
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyVerifyPassword: \n"));
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s CoolKeyVerifyPassword: \n",GetTStamp(tBuff,56)));
     return NULL;
 }
 
 COOLKEY_API HRESULT CoolKeyRegisterListener(CoolKeyListener* aListener)
 {
-  PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyRegisterListener: aListener %p\n",aListener));
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s CoolKeyRegisterListener: aListener %p\n",GetTStamp(tBuff,56),aListener));
 
+    if (!aListener)
+        return -1;
 
-  if (!aListener)
-    return -1;
-
-  REFERENCE_LISTENER(aListener);
-  g_Listeners.push_back(aListener);
+    REFERENCE_LISTENER(aListener);
+    g_Listeners.push_back(aListener);
   
-  return 0;
+    return 0;
 }
 
 COOLKEY_API HRESULT CoolKeyUnregisterListener(CoolKeyListener* aListener)
 {
-
-  PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyUnregisterListener:\n"));
-  if (!aListener)
-    return -1;
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s CoolKeyUnregisterListener:\n",GetTStamp(tBuff,56)));
+    if (!aListener)
+      return -1;
   
-  std::list<CoolKeyListener*>::iterator it = 
+    std::list<CoolKeyListener*>::iterator it = 
                    find(g_Listeners.begin(), g_Listeners.end(), aListener);
   
-  if (it != g_Listeners.end()) {
+    if (it != g_Listeners.end()) {
 
-      PR_LOG( coolKeyLog, PR_LOG_DEBUG, 
-             ("CoolKeyUnregisterListener: erasing listener %p \n",*it));
-      g_Listeners.erase(it);
-      RELEASE_LISTENER(aListener);
-  }
-  return 0;
-}
-
-
-HRESULT CoolKeyNotify(const CoolKey *aKey, CoolKeyState aKeyState,
-                                                int aData,const char *strData)
-{
-  PR_LOG( coolKeyLog, PR_LOG_DEBUG, 
-        ("CoolKeyNotify: key %s state %d data %d strData %s",
-	 aKey->mKeyID,aKeyState,aData,strData));
-
-  std::list<CoolKeyListener*>::iterator it;
-  for(it=g_Listeners.begin(); it!=g_Listeners.end(); ++it)
-  {
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, 
-          ("CoolKeyNotify: About to notify listener %p",*it));
-
-    if (g_Dispatch) {
-    	(*g_Dispatch)(*it, aKey->mKeyType, aKey->mKeyID,
-		 aKeyState, aData, strData);
+        PR_LOG( coolKeyLog, PR_LOG_DEBUG, 
+             ("%s CoolKeyUnregisterListener: erasing listener %p \n",GetTStamp(tBuff,56),*it));
+        g_Listeners.erase(it);
+        RELEASE_LISTENER(aListener);
     }
-  }
-
-  return S_OK;
+    return 0;
 }
 
 struct BlinkTimerParams
 {
-  BlinkTimerParams(const CoolKey *aKey) : mKey(*aKey), mSlot(0), mRate(0),
+    BlinkTimerParams(const CoolKey *aKey) : mKey(*aKey), mSlot(0), mRate(0),
                                          mEnd(0), mThread(0), mActive(false)
-  {
-  }
+    {
+    }
 
-  ~BlinkTimerParams()
-  {
-    mActive = false;
+    ~BlinkTimerParams()
+    {
+        mActive = false;
 
-    if (mThread && mThread != PR_GetCurrentThread())
-      PR_JoinThread(mThread);
-  }
+        if (mThread && mThread != PR_GetCurrentThread())
+        PR_JoinThread(mThread);
+    }
 
-  AutoCoolKey mKey;
-  PK11SlotInfo *mSlot;
-  unsigned long mRate;
-  PRIntervalTime mEnd;
-  PRThread *mThread;
-  bool mActive;
+    AutoCoolKey mKey;
+    PK11SlotInfo *mSlot;
+    unsigned long mRate;
+    PRIntervalTime mEnd;
+    PRThread *mThread;
+    bool mActive;
 };
 
 struct ActiveKeyNode
 {
-  ActiveKeyNode(const CoolKey *aKey) : mKey(*aKey)
-  {
-  }
+    ActiveKeyNode(const CoolKey *aKey) : mKey(*aKey)
+    {
+    }
 
-  virtual ~ActiveKeyNode()
-  {
-  }
+    virtual ~ActiveKeyNode()
+    {
+    }
 
-  virtual HRESULT OnRemoval() = 0;
+    virtual HRESULT OnRemoval() = 0;
 
-  AutoCoolKey mKey;
+    AutoCoolKey mKey;
 };
 
 struct ActiveKeyHandler : public ActiveKeyNode
 {
-  ActiveKeyHandler(const CoolKey *aKey, CoolKeyHandler *aHandler)
-    : ActiveKeyNode(aKey)
-  {
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG,
-          ("ActiveKeyHandler::ActiveKeyHandler  \n"));
-
-    assert(aHandler);
-    mHandler = aHandler;
-    mHandler->AddRef();
-  }
-
-  ~ActiveKeyHandler()
-  {
-    if (mHandler)
+    ActiveKeyHandler(const CoolKey *aKey, CoolKeyHandler *aHandler)
+         : ActiveKeyNode(aKey)
     {
+        char tBuff[56];
         PR_LOG( coolKeyLog, PR_LOG_DEBUG,
-          ("ActiveKeyHandler::~ActiveKeyHandler  \n"));
+          ("%s ActiveKeyHandler::ActiveKeyHandler  \n",GetTStamp(tBuff,56)));
+
+        assert(aHandler);
+        mHandler = aHandler;
+        mHandler->AddRef();
+    }
+
+    ~ActiveKeyHandler()
+    {
+        char tBuff[56];
+        if (mHandler)
+        {
+            PR_LOG( coolKeyLog, PR_LOG_DEBUG,
+                ("%s ActiveKeyHandler::~ActiveKeyHandler  \n",GetTStamp(tBuff,56)));
 
         
-        mHandler->Release();
+            mHandler->Release();
+        }
     }
-  }
 
-  HRESULT OnRemoval() { return S_OK; }
+    HRESULT OnRemoval() { return S_OK; }
 
-  CoolKeyHandler *mHandler;
+    CoolKeyHandler *mHandler;
 };
 
 struct ActiveBlinker : public ActiveKeyNode
 {
-  ActiveBlinker(const CoolKey *aKey, BlinkTimerParams *aParams)
-    : ActiveKeyNode(aKey)
-  {
-    assert(aParams);
-    mParams = aParams;
-  }
-
-  ~ActiveBlinker()
-  {
-    if (mParams)
-      delete mParams;
-  }
-
-  HRESULT OnRemoval()
-  {
-    if (mParams) {
-      mParams->mActive = false;
-
-      if (mParams->mThread && mParams->mThread != PR_GetCurrentThread()) {
-        PR_JoinThread(mParams->mThread);
-        mParams->mThread = 0;
-      }
-
-      delete mParams;
-      mParams = 0;
+    ActiveBlinker(const CoolKey *aKey, BlinkTimerParams *aParams)
+        : ActiveKeyNode(aKey)
+    {
+        assert(aParams);
+        mParams = aParams;
     }
 
-    return S_OK;
-  }
+    ~ActiveBlinker()
+    {
+        if (mParams)
+            delete mParams;
+    }
 
-  BlinkTimerParams *mParams;
+    HRESULT OnRemoval()
+    {
+        if (mParams) {
+            mParams->mActive = false;
+
+            if (mParams->mThread && mParams->mThread != PR_GetCurrentThread()) {
+                PR_JoinThread(mParams->mThread);
+                mParams->mThread = 0;
+            }
+
+            delete mParams;
+            mParams = 0;
+       }
+
+       return S_OK;
+    }
+
+    BlinkTimerParams *mParams;
 };
+
+HRESULT CoolKeyNotify(const CoolKey *aKey, CoolKeyState aKeyState,
+                                                int aData,const char *strData)
+{
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG,
+        ("%s CoolKeyNotify: key %s state %d data %d strData %s",GetTStamp(tBuff,56),
+         aKey->mKeyID,aKeyState,aData,strData));
+    if(aKeyState == eCKState_KeyRemoved)
+    {
+        ActiveKeyHandler  *node = (ActiveKeyHandler *) GetNodeInActiveKeyList(aKey);
+        if(node)
+        {
+            if(node->mHandler)
+            {
+                node->mHandler->CancelAuthParameters();
+            }
+        }
+    }
+    std::list<CoolKeyListener*>::iterator it;
+    for(it=g_Listeners.begin(); it!=g_Listeners.end(); ++it)
+    {
+        PR_LOG( coolKeyLog, PR_LOG_DEBUG,
+          ("%s CoolKeyNotify: About to notify listener %p",GetTStamp(tBuff,56),*it));
+        if (g_Dispatch) {
+            (*g_Dispatch)(*it, aKey->mKeyType, aKey->mKeyID,
+                 aKeyState, aData, strData);
+        }
+    }
+    return S_OK;
+}
+
+
 
 static std::list<ActiveKeyNode *> g_ActiveKeyList;
 
 static void PR_CALLBACK BlinkTimer(void *arg)
 {
-  BlinkTimerParams *params = (BlinkTimerParams*)arg;
+    BlinkTimerParams *params = (BlinkTimerParams*)arg;
   
-   while(params->mActive && PR_IntervalNow() < params->mEnd) {
-    CKYBuffer ATR;
-    CKYBuffer_InitEmpty(&ATR);
-    CKYCardConnection *conn = NULL;
-    CKYISOStatus apduRC = 0;
-    CKYStatus status;
-    const char *readerName = NULL;
+    while(params->mActive && PR_IntervalNow() < params->mEnd) {
+        CKYBuffer ATR;
+        CKYBuffer_InitEmpty(&ATR);
+        CKYCardConnection *conn = NULL;
+        CKYISOStatus apduRC = 0;
+        CKYStatus status;
+        const char *readerName = NULL;
   
-    CKYCardContext *cardCtxt = CKYCardContext_Create(SCARD_SCOPE_USER);
-    assert(cardCtxt);
-    if (!cardCtxt) {
-      goto done;
-    }
+        CKYCardContext *cardCtxt = CKYCardContext_Create(SCARD_SCOPE_USER);
+        assert(cardCtxt);
+        if (!cardCtxt) {
+            goto done;
+        }
   
-    conn = CKYCardConnection_Create(cardCtxt);
-    assert(conn);
-    if (!conn) {
-      goto done;
-    }
+        conn = CKYCardConnection_Create(cardCtxt);
+        assert(conn);
+        if (!conn) {
+            goto done;
+        }
 
-    readerName = GetReaderNameForKeyID(&params->mKey);
-    assert(readerName);
-    if (!readerName) {
-      goto done;
-    }
+        readerName = GetReaderNameForKeyID(&params->mKey);
+        assert(readerName);
+        if (!readerName) {
+            goto done;
+        }
 
-    status = CKYCardConnection_Connect(conn, readerName);
-    if (status != CKYSUCCESS) {
-      goto done;
-    }
-    unsigned long state;
+        status = CKYCardConnection_Connect(conn, readerName);
+        if (status != CKYSUCCESS) {
+            goto done;
+        }
+        unsigned long state;
   
-    status = CKYCardConnection_GetStatus(conn, &state, &ATR);
-    if (status != CKYSUCCESS) {
-      goto done;
-    }
+        status = CKYCardConnection_GetStatus(conn, &state, &ATR);
+        if (status != CKYSUCCESS) {
+            goto done;
+        }
 
-    apduRC = 0;
-    status = CKYApplet_SelectCardManager(conn, &apduRC);
-    if (status != CKYSUCCESS) {
-      goto done;
-    }
+        apduRC = 0;
+        status = CKYApplet_SelectCardManager(conn, &apduRC);
+        if (status != CKYSUCCESS) {
+            goto done;
+        }
     
-    done:
+        done:
 
-    if (conn) {
-      CKYCardConnection_Disconnect(conn);
-      CKYCardConnection_Destroy(conn);
-    }
-    if (cardCtxt) {
-      CKYCardContext_Destroy(cardCtxt);
-    }
+        if (conn) {
+             CKYCardConnection_Disconnect(conn);
+             CKYCardConnection_Destroy(conn);
+        }
+        if (cardCtxt) {
+            CKYCardContext_Destroy(cardCtxt);
+        }
 
-    CKYBuffer_FreeData(&ATR);
+        CKYBuffer_FreeData(&ATR);
      
-     PR_Sleep(PR_MillisecondsToInterval(params->mRate));
-   }
+        PR_Sleep(PR_MillisecondsToInterval(params->mRate));
+    }
 
-//  while(params->mActive && PR_IntervalNow() < params->mEnd) {
-    /* call some function that requires communication with the card */
-  //  CK_TOKEN_INFO dummy;
-    //PK11_GetTokenInfo(params->mSlot, &dummy);
-
-/*	CoolKeyInfo *	
-			CKHGetCoolKeyInfo("dummy"); */
-//	tokenName = PK11_GetTokenName(params->mSlot);
-    
-  //  PR_Sleep(PR_MillisecondsToInterval(params->mRate));
- // }
-  
   PK11_FreeSlot(params->mSlot);    
 
   // The assumption we're making here is that if we get here
@@ -390,7 +388,6 @@ static void PR_CALLBACK BlinkTimer(void *arg)
 
   if (params->mActive) {
     CoolKeyNotify(&params->mKey, eCKState_BlinkComplete, 0);
-//    ProxyEventToUIThread(new RemoveKeyFromActiveKeyListEvent(&params->mKey));
       RemoveKeyFromActiveKeyList(&params->mKey);
   }
 }
@@ -399,47 +396,48 @@ HRESULT
 CoolKeyBlinkToken(const CoolKey *aKey, unsigned long aRate, unsigned long aDuration)
 {
 
-  PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyBlinkToken:\n"));
-  BlinkTimerParams* params = new BlinkTimerParams(aKey);
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s CoolKeyBlinkToken:\n",GetTStamp(tBuff,56)));
+    BlinkTimerParams* params = new BlinkTimerParams(aKey);
 
-  if (!params)
-  {
-      PR_LOG( coolKeyLog, PR_LOG_DEBUG, 
-             ("CoolKeyBlinkToken: Can't create BlinkTimerParams.\n"));
-    return E_FAIL;
-  }
+    if (!params)
+    {
+        PR_LOG( coolKeyLog, PR_LOG_DEBUG, 
+             ("%s CoolKeyBlinkToken: Can't create BlinkTimerParams.\n",GetTStamp(tBuff,56)));
+        return E_FAIL;
+    }
   
-  params->mSlot = GetSlotForKeyID(aKey);
+    params->mSlot = GetSlotForKeyID(aKey);
 
-  if (!params->mSlot) {
+    if (!params->mSlot) {
 
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, 
-          ("CoolKeyBlinkToken:Can't get Slot for key.\n"));
-    delete params;
-    return E_FAIL;
-  }
+        PR_LOG( coolKeyLog, PR_LOG_DEBUG, 
+          ("%s CoolKeyBlinkToken:Can't get Slot for key.\n",GetTStamp(tBuff,56)));
+        delete params;
+        return E_FAIL;
+    }
   
-  params->mRate = aRate;
-  params->mEnd = PR_IntervalNow() 
+    params->mRate = aRate;
+    params->mEnd = PR_IntervalNow() 
                    + PR_MillisecondsToInterval(aDuration + /*fudge*/ 200);
-  params->mActive = true;
+    params->mActive = true;
   
   
-  ActiveBlinker *node = new ActiveBlinker(aKey, params);
+    ActiveBlinker *node = new ActiveBlinker(aKey, params);
 
-  if (!node) {
-    delete params;
-    return E_FAIL;
-  }
+    if (!node) {
+        delete params;
+        return E_FAIL;
+    }
 
-  HRESULT hres = AddNodeToActiveKeyList(node);
+    HRESULT hres = AddNodeToActiveKeyList(node);
 
-  if (hres == E_FAIL) {
-    delete params;
-    return E_FAIL;
-  }
+    if (hres == E_FAIL) {
+        delete params;
+        return E_FAIL;
+    }
 
-  params->mThread = PR_CreateThread(PR_SYSTEM_THREAD, 
+    params->mThread = PR_CreateThread(PR_SYSTEM_THREAD, 
                                     BlinkTimer, 
                                     (void*)params,
                                     PR_PRIORITY_NORMAL, 
@@ -447,88 +445,86 @@ CoolKeyBlinkToken(const CoolKey *aKey, unsigned long aRate, unsigned long aDurat
                                     PR_JOINABLE_THREAD, 
                                     0);
 
-  CoolKeyNotify(aKey, eCKState_BlinkStart, 0);
+    CoolKeyNotify(aKey, eCKState_BlinkStart, 0);
 
-  return S_OK;
+    return S_OK;
 }
 
 HRESULT
 AddNodeToActiveKeyList(ActiveKeyNode *aNode)
 {
+    char tBuff[56];
 
-  PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("AddNodeToActiveKeyList:\n"));  
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s AddNodeToActiveKeyList:\n",GetTStamp(tBuff,56)));  
 
-  g_ActiveKeyList.push_back(aNode);
-  return S_OK;
+    g_ActiveKeyList.push_back(aNode);
+    return S_OK;
 }
 
 HRESULT
 RemoveKeyFromActiveKeyList(const CoolKey *aKey)
 {
-  PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("RemoveKeyFromActiveKeyList:\n"));
-  std::list<ActiveKeyNode *>::iterator it;
+    char tBuff[56]; 
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s RemoveKeyFromActiveKeyList:\n",GetTStamp(tBuff,56)));
+    std::list<ActiveKeyNode *>::iterator it;
 
-  for (it = g_ActiveKeyList.begin(); it != g_ActiveKeyList.end(); ++it) {
-    if ((*it)->mKey == *aKey) {
-      ActiveKeyNode *node = *it;
-      g_ActiveKeyList.erase(it);
-      node->OnRemoval();
-      delete node;
-      return S_OK;
+    for (it = g_ActiveKeyList.begin(); it != g_ActiveKeyList.end(); ++it) {
+        if ((*it)->mKey == *aKey) {
+            ActiveKeyNode *node = *it;
+            g_ActiveKeyList.erase(it);
+            node->OnRemoval();
+            delete node;
+            return S_OK;
+        }
     }
-  }
 
   // XXX: Do we want to return E_FAIL instead?
 
-  return S_OK;
+    return S_OK;
 }
 
 HRESULT
 ClearActiveKeyList()
 {
-  std::list<ActiveKeyNode *>::iterator it;
+    std::list<ActiveKeyNode *>::iterator it;
 
-  for (it = g_ActiveKeyList.begin(); it != g_ActiveKeyList.end(); ++it) {
-    if (*it) {
-      ActiveKeyNode *node = *it;
-      delete node;
+    for (it = g_ActiveKeyList.begin(); it != g_ActiveKeyList.end(); ++it) {
+        if (*it) {
+            ActiveKeyNode *node = *it;
+            delete node;
+        }
     }
-  }
 
-  g_ActiveKeyList.clear();
+    g_ActiveKeyList.clear();
 
-  return S_OK;
+    return S_OK;
 }
 
-
-
 HRESULT
-
 IsNodeInActiveKeyList(const CoolKey *aKey)
 {
+    ActiveKeyNode *test = NULL;
 
-	ActiveKeyNode *test = NULL;
+    test = GetNodeInActiveKeyList(aKey);
 
-	test = GetNodeInActiveKeyList(aKey);
+    if(test)
+        return 1;
 
-	if(test)
-		return 1;
-
-	return 0;
+    return 0;
 
 }
 
 ActiveKeyNode *
 GetNodeInActiveKeyList(const CoolKey *aKey)
 {
-  std::list<ActiveKeyNode *>::iterator it;
+    std::list<ActiveKeyNode *>::iterator it;
 
-  for (it = g_ActiveKeyList.begin(); it != g_ActiveKeyList.end(); ++it) {
-    if ((*it)->mKey == *aKey)
-      return *it;
-  }
+    for (it = g_ActiveKeyList.begin(); it != g_ActiveKeyList.end(); ++it) {
+        if ((*it)->mKey == *aKey)
+            return *it;
+    }
 
-  return NULL;
+    return NULL;
 }
 
 HRESULT CoolKeyEnrollToken(const CoolKey *aKey, const char *aTokenType, 
@@ -536,157 +532,161 @@ HRESULT CoolKeyEnrollToken(const CoolKey *aKey, const char *aTokenType,
                            const char *aScreenNamePWord,const char *aTokenCode)
 {
 
-  PR_LOG( coolKeyLog, PR_LOG_DEBUG, 
-         ("CoolKeyEnrollToken: aTokenCode %s\n",aTokenCode));
-  if (!aKey || !aKey->mKeyID)
-    return E_FAIL;
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, 
+         ("%s CoolKeyEnrollToken: aTokenCode %s\n",GetTStamp(tBuff,56),aTokenCode));
+    if (!aKey || !aKey->mKeyID)
+        return E_FAIL;
   
-  CoolKeyHandler *handler = new CoolKeyHandler();
+    CoolKeyHandler *handler = new CoolKeyHandler();
   
-  if (!handler)
-    return E_FAIL;
+    if (!handler)
+        return E_FAIL;
   
-  ActiveKeyHandler *node = new ActiveKeyHandler(aKey, handler);
+    ActiveKeyHandler *node = new ActiveKeyHandler(aKey, handler);
 
-  if (!node) {
-    delete handler;
-    return E_FAIL;
-  }
+    if (!node) {
+        delete handler;
+        return E_FAIL;
+    }
 
   // node now has the only reference to the
   // key handler we just created. It will automatically
   // destroy the key handler when it is removed from
   // the active key list.
 
-  HRESULT hres = AddNodeToActiveKeyList(node);
+    HRESULT hres = AddNodeToActiveKeyList(node);
 
-  if (hres == E_FAIL) {
-    delete handler;
-    return hres;
-  }
+    if (hres == E_FAIL) {
+        delete handler;
+        return hres;
+    }
 
-  hres = handler->Init(aKey, aScreenName, aPIN,aScreenNamePWord,aTokenCode,ENROLL);
+    hres = handler->Init(aKey, aScreenName, aPIN,aScreenNamePWord,aTokenCode,ENROLL);
   
-  if (hres == E_FAIL) {
-    RemoveKeyFromActiveKeyList(aKey);
-    return hres;
-  }
+    if (hres == E_FAIL) {
+        RemoveKeyFromActiveKeyList(aKey);
+        return hres;
+    }
   
-  hres = handler->Enroll(aTokenType);
+    hres = handler->Enroll(aTokenType);
   
-  if (hres == E_FAIL) {
-    RemoveKeyFromActiveKeyList(aKey);
-    return hres;
-  }
+    if (hres == E_FAIL) {
+        RemoveKeyFromActiveKeyList(aKey);
+        return hres;
+    }
   
-  CoolKeyNotify(aKey, eCKState_EnrollmentStart, aScreenName ? 1 : 0);
+    CoolKeyNotify(aKey, eCKState_EnrollmentStart, aScreenName ? 1 : 0);
   
-  return S_OK;
+    return S_OK;
 }
 
 HRESULT CoolKeyResetTokenPIN(const CoolKey *aKey, const char *aScreenName, const char *aPIN,const char *aScreenNamePwd)
 {
-  PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyResetTokenPIN:\n"));
-  if (!aKey || !aKey->mKeyID)
-    return E_FAIL;
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s CoolKeyResetTokenPIN:\n",GetTStamp(tBuff,56)));
+    if (!aKey || !aKey->mKeyID)
+        return E_FAIL;
   
-  CoolKeyHandler *handler = new CoolKeyHandler();
+    CoolKeyHandler *handler = new CoolKeyHandler();
   
-  if (!handler)
-    return E_FAIL;
+    if (!handler)
+        return E_FAIL;
   
-  ActiveKeyHandler *node = new ActiveKeyHandler(aKey, handler);
+    ActiveKeyHandler *node = new ActiveKeyHandler(aKey, handler);
 
-  if (!node) {
-    delete handler;
-    return E_FAIL;
-  }
+    if (!node) {
+        delete handler;
+        return E_FAIL;
+    }
 
   // node now has the only reference to the
   // key handler we just created. It will automatically
   // destroy the key handler when it is removed from
   // the active key list.
 
-  HRESULT hres = AddNodeToActiveKeyList(node);
+    HRESULT hres = AddNodeToActiveKeyList(node);
 
-  if (hres == E_FAIL) {
-    delete handler;
-    return E_FAIL;
-  }
+    if (hres == E_FAIL) {
+        delete handler;
+        return E_FAIL;
+    }
   
-  hres = handler->Init(aKey, aScreenName, aPIN,aScreenNamePwd,NULL,RESET_PIN);
+    hres = handler->Init(aKey, aScreenName, aPIN,aScreenNamePwd,NULL,RESET_PIN);
   
-  if (hres == E_FAIL) {
-    RemoveKeyFromActiveKeyList(aKey);
-    return hres;
-  }
+    if (hres == E_FAIL) {
+        RemoveKeyFromActiveKeyList(aKey);
+        return hres;
+    }
   
-  hres = handler->ResetPIN();
+    hres = handler->ResetPIN();
 
-  if (hres == E_FAIL) {
-    RemoveKeyFromActiveKeyList(aKey);
-    return hres;
-  }
+    if (hres == E_FAIL) {
+        RemoveKeyFromActiveKeyList(aKey);
+        return hres;
+    }
   
-  CoolKeyNotify(aKey, eCKState_PINResetStart, aScreenName ? 1 : 0);
+    CoolKeyNotify(aKey, eCKState_PINResetStart, aScreenName ? 1 : 0);
   
-  return S_OK;
+    return S_OK;
 }
 
 HRESULT CoolKeyFormatToken(const CoolKey *aKey, const char *aTokenType, const char *aScreenName, const char *aPIN,const char *aScreenNamePWord,
 									 const char *aTokenCode)
 {
-  PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyFormatToken:\n"));
-  if (!aKey || !aKey->mKeyID)
-    return E_FAIL;
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s CoolKeyFormatToken:\n",GetTStamp(tBuff,56)));
+    if (!aKey || !aKey->mKeyID)
+        return E_FAIL;
   
-  CoolKeyHandler *handler = new CoolKeyHandler();
+    CoolKeyHandler *handler = new CoolKeyHandler();
   
-  if (!handler)
-    return E_FAIL;
+    if (!handler)
+        return E_FAIL;
   
-  ActiveKeyHandler *node = new ActiveKeyHandler(aKey, handler);
+    ActiveKeyHandler *node = new ActiveKeyHandler(aKey, handler);
 
-  if (!node) {
-    delete handler;
-    return E_FAIL;
-  }
+    if (!node) {
+        delete handler;
+        return E_FAIL;
+    }
 
   // node now has the only reference to the
   // key handler we just created. It will automatically
   // destroy the key handler when it is removed from
   // the active key list.
 
-  HRESULT hres = AddNodeToActiveKeyList(node);
+    HRESULT hres = AddNodeToActiveKeyList(node);
 
-  if (hres == E_FAIL) {
-    delete handler;
-    return E_FAIL;
-  }
+    if (hres == E_FAIL) {
+        delete handler;
+        return E_FAIL;
+    }
 
-  hres = handler->Init(aKey, aScreenName, aPIN,aScreenNamePWord,aTokenCode,FORMAT);
+    hres = handler->Init(aKey, aScreenName, aPIN,aScreenNamePWord,aTokenCode,FORMAT);
 
-  if (hres == E_FAIL) {
-    RemoveKeyFromActiveKeyList(aKey);
-    return hres;
-  }
+    if (hres == E_FAIL) {
+        RemoveKeyFromActiveKeyList(aKey);
+        return hres;
+    }
   
-  hres = handler->Format(aTokenType);
+    hres = handler->Format(aTokenType);
   
-  if (hres == E_FAIL) {
-    RemoveKeyFromActiveKeyList(aKey);
-    return hres;
-  }
+    if (hres == E_FAIL) {
+        RemoveKeyFromActiveKeyList(aKey);
+        return hres;
+    }
   
-  CoolKeyNotify(aKey, eCKState_FormatStart, 0);
+    CoolKeyNotify(aKey, eCKState_FormatStart, 0);
   
-  return S_OK;
+    return S_OK;
 }
 
 COOLKEY_API HRESULT CoolKeySetDataValue(const CoolKey *aKey,const char *name, const char *value)
 {
 
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeySetDataValue: name %s value %s\n",name,value));  
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s CoolKeySetDataValue: name %s value %s\n",GetTStamp(tBuff,56),name,value));  
 
     if (!aKey || !aKey->mKeyID)
         return E_FAIL; 
@@ -705,140 +705,135 @@ COOLKEY_API HRESULT CoolKeySetDataValue(const CoolKey *aKey,const char *name, co
 
 HRESULT CoolKeyCancelTokenOperation(const CoolKey *aKey)
 {
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s CoolKeyCancelTokenOperation:\n",GetTStamp(tBuff,56))); 
+    if (!aKey || !aKey->mKeyID)
+        return E_FAIL;
 
-  PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyCancelTokenOperation:\n")); 
-  if (!aKey || !aKey->mKeyID)
-    return E_FAIL;
+    ActiveKeyHandler *node = (ActiveKeyHandler *) GetNodeInActiveKeyList(aKey);
 
-
-  ActiveKeyHandler *node = (ActiveKeyHandler *) GetNodeInActiveKeyList(aKey);
-
-  
-  if (node) {
+    if (node) {
 
         if(node->mHandler)
         {
-	   node->mHandler->setCancelled();
-	   node->mHandler->CloseConnection();
+            node->mHandler->setCancelled();
+            node->mHandler->CloseConnection();
 
         }
     RemoveKeyFromActiveKeyList(aKey);
     RefreshInfoFlagsForKeyID(aKey);
-	CoolKeyNotify(aKey, eCKState_OperationCancelled, 0);
+    CoolKeyNotify(aKey, eCKState_OperationCancelled, 0);
     
-  }
+    }
 
-  return S_OK;
- } 
+    return S_OK;
+} 
 
 bool
 CoolKeyHasApplet(const CoolKey  *aKey)
 {
-
-  PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyHasApplet:\n"));
-  bool hasApplet = false;
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s CoolKeyHasApplet:\n",GetTStamp(tBuff,56)));
+    bool hasApplet = false;
   
-  if (aKey && aKey->mKeyID) {
-    CoolKeyInfo *info = GetCoolKeyInfoByKeyID(aKey);
-    if (info)
-    {
-      hasApplet = (HAS_APPLET(info->mInfoFlags) != 0);
+    if (aKey && aKey->mKeyID) {
+        CoolKeyInfo *info = GetCoolKeyInfoByKeyID(aKey);
+        if (info)
+        {
+            hasApplet = (HAS_APPLET(info->mInfoFlags) != 0);
 
-      PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyHasApplet: hasApplet: %d info flags %x\n",hasApplet,info->mInfoFlags));
+            PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s CoolKeyHasApplet: hasApplet: %d info flags %x\n",GetTStamp(tBuff,56),hasApplet,info->mInfoFlags));
 
+        }
     }
-  }
   
-  return hasApplet;
+    return hasApplet;
 }
 
 bool
 CoolKeyIsEnrolled(const CoolKey *aKey)
 {
-  PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyIsEnrolled:\n"));
-  bool isEnrolled = false;
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s CoolKeyIsEnrolled:\n",GetTStamp(tBuff,56)));
+    bool isEnrolled = false;
   
-  if (aKey && aKey->mKeyID) {
-    CoolKeyInfo *info = GetCoolKeyInfoByKeyID(aKey);
-    if (info)
-    {
-      isEnrolled = (IS_PERSONALIZED(info->mInfoFlags) != 0);
+    if (aKey && aKey->mKeyID) {
+        CoolKeyInfo *info = GetCoolKeyInfoByKeyID(aKey);
+        if (info)
+        {
+            isEnrolled = (IS_PERSONALIZED(info->mInfoFlags) != 0);
 
-      PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyIsEnrolled: enrolled: %d info flags %x\n",isEnrolled,info->mInfoFlags));
+            PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s CoolKeyIsEnrolled: enrolled: %d info flags %x\n",GetTStamp(tBuff,56),isEnrolled,info->mInfoFlags));
+        }
     }
-  }
   
-  return isEnrolled;
+    return isEnrolled;
 }
 
 bool
 CoolKeyAuthenticate(const CoolKey *aKey, const char *aPIN)
 {
-  PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyAuthenticate:\n"));
-  if (!aKey || !aKey->mKeyID)
-    return false;
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s CoolKeyAuthenticate:\n",GetTStamp(tBuff,56)));
+    if (!aKey || !aKey->mKeyID)
+        return false;
   
-  return NSSManager::AuthenticateCoolKey(aKey, aPIN);
+    return NSSManager::AuthenticateCoolKey(aKey, aPIN);
 }
 
 HRESULT
 CoolKeyGenerateRandomData(unsigned char *aBuf, int aBufLen)
 {
-  if (!aBuf || aBufLen < 1)
-    return E_FAIL;
+    if (!aBuf || aBufLen < 1)
+         return E_FAIL;
   
-  SECStatus status = PK11_GenerateRandom(aBuf, aBufLen);
-  return status;
+    SECStatus status = PK11_GenerateRandom(aBuf, aBufLen);
+    return status;
 }
 
 HRESULT CoolKeyGetSignatureLength(const CoolKey *aKey, int *aLength)
 {
-  return NSSManager::GetSignatureLength(aKey, aLength);
+    return NSSManager::GetSignatureLength(aKey, aLength);
 }
 
 HRESULT
 CoolKeySignData(const CoolKey *aKey, const unsigned char *aData, int aDataLen, unsigned char *aSignedData, int *aSignedDataLen)
 {
-  if (!aKey || !aKey->mKeyID || !aData || aDataLen < 1 ||
-      !aSignedData || !aSignedDataLen)
-    return E_FAIL;
+    if (!aKey || !aKey->mKeyID || !aData || aDataLen < 1 ||
+        !aSignedData || !aSignedDataLen)
+        return E_FAIL;
   
-  return NSSManager::SignDataWithKey(aKey, aData, aDataLen, aSignedData, aSignedDataLen);
+    return NSSManager::SignDataWithKey(aKey, aData, aDataLen, aSignedData, aSignedDataLen);
 }
 HRESULT
 CoolKeyGetCertNicknames( const CoolKey *aKey , std::vector<std::string> & aNames)
 {
-
     if(!aKey )
         return E_FAIL;
 
-   HRESULT res = NSSManager::GetKeyCertNicknames(aKey,aNames); 
+    HRESULT res = NSSManager::GetKeyCertNicknames(aKey,aNames); 
 
-   return res;
-
+    return res;
 }
 
 HRESULT 
 CoolKeyGetCertInfo(const CoolKey *aKey, char *aCertNickname, std::string & aCertInfo)
 {
-
     if(!aKey || !aCertNickname)
     {
         return E_FAIL;
-
     }
 
     return NSSManager::GetKeyCertInfo(aKey,aCertNickname,aCertInfo);
-
 }
 
 HRESULT
 CoolKeyGetPolicy(const CoolKey *aKey, char *aBuf, int aBufLen)
 {
-  if (!aKey || !aKey->mKeyID || !aBuf || aBufLen < 1)
-    return E_FAIL;
+    if (!aKey || !aKey->mKeyID || !aBuf || aBufLen < 1)
+        return E_FAIL;
   
-  return NSSManager::GetKeyPolicy(aKey, aBuf, aBufLen);
+    return NSSManager::GetKeyPolicy(aKey, aBuf, aBufLen);
 }
 HRESULT
 CoolKeyGetIssuedTo(const CoolKey *aKey, char *aBuf, int aBufLength)
@@ -847,16 +842,15 @@ CoolKeyGetIssuedTo(const CoolKey *aKey, char *aBuf, int aBufLength)
         return E_FAIL;
 
     return NSSManager::GetKeyIssuedTo(aKey,aBuf,aBufLength);
-
 }
 
 HRESULT CoolKeyGetATR(const CoolKey *aKey, char *aBuf, int aBufLen)
 {
-
+    char tBuff[56];
     if (!aKey || !aKey->mKeyID || !aBuf || aBufLen < 1)
          return E_FAIL;
     aBuf[0] = 0;
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyGetATR::\n"));
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s CoolKeyGetATR::\n",GetTStamp(tBuff,56)));
 
     HRESULT result = S_OK;
 
@@ -867,23 +861,22 @@ HRESULT CoolKeyGetATR(const CoolKey *aKey, char *aBuf, int aBufLen)
 
     if((int) strlen(atr) < aBufLen)
     {
-
         sprintf(aBuf,"%s",(char *) atr);
     }
 
     return result;
-
 }
 
 HRESULT CoolKeyGetIssuerInfo(const CoolKey *aKey, char *aBuf, int aBufLen)
 {
-
-     if (!aKey || !aKey->mKeyID || !aBuf || aBufLen < 1)
+    char tBuff[56];
+ 
+    if (!aKey || !aKey->mKeyID || !aBuf || aBufLen < 1)
          return E_FAIL;
 
      aBuf[0] = 0;
 
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyGetIssuerInfo::\n"));
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s CoolKeyGetIssuerInfo::\n",GetTStamp(tBuff,56)));
 
     CKYBuffer ISSUER_INFO;
     CKYBuffer_InitEmpty(&ISSUER_INFO);
@@ -896,38 +889,37 @@ HRESULT CoolKeyGetIssuerInfo(const CoolKey *aKey, char *aBuf, int aBufLen)
 
     HRESULT result = S_OK;
 
-
     CKYCardContext *cardCtxt = CKYCardContext_Create(SCARD_SCOPE_USER);
 
-     assert(cardCtxt);
+    assert(cardCtxt);
     if (!cardCtxt) {
-      PR_LOG( coolKeyLog, PR_LOG_ERROR, ("Attempting to get key issuer info. Can't create Card Context !.\n"));
-      result = E_FAIL;
-      goto done;
+        PR_LOG( coolKeyLog, PR_LOG_ERROR, ("%s Attempting to get key issuer info. Can't create Card Context !.\n",GetTStamp(tBuff,56)));
+        result = E_FAIL;
+        goto done;
     }
 
     conn = CKYCardConnection_Create(cardCtxt);
     assert(conn);
     if (!conn) {
-      PR_LOG( coolKeyLog, PR_LOG_ERROR, ("Attempting to get key issuer info.  Can't create Card Connection!\n"));
-      result = E_FAIL;
-      goto done;
+        PR_LOG( coolKeyLog, PR_LOG_ERROR, ("%s Attempting to get key issuer info.  Can't create Card Connection!\n",GetTStamp(tBuff,56)));
+        result = E_FAIL;
+        goto done;
     }
 
     readerName = GetReaderNameForKeyID(aKey);
     assert(readerName);
     if (!readerName) {
-      PR_LOG( coolKeyLog, PR_LOG_ERROR, ("Attempting to get key issuer info.  Can't get reader name!\n"));
-      result = E_FAIL;
-      goto done;
+        PR_LOG( coolKeyLog, PR_LOG_ERROR, ("%s Attempting to get key issuer info.  Can't get reader name!\n",GetTStamp(tBuff,56)));
+        result = E_FAIL;
+        goto done;
     }
 
     status = CKYCardConnection_Connect(conn, readerName);
     if (status != CKYSUCCESS) {
-      PR_LOG( coolKeyLog, PR_LOG_ERROR, ("Attempting to get key issuer info. Can't connect to Card!\n"));
+        PR_LOG( coolKeyLog, PR_LOG_ERROR, ("%s Attempting to get key issuer info. Can't connect to Card!\n",GetTStamp(tBuff,56)));
 
-      result = E_FAIL;
-      goto done;
+        result = E_FAIL;
+        goto done;
     }
 
 #ifndef DARWIN
@@ -936,17 +928,15 @@ CKYCardConnection_BeginTransaction(conn);
     apduRC = 0;
     status = CKYApplet_SelectCoolKeyManager(conn, &apduRC);
     if (status != CKYSUCCESS) {
-
-      PR_LOG( coolKeyLog, PR_LOG_ERROR, ("Attempting to get key issuer info.  Can't select CoolKey manager!\n"));
-      goto done;
+        PR_LOG( coolKeyLog, PR_LOG_ERROR, ("%s Attempting to get key issuer info.  Can't select CoolKey manager!\n",GetTStamp(tBuff,56)));
+        goto done;
     }
 
     status = CKYApplet_GetIssuerInfo(conn, &ISSUER_INFO,
                         &apduRC);
-
     if(status != CKYSUCCESS)
     {
-        PR_LOG( coolKeyLog, PR_LOG_ERROR, ("Attempting to get key issuer info.  Error actually getting IssuerInfo!\n"));
+        PR_LOG( coolKeyLog, PR_LOG_ERROR, ("%s Attempting to get key issuer info.  Error actually getting IssuerInfo!\n",GetTStamp(tBuff,56)));
         result = E_FAIL;
         goto done;
     }
@@ -955,14 +945,14 @@ CKYCardConnection_BeginTransaction(conn);
 
     if(infoSize == 0)
     {
-        PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyGetIssuerInfo:: IssuerInfo buffer size is zero!\n"));
+        PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s CoolKeyGetIssuerInfo:: IssuerInfo buffer size is zero!\n",GetTStamp(tBuff,56)));
         result = E_FAIL;
         goto done;
     }
 
     if(infoSize >= (CKYSize ) aBufLen)
     {
-        PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyGetIssuerInfo:: Insufficient space to put Issuer Info!\n"));
+        PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s CoolKeyGetIssuerInfo:: Insufficient space to put Issuer Info!\n",GetTStamp(tBuff,56)));
 
         result = E_FAIL;
         goto done;
@@ -970,7 +960,7 @@ CKYCardConnection_BeginTransaction(conn);
 
     infoData = CKYBuffer_Data(&ISSUER_INFO);
 
-    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyGetIssuerInfo:: IssuerInfo actual data %s!\n",(char *) infoData));
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s CoolKeyGetIssuerInfo:: IssuerInfo actual data %s!\n",GetTStamp(tBuff,56),(char *) infoData));
     if(infoData)
     {
         strcpy((char *) aBuf, (char *) infoData);
@@ -980,13 +970,13 @@ CKYCardConnection_BeginTransaction(conn);
 
     if (conn) {
 #ifndef DARWIN
-      CKYCardConnection_EndTransaction(conn);
+        CKYCardConnection_EndTransaction(conn);
 #endif
-      CKYCardConnection_Disconnect(conn);
-      CKYCardConnection_Destroy(conn);
+        CKYCardConnection_Disconnect(conn);
+        CKYCardConnection_Destroy(conn);
     }
     if (cardCtxt) {
-      CKYCardContext_Destroy(cardCtxt);
+        CKYCardContext_Destroy(cardCtxt);
     }
 
     CKYBuffer_FreeData(&ISSUER_INFO);
@@ -996,96 +986,87 @@ CKYCardConnection_BeginTransaction(conn);
 
 bool    CoolKeyIsReallyCoolKey(const CoolKey *aKey)
 {
-   bool res = false;
+    bool res = false;
 
-   if(!aKey)
-       return res;
+    if(!aKey)
+        return res;
 
+    CoolKeyInfo *info =
+        GetCoolKeyInfoByKeyID(aKey);
 
-   CoolKeyInfo *info =
-      GetCoolKeyInfoByKeyID(aKey);
+    if(!info)
+        return res;
 
-   if(!info)
-      return res;
+    if( IS_REALLY_A_COOLKEY(info->mInfoFlags))
+        res = true;
 
-   if( IS_REALLY_A_COOLKEY(info->mInfoFlags))
-      res = true;
-
-   return res;
+    return res;
 }
 
 int CoolKeyGetAppletVer(const CoolKey *aKey, const bool isMajor)
 {
+    int result = -1;
+    if(!aKey)
+        return result;
 
-  int result = -1;
-  if(!aKey)
-      return result;
+    CoolKeyInfo *info =
+        GetCoolKeyInfoByKeyID(aKey);
 
-  CoolKeyInfo *info =
-      GetCoolKeyInfoByKeyID(aKey);
+    if(!info)
+        return result;
 
-  if(!info)
-      return result;
+    PK11SlotInfo *slot = GetSlotForKeyID(aKey);
 
-  PK11SlotInfo *slot = GetSlotForKeyID(aKey);
+    if(!slot)
+        return result;
 
-  if(!slot)
-      return result;
+    CK_TOKEN_INFO tokenInfo;
+    PK11_GetTokenInfo(slot, &tokenInfo);
 
-  CK_TOKEN_INFO tokenInfo;
-  PK11_GetTokenInfo(slot, &tokenInfo);
+    if(isMajor)
+        result = (int) tokenInfo.firmwareVersion.major;
+    else
+        result = (int) tokenInfo.firmwareVersion.minor;
 
-  if(isMajor)
-     result = (int) tokenInfo.firmwareVersion.major;
-  else
-     result = (int) tokenInfo.firmwareVersion.minor;
-
-   return result;
-
+    return result;
 }
-
 
 bool
 CoolKeyHasReader(const CoolKey *aKey)
 {
+    bool res = false;
 
-   bool res = false;
+    if(!aKey)
+         return res;
 
+    const char *readerName =  GetReaderNameForKeyID(aKey);
 
-   if(!aKey)
-       return res;
+    if(readerName)
+         res = true;
 
-
-   const char *readerName =  GetReaderNameForKeyID(aKey);
-
-
-   if(readerName)
-       res = true;
-
-   return res;
-
-
+    return res;
 }
 
 
 bool
 CoolKeyRequiresAuthentication(const CoolKey *aKey)
 {
-  PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyRequiresAuthentication:\n"));
-  if (!aKey || !aKey->mKeyID)
-    return false;
-  
-  return NSSManager::RequiresAuthentication(aKey);
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s CoolKeyRequiresAuthentication:\n",GetTStamp(tBuff,56)));
+    if (!aKey || !aKey->mKeyID)
+        return false;
+    return NSSManager::RequiresAuthentication(aKey);
 }
 
 bool
 CoolKeyIsAuthenticated(const CoolKey *aKey)
 {
-  PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("CoolKeyIsAuthenticated:\n"));
-  if (!aKey || !aKey->mKeyID)
-    return false;
+    char tBuff[56];
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s CoolKeyIsAuthenticated:\n",GetTStamp(tBuff,56)));
+    if (!aKey || !aKey->mKeyID)
+        return false;
   
-  return NSSManager::IsAuthenticated(aKey);
+    return NSSManager::IsAuthenticated(aKey);
 }
 
 #define NIBBLE_TO_HEX(nibble, caps) ((nibble) < 10) ? ((nibble) + '0') : ((nibble) - 10 + ((caps) ? 'A' : 'a'));
@@ -1099,42 +1080,42 @@ CoolKeyBinToHex(const unsigned char *aInput,
 {
   // Check if there's enough room to accomodate our output.
   
-  if (aOutputLength < ((aInputLength*2) + 1))
-    return E_FAIL;
+    if (aOutputLength < ((aInputLength*2) + 1))
+        return E_FAIL;
   
-  unsigned long outIdx = 0;
-  unsigned long i;
+    unsigned long outIdx = 0;
+    unsigned long i;
   
-  for (i = 0; i < aInputLength; i++) {
-    unsigned char hbits = aInput[i] >> 4;
-    unsigned char lbits = aInput[i] & 0x0F;
+    for (i = 0; i < aInputLength; i++) {
+        unsigned char hbits = aInput[i] >> 4;
+        unsigned char lbits = aInput[i] & 0x0F;
     
-    aOutput[outIdx++] = NIBBLE_TO_HEX(hbits, aCaps);
-    aOutput[outIdx++] = NIBBLE_TO_HEX(lbits, aCaps);
-  }
+        aOutput[outIdx++] = NIBBLE_TO_HEX(hbits, aCaps);
+        aOutput[outIdx++] = NIBBLE_TO_HEX(lbits, aCaps);
+    }
   
-  aOutput[outIdx] = '\0';
+    aOutput[outIdx] = '\0';
   
-  return S_OK;
+    return S_OK;
 }
 
 const char *
 CoolKeyGetTokenName(const CoolKey *aKey)
 {
-  PK11SlotInfo *slot = GetSlotForKeyID(aKey);
-  const char *tokenName = PK11_GetTokenName(slot);
-  PK11_FreeSlot(slot);  // depending 
-  return tokenName;
+    PK11SlotInfo *slot = GetSlotForKeyID(aKey);
+    const char *tokenName = PK11_GetTokenName(slot);
+    PK11_FreeSlot(slot);  // depending 
+    return tokenName;
 }
 
 const char *
 CoolKeyGetKeyID(const char *tokenName, int *aKeyType)
 {
-  CoolKeyInfo *keyInfo = GetCoolKeyInfoByTokenName(tokenName);
-  const char *aCUID = keyInfo->mCUID;
+    CoolKeyInfo *keyInfo = GetCoolKeyInfoByTokenName(tokenName);
+    const char *aCUID = keyInfo->mCUID;
 
-  *aKeyType = eCKType_CoolKey;
-  return aCUID;
+    *aKeyType = eCKType_CoolKey;
+    return aCUID;
 }
 
 const char *CoolKeyGetConfig(const char *aValue)
@@ -1161,3 +1142,20 @@ HRESULT     CoolKeySetConfig(const char *aName,const char *aValue)
 
    return res;
 }
+
+//Utility function to get Time Stamp
+char *GetTStamp(char *aTime,int aSize)
+{
+    if(!aTime)
+        return NULL;
+    int maxSize = 55;
+    if(aSize < maxSize)
+        return NULL;
+
+    char *tFormat = "[%c]";
+    time_t tm = time(NULL);
+    struct tm *ptr = localtime(&tm);
+    strftime(aTime ,maxSize ,tFormat,ptr);
+    return aTime;
+}
+
