@@ -50,20 +50,21 @@ ESC_D::ESC_D()
 
 void ESC_D::cleanup()
 {
+    char tBuff[56];
     int already = 0;
     PR_Lock(mDataLock);
     already = commandAlreadyLaunched;
     PR_Unlock(mDataLock);
     if(already)
     {
-        PR_LOG( escDLog, PR_LOG_ERROR, ("Daemon: ! Command is already running. \n"));
+        PR_LOG( escDLog, PR_LOG_ERROR, ("%s Daemon: ! Command is already running. \n",GetTStamp(tBuff,56)));
     }
 
-    PR_LOG( escDLog, PR_LOG_ERROR, ("Daemon: Attempting to shut down. \n"));
+    PR_LOG( escDLog, PR_LOG_ERROR, ("%s Daemon: Attempting to shut down. \n",GetTStamp(tBuff,56)));
 
     CoolKeyShutdown();
 
-    PR_LOG( escDLog, PR_LOG_ERROR, ("Daemon: Past CoolKeyShutdown \n"));
+    PR_LOG( escDLog, PR_LOG_ERROR, ("%s Daemon: Past CoolKeyShutdown \n",GetTStamp(tBuff,56)));
 
     PR_DestroyLock(mDataLock);
 
@@ -73,13 +74,14 @@ void ESC_D::cleanup()
 
 HRESULT ESC_D::init(int argc, char **argv)
 {
+    char tBuff[56];
     HRESULT result = S_OK;
 
-    PR_LOG( escDLog, PR_LOG_DEBUG, ("Daemon: Nmber of args! %d \n",argc));
+    PR_LOG( escDLog, PR_LOG_DEBUG, ("%s Daemon: Nmber of args! %d \n",GetTStamp(tBuff,56),argc));
 
 
     for(int i = 0; i < argc ; i++)
-        PR_LOG( escDLog, PR_LOG_DEBUG, ("Argv[%d]: %s \n",i,argv[i]));
+        PR_LOG( escDLog, PR_LOG_DEBUG, ("%s Argv[%d]: %s \n",GetTStamp(tBuff,56),i,argv[i]));
 
     if(argc != CORRECT_NUM_ARGS)
     {
@@ -89,7 +91,7 @@ HRESULT ESC_D::init(int argc, char **argv)
      mDataLock = PR_NewLock();
      if (!mDataLock)
      {
-        PR_LOG( escDLog, PR_LOG_ERROR, ("Cannot create mutex for ESCD! \n"));
+        PR_LOG( escDLog, PR_LOG_ERROR, ("%s Cannot create mutex for ESCD! \n",GetTStamp(tBuff,56)));
         return E_FAIL;
      }
 
@@ -131,7 +133,7 @@ HRESULT ESC_D::init(int argc, char **argv)
         {
             keyInsertedCommand = value; 
 
-            PR_LOG( escDLog, PR_LOG_DEBUG, ("Daemon: keyInsertedCommand: %s. \n",keyInsertedCommand.c_str()));
+            PR_LOG( escDLog, PR_LOG_DEBUG, ("%s Daemon: keyInsertedCommand: %s. \n",GetTStamp(tBuff,56),keyInsertedCommand.c_str()));
 
         }
     }
@@ -139,12 +141,12 @@ HRESULT ESC_D::init(int argc, char **argv)
     vector<string>::iterator n1, v1;
     v1  =  arg2Tokens.begin();
    
-    PR_LOG(escDLog, PR_LOG_ALWAYS, ("Daemon: got v1 \n")); 
+    PR_LOG(escDLog, PR_LOG_ALWAYS, ("%s Daemon: got v1 \n",GetTStamp(tBuff,56))); 
 
     if(n1 != arg2Tokens.end())
     {
         n1  =  v1++;
-        PR_LOG(escDLog, PR_LOG_ALWAYS, ("Daemon: got n1... \n"));
+        PR_LOG(escDLog, PR_LOG_ALWAYS, ("%s Daemon: got n1... \n",GetTStamp(tBuff,56)));
         string name1 =  "";
         string value1 = "";
 
@@ -157,7 +159,7 @@ HRESULT ESC_D::init(int argc, char **argv)
         if(name1 == ON_SIGNAL_CMD && value1.size())
         {
            onSignalCommand = value1;
-           PR_LOG( escDLog, PR_LOG_DEBUG, ("Daemon: onSignalCommand: %s. \n",onSignalCommand.c_str()));
+           PR_LOG( escDLog, PR_LOG_DEBUG, ("%s Daemon: onSignalCommand: %s. \n",GetTStamp(tBuff,56),onSignalCommand.c_str()));
         }
 
     }
@@ -196,12 +198,13 @@ HRESULT ESC_D::Dispatch( CoolKeyListener *listener,
         unsigned long data, const char *strData
     )
 {
+    char tBuff[56];
     HRESULT result = S_OK;
 
     if(keyState == eCKState_KeyInserted)
     {
 
-        PR_LOG( escDLog, PR_LOG_ALWAYS, ("Daemon: Key Inserted: keyID:  %s. \n",keyID));
+        PR_LOG( escDLog, PR_LOG_ALWAYS, ("%s Daemon: Key Inserted: keyID:  %s. \n",GetTStamp(tBuff,56),keyID));
 
         string fullCommand="";
         string space = " " ;
@@ -214,7 +217,7 @@ HRESULT ESC_D::Dispatch( CoolKeyListener *listener,
 
     if(keyState == eCKState_KeyRemoved)
     {
-        PR_LOG( escDLog, PR_LOG_ALWAYS, ("Daemon: Key Removed: keyID:  %s. \n",keyID));
+        PR_LOG( escDLog, PR_LOG_ALWAYS, ("%s Daemon: Key Removed: keyID:  %s. \n",GetTStamp(tBuff,56),keyID));
 
     }
 
@@ -252,9 +255,10 @@ void ESC_D::TokenizeArgument(const string& str,
 
 HRESULT ESC_D::launchCommand(string &command)
 {
+    char tBuff[56];
     const char *shell = SHELL;
 
-    PR_LOG( escDLog, PR_LOG_ALWAYS, ("Daemon: About to launch command:  %s. \n",command.c_str()));
+    PR_LOG( escDLog, PR_LOG_ALWAYS, ("%s Daemon: About to launch command:  %s. \n",GetTStamp(tBuff,56),command.c_str()));
 
     int already = 0;
 
@@ -267,7 +271,7 @@ HRESULT ESC_D::launchCommand(string &command)
 
     if(already)
     {
-        PR_LOG( escDLog, PR_LOG_DEBUG, ("Daemon: About to launch command: Command already running.. \n"))  ;
+        PR_LOG( escDLog, PR_LOG_DEBUG, ("%s Daemon: About to launch command: Command already running.. \n",GetTStamp(tBuff,56)))  ;
         return E_FAIL;
     }
 
@@ -303,7 +307,7 @@ HRESULT ESC_D::launchCommand(string &command)
 
      
     commandAlreadyLaunched = 0;
-    PR_LOG( escDLog, PR_LOG_DEBUG, ("Daemon: Child command has exited.. \n"))  ;
+    PR_LOG( escDLog, PR_LOG_DEBUG, ("%s Daemon: Child command has exited.. \n",GetTStamp(tBuff,56)))  ;
 
     PR_Unlock(mDataLock);
 
@@ -317,7 +321,8 @@ HRESULT ESC_D::launchCommand(string &command)
 int ESC_D::xIOErrorHandler(Display *display)
 {
 
-   PR_LOG( escDLog, PR_LOG_ALWAYS, ("Daemon: XIOErrorHandler! We are finished.\n"));
+   char tBuff[56];
+   PR_LOG( escDLog, PR_LOG_ALWAYS, ("%s Daemon: XIOErrorHandler! We are finished.\n",GetTStamp(tBuff,56)));
 
     if(single)
         single->cleanup();
@@ -328,11 +333,11 @@ int ESC_D::xIOErrorHandler(Display *display)
 
 void ESC_D::signalHandler(int signal)
 {
-
+   char tBuff[56];
    string fullCommand="";
    string space = " " ;
 
-   PR_LOG( escDLog, PR_LOG_DEBUG, ("Daemon: signalHandler: signal: %d.. \n",signal));
+   PR_LOG( escDLog, PR_LOG_DEBUG, ("%s Daemon: signalHandler: signal: %d.. \n",GetTStamp(tBuff,56),signal));
 
    switch(signal)
    {
@@ -357,7 +362,7 @@ void ESC_D::signalHandler(int signal)
 
 int main(int argc, char **argv)
 {
-
+    char tBuff[56];
     pid_t pid;
 
     // Fork off the parent process        
@@ -369,7 +374,7 @@ int main(int argc, char **argv)
         exit(0);
     }
 
-    PR_LOG(escDLog, PR_LOG_ALWAYS, ("Daemon: Initializing Daemon... \n"));
+    PR_LOG(escDLog, PR_LOG_ALWAYS, ("%s Daemon: Initializing Daemon... \n",GetTStamp(tBuff,56)));
 
     umask(0);
 
@@ -379,7 +384,7 @@ int main(int argc, char **argv)
 
     if(result == E_FAIL)
     {
-        PR_LOG( escDLog, PR_LOG_ALWAYS, ("Daemon: Error initializing, exiting.. \n"));
+        PR_LOG( escDLog, PR_LOG_ALWAYS, ("%s Daemon: Error initializing, exiting.. \n",GetTStamp(tBuff,56)));
         exit(1);
     }
 
@@ -387,7 +392,7 @@ int main(int argc, char **argv)
 
     if(hresult == E_FAIL)
     {
-        PR_LOG( escDLog, PR_LOG_ALWAYS, ("Daemon: Error initializing CoolKey System, this will result in problems recognizing Smart Cards! \n"));
+        PR_LOG( escDLog, PR_LOG_ALWAYS, ("%s Daemon: Error initializing CoolKey System, this will result in problems recognizing Smart Cards! \n",GetTStamp(tBuff,56)));
     }
 
 
@@ -400,13 +405,13 @@ int main(int argc, char **argv)
 
     if(!display)
     {
-        PR_LOG( escDLog, PR_LOG_ALWAYS, ("Daemon: Error Obtaining X Display! \n"));
+        PR_LOG( escDLog, PR_LOG_ALWAYS, ("%s Daemon: Error Obtaining X Display! \n",GetTStamp(tBuff,56)));
     }
 
-    PR_LOG( escDLog, PR_LOG_ALWAYS, ("Daemon: Attempted XOpenDisplay: %p \n",display)); 
+    PR_LOG( escDLog, PR_LOG_ALWAYS, ("%s Daemon: Attempted XOpenDisplay: %p \n",GetTStamp(tBuff,56),display)); 
     while ("looping forever") XNextEvent(display,&event);
 
-    PR_LOG( escDLog, PR_LOG_ALWAYS, ("Daemon: main exiting.. \n")    );
+    PR_LOG( escDLog, PR_LOG_ALWAYS, ("%s Daemon: main exiting.. \n",GetTStamp(tBuff,56))    );
  
     XCloseDisplay (display);
  
