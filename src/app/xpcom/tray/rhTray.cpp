@@ -20,6 +20,7 @@
 #include "rhTray.h"
 #include "nsIGenericFactory.h"
 #include <prlog.h>
+#include <time.h>
 
 NS_IMPL_ISUPPORTS1(rhTray, rhITray)
 
@@ -29,9 +30,7 @@ HWND rhTray::mWnd = 0;
 int rhTray::mInitialized = 0;
 ATOM rhTray::mWndClass = 0;
 
-
 std::list< nsCOMPtr<rhITrayWindNotify> > rhTray::gTrayWindNotifyListeners;
-
 
 map< nsIBaseWindow *, rhTrayWindowListener *> rhTray::mWindowMap;
 map<unsigned int,string> rhTray::mMenuItemStringMap;
@@ -56,8 +55,8 @@ rhTray::rhTray()
 
 rhTray::~rhTray()
 {
-
-    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::~rhTray\n"));
+    char tBuff[56];
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTray::~rhTray\n",GetTStamp(tBuff,56)));
 
 
     Cleanup();
@@ -66,7 +65,8 @@ rhTray::~rhTray()
 
 NS_IMETHODIMP rhTray::Setwindnotifycallback(rhITrayWindNotify *jsNotify)
 {
-    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::Setwindnotifycallback\n"));
+    char tBuff[56];
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTray::Setwindnotifycallback\n",GetTStamp(tBuff,56)));
 
     if(jsNotify)
         AddTrayWindNotifyListener(jsNotify);
@@ -78,8 +78,8 @@ NS_IMETHODIMP rhTray::Setwindnotifycallback(rhITrayWindNotify *jsNotify)
 
 NS_IMETHODIMP rhTray::Unsetwindnotifycallback(rhITrayWindNotify *jsNotify)
 {
-
-    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::Unsetwindnotifycallback\n"));
+    char tBuff[56];
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTray::Unsetwindnotifycallback\n",GetTStamp(tBuff,56)));
 
     if(jsNotify)
         RemoveTrayWindNotifyListener(jsNotify);
@@ -90,11 +90,10 @@ NS_IMETHODIMP rhTray::Unsetwindnotifycallback(rhITrayWindNotify *jsNotify)
 /* void add (); */
 NS_IMETHODIMP rhTray::Add(nsIBaseWindow *aWindow)
 {
-    
-
+    char tBuff[56];
     NS_ENSURE_ARG(aWindow);
 
-    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::Add %p \n",aWindow));
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTray::Add %p \n",GetTStamp(tBuff,56),aWindow));
     HRESULT res = Initialize();
     if(res != S_OK)
     {
@@ -112,7 +111,8 @@ NS_IMETHODIMP rhTray::Add(nsIBaseWindow *aWindow)
 /* void remove (); */
 NS_IMETHODIMP rhTray::Remove(nsIBaseWindow *aWindow)
 {
-     PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::Remove window %p \n",aWindow));
+    char tBuff[56];
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTray::Remove window %p \n",GetTStamp(tBuff,56),aWindow));
 
     return NS_OK;
 }
@@ -160,14 +160,11 @@ NS_IMETHODIMP rhTray::IsInitializedAlready(PRBool *_retval)
 
     return NS_OK;
 
-
-
 }
 
 /* void hideall (); */
 NS_IMETHODIMP rhTray::Hideall() 
 {
-
     HideAllListeners();
     return NS_OK;
 }
@@ -195,15 +192,16 @@ NS_IMETHODIMP rhTray::Sendnotification(const char *aTitle,const char *aMessage,P
 /* void settooltipmsg (in string aMessage); */
 NS_IMETHODIMP rhTray::Settooltipmsg(const char *aMessage)
 {
-   PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::Settooltipmsg %s  \n",aMessage));
+    char tBuff[56];
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTray::Settooltipmsg %s  \n",GetTStamp(tBuff,56),aMessage));
 
-   if(!aMessage)
+    if(!aMessage)
+       return E_FAIL;
+
+    if(strlen(aMessage) >= 64)
      return E_FAIL;
 
-   if(strlen(aMessage) >= 64)
-     return E_FAIL;
-
-   strcpy(rhTray::mIconData.szTip, aMessage);
+    strcpy(rhTray::mIconData.szTip, aMessage);
 
    return NS_OK;
 }
@@ -211,24 +209,18 @@ NS_IMETHODIMP rhTray::Settooltipmsg(const char *aMessage)
 /* void seticonimage (in string aIcon); */
 NS_IMETHODIMP rhTray::Seticonimage(const char *aIcon)
 {
-
-
     return NS_OK;
 }
 
 /* void hideicon (); */
 NS_IMETHODIMP rhTray::Hideicon(void)
 {
-
-
     return NS_OK;
 }
 
 /* void showicon (); */
 NS_IMETHODIMP rhTray::Showicon(void)
 {
-
-
     return NS_OK;
 }
 
@@ -254,14 +246,13 @@ HRESULT rhTray::SendBalloonTooltipMessage(char *aMessage)
 
 HRESULT rhTray::Initialize()
 {
-
+    char tBuff[56]; 
     if(mInitialized)
     {
         return S_OK;
     }
 
-    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::Initialize  \n"));
-
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTray::Initialize  \n",GetTStamp(tBuff,56)));
 
     CreateMutex(NULL, FALSE, "ESCMutex"); 
 
@@ -299,7 +290,7 @@ HRESULT rhTray::Initialize()
 
     rhTray::mIconData.uTimeout = 1000;
 
-    PR_LOG(trayLog,PR_LOG_DEBUG,("rhTray::Initialize tray icon handle %d \n",icon));
+    PR_LOG(trayLog,PR_LOG_DEBUG,("%s rhTray::Initialize tray icon handle %d \n",GetTStamp(tBuff,56),icon));
 
 
     ::Shell_NotifyIcon( NIM_ADD, &rhTray::mIconData);
@@ -310,17 +301,18 @@ HRESULT rhTray::Initialize()
 
 HRESULT rhTray::RemoveIcon()
 {
-    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::RemoveIcon. \n"));
+    char tBuff[56];
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTray::RemoveIcon. \n",GetTStamp(tBuff,56)));
 
     ::Shell_NotifyIcon(NIM_DELETE,&rhTray::mIconData);
-
 
     return S_OK;
 }
 
 HRESULT rhTray::Cleanup()
 {
-    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::Cleanup.\n"));
+    char tBuff[56];
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTray::Cleanup.\n",GetTStamp(tBuff,56)));
 
     RemoveAllListeners();
     DestroyEventWindow();
@@ -334,7 +326,8 @@ HRESULT rhTray::Cleanup()
 void rhTray::ShowAllListeners()
 {
 
-    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::ShowAllListeners.\n"));
+    char tBuff[56];
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTray::ShowAllListeners.\n",GetTStamp(tBuff,56)));
     map< nsIBaseWindow *, rhTrayWindowListener *>::iterator i;
 
     rhTrayWindowListener *cur = NULL;
@@ -355,10 +348,10 @@ void rhTray::ShowAllListeners()
 
 }
 
-
 void rhTray::HideAllListeners()
 {
-    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::HideAllListeners.\n"));
+    char tBuff[56]; 
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTray::HideAllListeners.\n",GetTStamp(tBuff,56)));
 
     map< nsIBaseWindow *, rhTrayWindowListener *>::iterator i;
 
@@ -371,7 +364,6 @@ void rhTray::HideAllListeners()
         if(cur)
         {
             cur->HideWindow();
-
         }
 
     }
@@ -381,7 +373,8 @@ void rhTray::HideAllListeners()
 HRESULT rhTray::DestroyEventWindow()
 {
 
-    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::DestroyEventWindow \n"));
+    char tBuff[56];
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTray::DestroyEventWindow \n",GetTStamp(tBuff,56)));
 
     ::DestroyWindow(rhTray::mWnd);
     rhTray::mWnd = 0;
@@ -392,7 +385,8 @@ HRESULT rhTray::DestroyEventWindow()
 HRESULT rhTray::CreateEventWindow()
 {
 
-    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::CreateEventWindow \n"));
+    char tBuff[56];
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTray::CreateEventWindow \n",GetTStamp(tBuff,56)));
     ::SetLastError(0);
     HINSTANCE hInst = ::GetModuleHandle(NULL);
 
@@ -454,8 +448,9 @@ rhTray::WindowProc(
     )
 {
 
+    char tBuff[56];
 
-  switch(aMsg) {
+    switch(aMsg) {
     case WM_USER:
 
        switch(lParam)
@@ -463,14 +458,14 @@ rhTray::WindowProc(
            case WM_LBUTTONDBLCLK:
            case WM_LBUTTONDOWN:
 
-               PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::WindowProc: WM_LBUTTONDBLCLK  \n"));
+               PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTray::WindowProc: WM_LBUTTONDBLCLK  \n",GetTStamp(tBuff,56)));
                NotifyTrayWindListeners(MENU_EVT,MENU_SHOW);
                ShowAllListeners();
 
            break;
            case WM_RBUTTONDOWN:
 
-                PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::WindowProc: WM_RBUTTONDOWN \n"));
+                PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTray::WindowProc: WM_RBUTTONDOWN \n",GetTStamp(tBuff,56)));
 
                 HRESULT res = rhTray::ShowPopupMenu (IDR_MENU1);
 
@@ -497,7 +492,7 @@ rhTray::WindowProc(
       break;
     case WM_CREATE:
 
-           PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::WindowProc: WM_CREATE  \n"));
+           PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTray::WindowProc: WM_CREATE  \n",GetTStamp(tBuff,56)));
        break;
     default:
        break;
@@ -514,10 +509,11 @@ rhTray::WindowProc(
 HRESULT rhTray::AddListener(nsIBaseWindow *aWindow)
 {
 
+    char tBuff[56];
     nsresult rv;
 
 
-    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::AddListener %p \n",aWindow));
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTray::AddListener %p \n",GetTStamp(tBuff,56),aWindow));
     NS_ENSURE_ARG(aWindow);
 
     nativeWindow aNativeWindow;
@@ -543,7 +539,7 @@ HRESULT rhTray::AddListener(nsIBaseWindow *aWindow)
 
     if(already)
     {
-        PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::AddWindowListener Window already registered  %p \n",aWindow));
+        PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTray::AddWindowListener Window already registered  %p \n",GetTStamp(tBuff,56),aWindow));
         return S_OK;
 
     }
@@ -570,100 +566,95 @@ HRESULT rhTray::AddListener(nsIBaseWindow *aWindow)
 
 HRESULT rhTray::ShowPopupMenu (WORD PopupMenuResource)
 {
-  HMENU hMenu, hPopup = 0;
+    char tBuff[56];
+    HMENU hMenu, hPopup = 0;
 
-  const int numMenuItems = 2;
+    const int numMenuItems = 2;
 
-  hMenu = ::LoadMenu (::GetModuleHandle("rhTray.dll"),
+    hMenu = ::LoadMenu (::GetModuleHandle("rhTray.dll"),
                       MAKEINTRESOURCE (PopupMenuResource));
 
-  PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::ShowPopupMenu hMenu %d  error %d\n",hMenu,GetLastError()));
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTray::ShowPopupMenu hMenu %d  error %d\n",GetTStamp(tBuff,56),hMenu,GetLastError()));
 
-  if (hMenu != 0) {
-    POINT pt;
-    ::GetCursorPos (&pt);
+    if (hMenu != 0) {
+        POINT pt;
+        ::GetCursorPos (&pt);
 
-    hPopup = ::GetSubMenu (hMenu, 0);
+        hPopup = ::GetSubMenu (hMenu, 0);
 
-    int numItems = rhTray::mMenuItemStringMap.size();
-
-
+        int numItems = rhTray::mMenuItemStringMap.size();
     
-    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::ShowPopupMenu num menu item strings : %d\n",numItems));
+        PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTray::ShowPopupMenu num menu item strings : %d\n",GetTStamp(tBuff,56),numItems));
     // Change the menu items text if possible
 
-    MENUITEMINFO mii = {0};
+        MENUITEMINFO mii = {0};
  
-    unsigned int menuItemID = 0;
+        unsigned int menuItemID = 0;
 
-    int i = 0;
+        int i = 0;
  
-    if(numItems == numMenuItems)
-    {     
-        for (i = 0 ;i < numMenuItems; i++)
-        {
-             mii.cbSize = sizeof(MENUITEMINFO);
-             mii.fMask = MIIM_TYPE ;
+        if(numItems == numMenuItems)
+        {     
+            for (i = 0 ;i < numMenuItems; i++)
+            {
+                mii.cbSize = sizeof(MENUITEMINFO);
+                mii.fMask = MIIM_TYPE ;
 
-
-
-             char * itemText = (char *) (rhTray::mMenuItemStringMap[i]).c_str();
-
+                char * itemText = (char *) (rhTray::mMenuItemStringMap[i]).c_str();
              
-             PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::ShowPopupMenu menutext: %d text %s \n",i,itemText));
-             if(itemText)
-             {
+                PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTray::ShowPopupMenu menutext: %d text %s \n",GetTStamp(tBuff,56),i,itemText));
+               if(itemText)
+               {
 
-                 if(i == 0)
-                 {
-                     menuItemID= ID_SHOW;                          
-                 }
-                 else
-                 {
-                      menuItemID= IDM_EXIT;
+                   if(i == 0)
+                   {
+                        menuItemID= ID_SHOW;                          
+                   }
+                   else
+                   {
+                        menuItemID= IDM_EXIT;
 
-                 }
+                   }
 
-                 if( GetMenuItemInfo(hPopup,menuItemID,FALSE,&mii))
-                 {
-                     char *tmpBuff = NULL;
+                   if( GetMenuItemInfo(hPopup,menuItemID,FALSE,&mii))
+                   {
+                       char *tmpBuff = NULL;
 
-                     tmpBuff = strdup(itemText);
+                       tmpBuff = strdup(itemText);
 
-                     mii.cch=strlen(itemText);
-                     mii.dwTypeData=tmpBuff;
-                     SetMenuItemInfo(hPopup,menuItemID,FALSE,&mii);
+                       mii.cch=strlen(itemText);
+                       mii.dwTypeData=tmpBuff;
+                       SetMenuItemInfo(hPopup,menuItemID,FALSE,&mii);
 
-                     free(tmpBuff);
-                 }
-                 else
-                 {
-                     PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::ShowPopupMenu Can't GetMenuItemInfo \n")); 
+                       free(tmpBuff);
+                   }
+                   else
+                   {
+                       PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTray::ShowPopupMenu Can't GetMenuItemInfo \n",GetTStamp(tBuff,56))); 
+                   }
+               }
 
-                 }
-             }
+          }
 
-        }
+      }
 
-    }
+      ::SetForegroundWindow (rhTray::mWnd);
 
-    ::SetForegroundWindow (rhTray::mWnd);
-
-    WORD cmd = ::TrackPopupMenu (hPopup, TPM_RIGHTBUTTON | TPM_RETURNCMD,
+      WORD cmd = ::TrackPopupMenu (hPopup, TPM_RIGHTBUTTON | TPM_RETURNCMD,
                                  pt.x, pt.y, 0, mWnd, NULL);
 
-    ::PostMessage (mWnd, WM_NULL, 0, 0);
+      ::PostMessage (mWnd, WM_NULL, 0, 0);
 
-    ::DestroyMenu (hMenu);
-    return cmd;
-  }
-  return 0;
+      ::DestroyMenu (hMenu);
+      return cmd;
+    }
+    return 0;
 }
 
 HRESULT rhTray::RemoveListener(nsIBaseWindow *aBaseWindow)
 {
-
-    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::RemoveWindowListener %p \n",aBaseWindow));
+    char tBuff[56];
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTray::RemoveWindowListener %p \n",GetTStamp(tBuff,56),aBaseWindow));
 
     if(!aBaseWindow)
         return S_OK;
@@ -682,32 +673,27 @@ HRESULT rhTray::RemoveListener(nsIBaseWindow *aBaseWindow)
         }
         
         rhTray::mWindowMap.erase(i);
-
         
     }
 
     return S_OK;
-
 }
 
 HRESULT rhTray::RemoveAllListeners()
 {
-
-    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::RemoveAllListenesr\n"));
+    char tBuff[56];
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTray::RemoveAllListenesr\n",GetTStamp(tBuff,56)));
     map< nsIBaseWindow *, rhTrayWindowListener *>::iterator i;
 
     rhTrayWindowListener *cur = NULL;
 
     for(i = rhTray::mWindowMap.begin(); i!= rhTray::mWindowMap.end(); i++)
     {
-
         cur = (*i).second;
 
         if(cur)
         {
-
-
-            PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::RemoveAllListeners deleting %p\n",cur));
+            PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTray::RemoveAllListeners deleting %p\n",GetTStamp(tBuff,56),cur));
 
             delete cur;
 
@@ -718,23 +704,19 @@ HRESULT rhTray::RemoveAllListeners()
     rhTray::mWindowMap.clear();
     
     return S_OK;
-
 }
 
 /* void setmenuitemtext (in unsigned long aIndex, in string aText); */
 NS_IMETHODIMP rhTray::Setmenuitemtext(PRUint32 aIndex, const char *aText)
 {
+    char tBuff[56]; 
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("%sa rhTray::Setmenuitemtext index: %d text: %s\n",GetTStamp(tBuff,56),aIndex, aText));
 
-   
-   PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::Setmenuitemtext index: %d text: %s\n",aIndex, aText));
+    if(aIndex >= 0 && aIndex <= 10 && aText)
+    {
+        rhTray::mMenuItemStringMap[aIndex] = aText;
 
-   if(aIndex >= 0 && aIndex <= 10 && aText)
-   {
-       rhTray::mMenuItemStringMap[aIndex] = aText;
-
-   }
-
-
+    }
 
     return S_OK;
 }
@@ -744,7 +726,7 @@ NS_IMETHODIMP rhTray::Setmenuitemtext(PRUint32 aIndex, const char *aText)
 
 rhITrayWindNotify* rhTray::GetTrayWindNotifyListener(rhITrayWindNotify *listener)
 {
-
+    char tBuff[56];
     std::list<nsCOMPtr<rhITrayWindNotify> >::const_iterator it;
 
     for(it=gTrayWindNotifyListeners.begin(); it!=gTrayWindNotifyListeners.end(); ++it) {
@@ -755,40 +737,34 @@ rhITrayWindNotify* rhTray::GetTrayWindNotifyListener(rhITrayWindNotify *listener
     }
 }
 
-    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhCoolKey::GetNotifyKeyListener:  looking for %p returning NULL. \n",listener));
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhCoolKey::GetNotifyKeyListener:  looking for %p returning NULL. \n",GetTStamp(tBuff,56),listener));
 
     return nsnull;
-
 }
 
 int rhTray::GetTrayWindNotifyListSize()
 {
     return gTrayWindNotifyListeners.size();
-
 }
 void rhTray::AddTrayWindNotifyListener(rhITrayWindNotify *listener)
 {
-
-        PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::AddTrayWindNotifyListener: %p \n",
-listener));
+    char tBuff[56];
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTray::AddTrayWindNotifyListener: %p \n", GetTStamp(tBuff,56),listener));
 
     if(GetTrayWindNotifyListener(listener ))
     {
 
-         PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTray::AddTrayWindNotifyListener: %p listener already in list. \n",listener));
-
-         return ;
+        PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTray::AddTrayWindNotifyListener: %p listener already in list. \n",GetTStamp(tBuff,56),listener));
+        return ;
 
     }
 
     gTrayWindNotifyListeners.push_back(listener);
 
-
 }
 
 void rhTray::RemoveTrayWindNotifyListener(rhITrayWindNotify *listener)
 {
-
     if(!GetTrayWindNotifyListener(listener))
     {
         return;
@@ -825,7 +801,6 @@ void rhTray::NotifyTrayWindListeners(PRUint32 aEvent, PRUint32 aEventData,PRUint
 
         ((rhITrayWindNotify *) (*it))->RhTrayWindEventNotify(aEvent,aEventData, aKeyData, aData1, aData2, &claimed);
 
-
     }
 
 }
@@ -842,8 +817,8 @@ rhTrayWindowListener::rhTrayWindowListener(HWND aWnd)
 
 rhTrayWindowListener::~rhTrayWindowListener()
 {
-
-    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener::~rhTrayWindowListener.\n"));
+    char tBuff[56];
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTrayWindowListener::~rhTrayWindowListener.\n",GetTStamp(tBuff,56)));
 
     Cleanup();
 
@@ -857,7 +832,7 @@ rhTrayWindowListener::WindowProc(
     LPARAM lParam
     )
 {
-
+    char tBuff[56];
     WNDPROC wndProc = (WNDPROC) NULL; 
 
     int eventClaimed = 0;
@@ -875,7 +850,6 @@ rhTrayWindowListener::WindowProc(
     else
     {
         wndProc = me->origWindowProc;
-
     }
 
     switch(aMsg) {
@@ -884,23 +858,23 @@ rhTrayWindowListener::WindowProc(
             {
                 case HTMINBUTTON:
 
-                     if(me)
-                     {
-                         //me->HideWindow();
-                     }
+                    if(me)
+                    {
+                        //me->HideWindow();
+                    }
 
-                    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener Minimize\n"));
+                    PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTrayWindowListener Minimize\n",GetTStamp(tBuff,56)));
                      //eventClaimed = 1;
                 break;
 
                 case HTMAXBUTTON:
-                    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener:: Maximize  \n"));
+                    PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTrayWindowListener:: Maximize  \n",GetTStamp(tBuff,56)));
                     //eventClaimed = 1;
                 break;
                  
                 case HTCLOSE:
 
-                    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener Close! \n"));
+                    PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTrayWindowListener Close! \n",GetTStamp(tBuff,56)));
 
                     if(me)
                     {
@@ -921,7 +895,7 @@ rhTrayWindowListener::WindowProc(
                  case WA_ACTIVE:
                  case WA_CLICKACTIVE:
 
-                     PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener ACTIVATE! \n"));
+                     PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTrayWindowListener ACTIVATE! \n",GetTStamp(tBuff,56)));
 
                      
                  break;
@@ -945,17 +919,13 @@ rhTrayWindowListener::WindowProc(
         }
 
 
-        PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener WM_SHOWWINDOW wParam %d lParam %d! \n",wParam, lParam));
+        PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTrayWindowListener WM_SHOWWINDOW wParam %d lParam %d! \n",GetTStamp(tBuff,56),wParam, lParam));
 
         show = (int) wParam;
 
-
         if(lParam == 0)
         {    
-
-                  PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener  WM_SHOW called from ShowWindow or HideWindow \n"));
-
-
+            PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTrayWindowListener  WM_SHOW called from ShowWindow or HideWindow \n",GetTStamp(tBuff,56)));
         }
 
         break;
@@ -964,8 +934,7 @@ rhTrayWindowListener::WindowProc(
             switch(wParam)
             {
                 case SC_CLOSE:
-
-                    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener:: WM_SYSCOMMAND SC_CLOSE  \n"));
+                    PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTrayWindowListener:: WM_SYSCOMMAND SC_CLOSE  \n",GetTStamp(tBuff,56)));
                 break;
 
                 default:
@@ -979,7 +948,7 @@ rhTrayWindowListener::WindowProc(
             {
                 case SIZE_MINIMIZED:
 
-                    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener::  WM_SIZE SIZE_MINIMIZE \n"));
+                    PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTrayWindowListener::  WM_SIZE SIZE_MINIMIZE \n",GetTStamp(tBuff,56)));
 
                 break;
                 default:
@@ -993,24 +962,25 @@ rhTrayWindowListener::WindowProc(
 
     };
 
-  if(eventClaimed)
-  {
-    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener:: Event claimed \n"));
-    return FALSE;
-  }
+    if(eventClaimed)
+    {
+        PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTrayWindowListener:: Event claimed \n",GetTStamp(tBuff,56)));
+        return FALSE;
+    }
 
-  return ::CallWindowProc(
-    wndProc,
-    hwnd,
-    aMsg,
-    wParam,
-    lParam);
+    return ::CallWindowProc(
+        wndProc,
+        hwnd,
+        aMsg,
+        wParam,
+        lParam);
 }
 
 HRESULT rhTrayWindowListener::Cleanup()
 {
 
-    PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener::Cleanup. \n"));
+    char tBuff[56];
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTrayWindowListener::Cleanup. \n",GetTStamp(tBuff,56)));
 
     return S_OK;
 
@@ -1032,9 +1002,10 @@ HRESULT rhTrayWindowListener::Initialize()
 
 void rhTrayWindowListener::ShowWindow()
 {
+    char tBuff[56];
     if(mWnd)
     {
-         PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener:: ShowWindow \n"));
+         PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTrayWindowListener:: ShowWindow \n",GetTStamp(tBuff,56)));
          //::ShowWindow(mWnd,SW_SHOW);
 
          //::ShowWindow(mWnd,SW_RESTORE);
@@ -1045,10 +1016,11 @@ void rhTrayWindowListener::ShowWindow()
 
 void rhTrayWindowListener::HideWindow()
 {
+    char tBuff[56];
     if(mWnd)
     {
 
-        PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener:: Hide Window \n"));
+        PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTrayWindowListener:: Hide Window \n",GetTStamp(tBuff,56)));
 
         ::ShowWindow(mWnd,SW_HIDE);
 
@@ -1056,7 +1028,7 @@ void rhTrayWindowListener::HideWindow()
 
         ::SetWindowLongPtr(mWnd,GWL_EXSTYLE,GetWindowLongPtr(mWnd,GWL_STYLE) | WS_EX_TOOLWINDOW);
 
-         PR_LOG( trayLog, PR_LOG_DEBUG, ("rhTrayWindowListener:: Hide Window , try to hide owner window too. \n"));
+         PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTrayWindowListener:: Hide Window , try to hide owner window too. \n",GetTStamp(tBuff,56)));
         ::ShowWindow(mWnd,SW_HIDE);
 
     }
