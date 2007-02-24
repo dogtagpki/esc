@@ -19,8 +19,10 @@
 
 #include "nspr.h"
 #include "CoolKey_Message.h"
+#include "CoolKey.h"
 #include "math.h"
 #include <iostream>
+#include <time.h>
 
 PRLogModuleInfo *nkeyLogMS = PR_NewLogModule("coolKeyMessage");
 
@@ -29,7 +31,7 @@ void URLDecode(char *buf,unsigned char *ret, int *ret_len,int buff_len);
 
 void eCKMessage::CreateTokenMap(vector<string> &aTokens)
 {
-  CreateTokenMap(mTokenMap,aTokens);
+    CreateTokenMap(mTokenMap,aTokens);
 }
 
 void eCKMessage::CreateTokenMap(map<string,string> &aTokenMap, vector<string> &aTokens)
@@ -54,7 +56,6 @@ void eCKMessage::CreateTokenMap(map<string,string> &aTokenMap, vector<string> &a
         aTokenMap[curKey] = curValue;
   
         //cout << "key = " << curKey << " value = " << curValue << " \n" << endl;
-
     }
 
 }
@@ -226,7 +227,6 @@ void  eCKMessage::setBinValue(string &aKey,unsigned char*aValue,int *aSize)
     {
          *aSize = 0;
          return;
-
     }
 
     int input_size = *aSize;
@@ -250,7 +250,6 @@ int   eCKMessage::getIntValue(string &aKey)
     string  value =  mTokenMap[aKey];
 
     return atoi(value.c_str());
-
 }
 
 string &eCKMessage::getStringValue(string &aKey)
@@ -286,12 +285,11 @@ void   eCKMessage::getBinValue(string &aKey,unsigned char *avalue,int * aSize)
    *aSize = output_size;
 
    //printf("output %s \n",decode_output);
-
 }
 
 const char *eCKMessage::getMESSAGETypeAsString()
 {
-	return getMESSAGETypeAsString(message_type);
+    return getMESSAGETypeAsString(message_type);
 }
 
 const char *eCKMessage::getMESSAGETypeAsString(sntype type)
@@ -318,7 +316,7 @@ const char *eCKMessage::getMESSAGETypeAsString(sntype type)
     default:  st = "unknown";
     }
 
-	return st;
+    return st;
 }
 
 eCKMessage_EXTENDED_LOGIN_REQUEST::eCKMessage_EXTENDED_LOGIN_REQUEST()
@@ -327,8 +325,8 @@ eCKMessage_EXTENDED_LOGIN_REQUEST::eCKMessage_EXTENDED_LOGIN_REQUEST()
 
 eCKMessage_EXTENDED_LOGIN_REQUEST::~eCKMessage_EXTENDED_LOGIN_REQUEST()
 {
-
-    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("eCKMessage_EXTENDED_LOGIN_REQUEST::~eCKMessage_EXTENDED_LOGIN_REQUEST \n"));
+    char tBuff[56];
+    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("%s eCKMessage_EXTENDED_LOGIN_REQUEST::~eCKMessage_EXTENDED_LOGIN_REQUEST \n",GetTStamp(tBuff,56)));
 }
 
 void eCKMessage_EXTENDED_LOGIN_REQUEST::encode(string &aOutputVal)
@@ -388,8 +386,6 @@ nsNKeyREQUIRED_PARAMETERS_LIST::nsNKeyREQUIRED_PARAMETERS_LIST()
 {
 }
 
-    
-
 nsNKeyREQUIRED_PARAMETERS_LIST::~nsNKeyREQUIRED_PARAMETERS_LIST()
 {
     CleanUp();
@@ -402,7 +398,6 @@ nsNKeyREQUIRED_PARAMETER *nsNKeyREQUIRED_PARAMETERS_LIST::Add()
     if(new_parameter)
     {
        mParameters.push_back(new_parameter);
-
     }
     return new_parameter;
 }
@@ -415,7 +410,6 @@ nsNKeyREQUIRED_PARAMETER *nsNKeyREQUIRED_PARAMETERS_LIST::GetAt(int index)
         return NULL;
 
     return mParameters.at(index);
-
 }
 nsNKeyREQUIRED_PARAMETER *nsNKeyREQUIRED_PARAMETERS_LIST::GetById(string &aId)
 {
@@ -435,7 +429,6 @@ nsNKeyREQUIRED_PARAMETER *nsNKeyREQUIRED_PARAMETERS_LIST::GetById(string &aId)
 
             if(tId == aId)
                 return curParam;
-
         }        
 
     }
@@ -444,47 +437,38 @@ nsNKeyREQUIRED_PARAMETER *nsNKeyREQUIRED_PARAMETERS_LIST::GetById(string &aId)
 
 void nsNKeyREQUIRED_PARAMETERS_LIST::CleanUp()
 {
-
     vector<nsNKeyREQUIRED_PARAMETER *>::iterator i;
-
     nsNKeyREQUIRED_PARAMETER * curParam = NULL;
-
 
     for(i = mParameters.begin(); i!= mParameters.end(); i++)
     {
-
         curParam = (*i);
 
         if(curParam)
             delete curParam;
 
         curParam = NULL;
-
     }
 
-
     mParameters.clear();
-
 }
 
 int nsNKeyREQUIRED_PARAMETERS_LIST::AreAllParametersSet()
 {
-
-    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("nsNKeyREQUIRED_PARAMETERS_LIST::AreAllParametersSet:\n"));
+    char tBuff[56];
+    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("%s nsNKeyREQUIRED_PARAMETERS_LIST::AreAllParametersSet:\n",GetTStamp(tBuff,56)));
 
     int done = 0;
-
     int num_params = GetNumParameters();
 
     for(int i = 0; i < num_params ; i++)
     {
         nsNKeyREQUIRED_PARAMETER *curParam = GetAt(i);
-
         if(curParam)
         {
             if( !curParam->hasValueAttempted())
             {
-                PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("nsNKeyREQUIRED_PARAMETERS_LIST::AreAllParametersSet found parameter not set: index %d\n",i));
+                PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("%s nsNKeyREQUIRED_PARAMETERS_LIST::AreAllParametersSet found parameter not set: index %d\n",GetTStamp(tBuff,56),i));
 
                 return done;
             } 
@@ -492,17 +476,13 @@ int nsNKeyREQUIRED_PARAMETERS_LIST::AreAllParametersSet()
     }
 
     done = 1;
- 
     return done;
 }
 
 void nsNKeyREQUIRED_PARAMETERS_LIST::EmitToBuffer(string &aOutputBuff)
 {
-
     aOutputBuff = "";
-
     string separater = "&&";
-
     int num_params = GetNumParameters();
 
     for(int i = 0 ; i < num_params ; i++)
@@ -513,9 +493,7 @@ void nsNKeyREQUIRED_PARAMETERS_LIST::EmitToBuffer(string &aOutputBuff)
          {
              string raw = curParam->GetRawText();
              aOutputBuff += raw + separater;
-
          }
-
     }
 
     int size = aOutputBuff.size();
@@ -525,17 +503,18 @@ void nsNKeyREQUIRED_PARAMETERS_LIST::EmitToBuffer(string &aOutputBuff)
         aOutputBuff.erase(size - 1);
         aOutputBuff.erase(size - 2);
     }
-
 }
 eCKMessage_LOGIN_REQUEST::eCKMessage_LOGIN_REQUEST() 
 {
-    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("eCKMessage_LOGIN_REQUEST::eCKMessage_LOGIN_REQUEST:\n"));
+    char tBuff[56]; 
+    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("%s eCKMessage_LOGIN_REQUEST::eCKMessage_LOGIN_REQUEST:\n",GetTStamp(tBuff,56)));
     message_type = LOGIN_REQUEST; 
 }
 
 eCKMessage_LOGIN_REQUEST:: ~eCKMessage_LOGIN_REQUEST()
 {
-   PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("eCKMessage_LOGIN_REQUEST::~eCKMessage_LOGIN_REQUEST:\n"));
+    char tBuff[56];
+    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("%s eCKMessage_LOGIN_REQUEST::~eCKMessage_LOGIN_REQUEST:\n",GetTStamp(tBuff,56)));
 }
 
 void eCKMessage_LOGIN_REQUEST::encode(string &aOutputVal)
@@ -545,19 +524,21 @@ void eCKMessage_LOGIN_REQUEST::encode(string &aOutputVal)
 
 void eCKMessage_LOGIN_REQUEST::decode(string &aInputVal) 
 {
-  eCKMessage::decode(aInputVal);
+    eCKMessage::decode(aInputVal);
 }
 
 eCKMessage_LOGIN_RESPONSE::eCKMessage_LOGIN_RESPONSE()
 {
-    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("eCKMessage_LOGIN_RESPONSE::eCKMessage_LOGIN_RESPONSE:\n"));
+    char tBuff[56];
+    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("%s eCKMessage_LOGIN_RESPONSE::eCKMessage_LOGIN_RESPONSE:\n",GetTStamp(tBuff,56)));
 
     message_type = LOGIN_RESPONSE;
 }
 
 eCKMessage_LOGIN_RESPONSE:: ~eCKMessage_LOGIN_RESPONSE()
 {
-    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("eCKMessage_LOGIN_RESPONSE::~eCKMessage_LOGIN_RESPONSE:\n"));
+    char tBuff[56];
+    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("%s eCKMessage_LOGIN_RESPONSE::~eCKMessage_LOGIN_RESPONSE:\n",GetTStamp(tBuff,56)));
 }
 
 void eCKMessage_LOGIN_RESPONSE::decode(string &aInputVal) 
@@ -582,21 +563,21 @@ void eCKMessage_LOGIN_RESPONSE::encode(string &aOutputVal)
     aOutputVal += sKey + delim1 + lScreenName + delim + pKey + delim1 + lPassword;
 
     eCKMessage::encode(aOutputVal);
-
 }
 
 eCKMessage_EXTENDED_LOGIN_RESPONSE::eCKMessage_EXTENDED_LOGIN_RESPONSE()
 {
-  PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("eCKMessage_EXTENDED_LOGIN_RESPONSE::eCKMessage_EXTENDED_LOGIN_RESPONSE:\n"));
+    char tBuff[56];
+    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("%s eCKMessage_EXTENDED_LOGIN_RESPONSE::eCKMessage_EXTENDED_LOGIN_RESPONSE:\n",GetTStamp(tBuff,56)));
 
-   message_type = EXTENDED_LOGIN_RESPONSE;
-   paramList = NULL;
+    message_type = EXTENDED_LOGIN_RESPONSE;
+    paramList = NULL;
 }
 
 eCKMessage_EXTENDED_LOGIN_RESPONSE:: ~eCKMessage_EXTENDED_LOGIN_RESPONSE()
 {
-    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("eCKMessage_EXTENDED_LOGIN_RESPONSE::~eCKMessage_EXTENDED_LOGIN_RESPONSE:\n"));
-
+    char tBuff[56];
+    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("%s eCKMessage_EXTENDED_LOGIN_RESPONSE::~eCKMessage_EXTENDED_LOGIN_RESPONSE:\n",GetTStamp(tBuff,56)));
 }
 
 void eCKMessage_EXTENDED_LOGIN_RESPONSE::decode(string &aInputVal) 
@@ -635,9 +616,7 @@ void eCKMessage_EXTENDED_LOGIN_RESPONSE::encode(string &aOutputVal)
 
             if(i < (num_parameters - 1))
                 aOutputVal += delim;
- 
         } 
-
     }
 
     //cout << "nsNKeyMESSGE_EXTENDED_LOGIN_RESPONSE::encode " << aOutputVal + "\n" << endl;
@@ -647,15 +626,16 @@ void eCKMessage_EXTENDED_LOGIN_RESPONSE::encode(string &aOutputVal)
 
 eCKMessage_SECURID_REQUEST::eCKMessage_SECURID_REQUEST() 
 {
-    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("eCKMessage_SECURID_REQUEST::eCKMessage_SECURID_REQUEST:\n"));
+    char tBuff[56];
+    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("%s eCKMessage_SECURID_REQUEST::eCKMessage_SECURID_REQUEST:\n",GetTStamp(tBuff,56)));
 
     message_type = SECURID_REQUEST;
 }
 
 eCKMessage_SECURID_REQUEST::~eCKMessage_SECURID_REQUEST()
 {
-    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("eCKMessage_SECURID_REQUEST::~eCKMessage_SECURID_REQUEST:\n"));
-
+    char tBuff[56];
+    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("%s eCKMessage_SECURID_REQUEST::~eCKMessage_SECURID_REQUEST:\n",GetTStamp(tBuff,56)));
 }
 
 void eCKMessage_SECURID_REQUEST::encode(string &aOutputVal)
@@ -665,20 +645,20 @@ void eCKMessage_SECURID_REQUEST::encode(string &aOutputVal)
 
 void eCKMessage_SECURID_REQUEST::decode(string &aInputVal) 
 {
-      eCKMessage::decode(aInputVal);
-
+    eCKMessage::decode(aInputVal);
 }
 eCKMessage_SECURID_RESPONSE::eCKMessage_SECURID_RESPONSE() 
 {
-    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("eCKMessage_SECURID_RESPONSE::eCKMessage_SECURID_RESPONSE:\n"));
+    char tBuff[56];
+    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("%s eCKMessage_SECURID_RESPONSE::eCKMessage_SECURID_RESPONSE:\n",GetTStamp(tBuff,56)));
 
     message_type = SECURID_RESPONSE;
 }
 
 eCKMessage_SECURID_RESPONSE::~eCKMessage_SECURID_RESPONSE()
 {
-    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("eCKMessage_SECURID_RESPONSE::~eCKMessage_SECURID_RESPONSE:\n"));
-
+    char tBuff[56];
+    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("%s eCKMessage_SECURID_RESPONSE::~eCKMessage_SECURID_RESPONSE:\n",GetTStamp(tBuff,56)));
 }
 
 void eCKMessage_SECURID_RESPONSE::decode(string &aInputVal)
@@ -703,20 +683,20 @@ void eCKMessage_SECURID_RESPONSE::encode(string &aOutputVal)
     aOutputVal += keyPin + delim1 + lPin + delim + keyValue + delim1 + lValue ;
 
     eCKMessage::encode(aOutputVal);
-
 }
 
 eCKMessage_NEWPIN_REQUEST::eCKMessage_NEWPIN_REQUEST()
- 
 {
-    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("eCKMessage_NEWPIN_REQUEST::eCKMessage_NEWPIN_REQUEST:\n"));
+    char tBuff[56];
+    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("%s eCKMessage_NEWPIN_REQUEST::eCKMessage_NEWPIN_REQUEST:\n",GetTStamp(tBuff,56)));
 
     message_type = NEW_PIN_REQUEST;
 }
 
 eCKMessage_NEWPIN_REQUEST::~eCKMessage_NEWPIN_REQUEST()
 {
-    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("eCKMessage_NEWPIN_REQUEST::~eCKMessage_NEWPIN_REQUEST:\n"));
+    char tBuff[56];
+    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("%s eCKMessage_NEWPIN_REQUEST::~eCKMessage_NEWPIN_REQUEST:\n",GetTStamp(tBuff,56)));
 }
 
 void eCKMessage_NEWPIN_REQUEST::encode(string &aOutputVal)
@@ -730,15 +710,18 @@ void eCKMessage_NEWPIN_REQUEST::decode(string &aInputVal)
 }
 eCKMessage_NEWPIN_RESPONSE::eCKMessage_NEWPIN_RESPONSE() 
 {
-    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("eCKMessage_NEWPIN_RESPONSE::eCKMessage_NEWPIN_RESPONSE:\n"));
+    char tBuff[56];
+    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("%s eCKMessage_NEWPIN_RESPONSE::eCKMessage_NEWPIN_RESPONSE:\n",GetTStamp(tBuff,56)));
 
     message_type = NEW_PIN_RESPONSE;
 }
 
 eCKMessage_NEWPIN_RESPONSE::~eCKMessage_NEWPIN_RESPONSE()
 {
-    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("eCKMessage_NEWPIN_RESPONSE::~eCKMessage_NEWPIN_RESPONSE:\n"));
+    char tBuff[56];
+    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("%s eCKMessage_NEWPIN_RESPONSE::~eCKMessage_NEWPIN_RESPONSE:\n",GetTStamp(tBuff,56)));
 }
+ 
 
 void eCKMessage_NEWPIN_RESPONSE::decode(string &aInputVal)
 {
@@ -764,14 +747,16 @@ void eCKMessage_NEWPIN_RESPONSE::encode(string &aOutputVal)
 
 eCKMessage_TOKEN_PDU_REQUEST::eCKMessage_TOKEN_PDU_REQUEST() 
 {
-    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("eCKMessage_TOKEN_PDU_REQUEST::eCKMessage_TOKEN_PDU_REQUEST:\n"));
+    char tBuff[56];
+    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("%s eCKMessage_TOKEN_PDU_REQUEST::eCKMessage_TOKEN_PDU_REQUEST:\n",GetTStamp(tBuff,56)));
 
     message_type = TOKEN_PDU_REQUEST;
 }
 
 eCKMessage_TOKEN_PDU_REQUEST::~eCKMessage_TOKEN_PDU_REQUEST()
 {
-    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("eCKMessage_TOKEN_PDU_REQUEST::~eCKMessage_TOKEN_PDU_REQUEST:\n"));
+    char tBuff[56];
+    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("%s eCKMessage_TOKEN_PDU_REQUEST::~eCKMessage_TOKEN_PDU_REQUEST:\n",GetTStamp(tBuff,56)));
 
 }
 
@@ -787,14 +772,16 @@ void eCKMessage_TOKEN_PDU_REQUEST::decode(string &aInputVal)
  
 eCKMessage_TOKEN_PDU_RESPONSE::eCKMessage_TOKEN_PDU_RESPONSE() 
 {
-    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("eCKMessage_TOKEN_PDU_RESPONSE::eCKMessage_TOKEN_PDU_RESPONSE:\n"));
+    char tBuff[56];
+    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("%s eCKMessage_TOKEN_PDU_RESPONSE::eCKMessage_TOKEN_PDU_RESPONSE:\n",GetTStamp(tBuff,56)));
 
     message_type = TOKEN_PDU_RESPONSE;
 }
 
 eCKMessage_TOKEN_PDU_RESPONSE::~eCKMessage_TOKEN_PDU_RESPONSE()
 {
-    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("eCKMessage_TOKEN_PDU_RESPONSE::~eCKMessage_TOKEN_PDU_RESPONSE:\n"));
+    char tBuff[56];
+    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("%s eCKMessage_TOKEN_PDU_RESPONSE::~eCKMessage_TOKEN_PDU_RESPONSE:\n",GetTStamp(tBuff,56)));
 }
 
 void eCKMessage_TOKEN_PDU_RESPONSE::decode(string &aInputVal)
@@ -825,14 +812,14 @@ void eCKMessage_TOKEN_PDU_RESPONSE::encode(string &aOutputVal)
 
 eCKMessage_STATUS_UPDATE_REQUEST:: ~eCKMessage_STATUS_UPDATE_REQUEST()
 {
-
-    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("eCKMessage_STATUS_UPDATE_REQUEST::~eCKMessage_STATUS_UPDATE_REQUEST:\n"));
-
+    char tBuff[56];
+    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("%s eCKMessage_STATUS_UPDATE_REQUEST::~eCKMessage_STATUS_UPDATE_REQUEST:\n",GetTStamp(tBuff,56)));
 }
 
 eCKMessage_STATUS_UPDATE_REQUEST::eCKMessage_STATUS_UPDATE_REQUEST() 
 {
-    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("eCKMessage_STATUS_UPDATE_REQUEST::eCKMessage_STATUS_UPDATE_REQUEST:\n"));
+    char tBuff[56];
+    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("%s eCKMessage_STATUS_UPDATE_REQUEST::eCKMessage_STATUS_UPDATE_REQUEST:\n",GetTStamp(tBuff,56)));
 
     message_type = STATUS_UPDATE_REQUEST;
 }
@@ -848,20 +835,20 @@ void eCKMessage_STATUS_UPDATE_REQUEST::decode(string &aInputVal)
 }
 eCKMessage_STATUS_UPDATE_RESPONSE:: ~eCKMessage_STATUS_UPDATE_RESPONSE()
 {
-    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("eCKMessage_STATUS_UPDATE_RESPONSE::~eCKMessage_STATUS_UPDATE_RESPONSE:\n"));
-
+    char tBuff[56];
+    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("%s eCKMessage_STATUS_UPDATE_RESPONSE::~eCKMessage_STATUS_UPDATE_RESPONSE:\n",GetTStamp(tBuff,56)));
 }
 
 eCKMessage_STATUS_UPDATE_RESPONSE::eCKMessage_STATUS_UPDATE_RESPONSE()
 {
-    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("eCKMessage_STATUS_UPDATE_RESPONSE::eCKMessage_STATUS_UPDATE_RESPONSE:\n"));
+    char tBuff[56];
+    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("%s eCKMessage_STATUS_UPDATE_RESPONSE::eCKMessage_STATUS_UPDATE_RESPONSE:\n",GetTStamp(tBuff,56)));
 
     message_type = STATUS_UPDATE_RESPONSE;
 }
 
 void eCKMessage_STATUS_UPDATE_RESPONSE::decode(string &aInputVal)
 {
-
 }
 
 void eCKMessage_STATUS_UPDATE_RESPONSE::encode(string &aOutputVal)
@@ -877,21 +864,21 @@ void eCKMessage_STATUS_UPDATE_RESPONSE::encode(string &aOutputVal)
 
     int currentState = getIntValue(key);
 
-    aOutputVal += delim1 +  intToString(currentState);
+    aOutputVal += key + delim1 +  intToString(currentState);
 
     eCKMessage::encode(aOutputVal);
-
 }
 
 eCKMessage_END_OP::eCKMessage_END_OP() 
 {
-    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("eCKMessage_END_OP::eCKMessage_END_OP:\n"));
-
+    char tBuff[56];
+    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("%s eCKMessage_END_OP::eCKMessage_END_OP:\n",GetTStamp(tBuff,56)));
     message_type = END_OP;
 }
 eCKMessage_END_OP::~eCKMessage_END_OP()
 {
-    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("eCKMessage_END_OP::~eCKMessage_END_OP:\n"));
+    char tBuff[56];
+    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("%s eCKMessage_END_OP::~eCKMessage_END_OP:\n",GetTStamp(tBuff,56)));
 }
 
 void eCKMessage_END_OP::encode(string &aOutputVal)
@@ -905,14 +892,16 @@ void  eCKMessage_END_OP::decode(string &aInputVal)
 
 eCKMessage_BEGIN_OP::eCKMessage_BEGIN_OP()
 {
-  PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("eCKMessage_BEGIN_OP::eCKMessage_BEGIN_OP:\n"));
+    char tBuff[56];
+    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("%s eCKMessage_BEGIN_OP::eCKMessage_BEGIN_OP:\n",GetTStamp(tBuff,56)));
 
     message_type = BEGIN_OP;
 }
 
 eCKMessage_BEGIN_OP::~eCKMessage_BEGIN_OP()
 {
-    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("eCKMessage_BEGIN_OP::~eCKMessage_BEGIN_OP:\n"));
+    char tBuff[56];
+    PR_LOG( nkeyLogMS, PR_LOG_DEBUG, ("%s eCKMessage_BEGIN_OP::~eCKMessage_BEGIN_OP:\n",GetTStamp(tBuff,56)));
 
 }
 
@@ -1109,8 +1098,6 @@ void URLEncode (unsigned char *data,char *buff, int *len,int buff_len)
         }
         *cur = '\0'; // null-terminated
 }
-
-
 nsNKeyREQUIRED_PARAMETER::~nsNKeyREQUIRED_PARAMETER()
 {
 }
