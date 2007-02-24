@@ -70,6 +70,20 @@ const ADMIN_WINDOW       = "settings.xul";
 const HIDDEN_WINDOW      = "hiddenWindow.xul";
 const SECURITY_WINDOW    = "security.xul";
 
+
+//Log level constants
+
+const   PR_LOG_NONE = 0;
+const   PR_LOG_ALWAYS = 1;
+const   PR_LOG_ERROR = 2;
+const   PR_LOG_WARNING = 3;
+const   PR_LOG_DEBUG = 4;
+
+const   PR_LOG_NOTICE = 4;
+const   PR_LOG_WARN =   3;
+const   PR_LOG_MIN =    4;
+const   PR_LOG_MAX =    4; 
+
 function getUIForKey(aKeyID)
 {
     return keyUITable[aKeyID];
@@ -206,6 +220,7 @@ var Status_Messages = new Array(
 
 function DoPhoneHome(keyType,keyID)
 {
+  CoolKeyLogMsg(PR_LOG_ALWAYS,"Attempting to phone home for Key " + keyID); 
   var callback = function (aResult) {
 
     recordMessage("In DoPhoneHome callback");
@@ -217,6 +232,7 @@ function DoPhoneHome(keyType,keyID)
         if(!issuer)
             issuer = getBundleString("unknownIssuer");
         TraySendNotificationMessage(getBundleString("keyInserted"),"\"" + issuer +"\"" + " " + getBundleString("keyInsertedComputer"),3,4000,GetESCNotifyIconPath(keyType,keyID));
+        LogKeyInfo(keyType,keyID,"Key Inserted ...");
         UpdateRowWithPhoneHomeData(keyType,keyID);
         recordMessage("cached issuer " + issuer);
         var browserURL =  GetCachedEnrolledTokenBrowserURL(keyID);
@@ -233,6 +249,7 @@ function DoPhoneHome(keyType,keyID)
     {
         issuer = getBundleString("unknownIssuer");
         TraySendNotificationMessage(getBundleString("keyInserted"),"\"" + issuer +"\"" + " " + getBundleString("keyInsertedComputer"),3,4000,GetESCNotifyIconPath(keyType,keyID));
+        LogKeyInfo(keyType,keyID,"Key Inserted ...");
     }
   }
 
@@ -249,6 +266,7 @@ function DoPhoneHome(keyType,keyID)
       recordMessage("Phone home info cached...");
       issuer = GetCachedIssuer(keyID);
       TraySendNotificationMessage(getBundleString("keyInserted"),"\"" + issuer +"\"" + " " + getBundleString("keyInsertedComputer"),3,4000,GetESCNotifyIconPath(keyType,keyID));
+      LogKeyInfo(keyType,keyID,"Key Inserted ...");
 
       var launchBrowserURL =  GetCachedEnrolledTokenBrowserURL(keyID);
 
@@ -487,7 +505,7 @@ function CoolKeySetDataValue(aKeyType,aKeyID,name,value)
 
 
             } catch(e) {
-                MyAlert(getBundleString("errorSetDataValue") + e);
+                //MyAlert(getBundleString("errorSetDataValue") + e);
             }
         }
 
@@ -852,6 +870,18 @@ function GetAvailableCoolKeys()
   }
 }
 
+function CoolKeyLogMsg(aLogLevel,aMessage)
+{
+    if(!aMessage)
+        return;
+
+    try { 
+         netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+         netkey.CoolKeyLogMsg(aLogLevel,aMessage);
+         } catch(e) {
+         }
+}
+
 function ChallengeCoolKey(keyType, keyID, data)
 {
   try {
@@ -973,9 +1003,13 @@ function SelectImageForKeyStatus(keyStatus,observeBusy,doubleSize)
 {
   var image_src = "";
 
-  if(observeBusy && (keyStatus == "BUSY" || keyStatus == "UNAVAILABLE"))
+  if(observeBusy && (keyStatus == "BUSY" ))
   {
       return "throbber-anim5.gif";
+  }
+  if(keyStatus == "UNAVAILABLE")
+  {
+      return "";
   }
   if(keyStatus == "ENROLLED")
   {
@@ -1982,6 +2016,8 @@ function UpdateAdminKeyDetailsArea(keyType,keyID)
         keyStatus = GetStatusForKeyID(keyType, keyID);
 
 
+    recordMessage("No Key: " + noKey + " status " + keyStatus);
+
     var passwordArea = document.getElementById("password-area-id");
 
     if(passwordArea)
@@ -2029,6 +2065,7 @@ function UpdateAdminKeyDetailsArea(keyType,keyID)
 
     var image_src = SelectImageForKeyStatus(keyStatus,1,1);
 
+    recordMessage("image_src " + image_src);
     if(!image_src)
         HideItem(detailsImage);
     else
@@ -2057,7 +2094,8 @@ function UpdateAdminKeyDetailsArea(keyType,keyID)
       DisableItem(resetpinbtn);
       DisableItem(formatbtn);
       detailsKeyLabel.setAttribute("value",getBundleString("noKeysPresent"));
-       return;
+      HideItem(detailsImage);
+      return;
    }
 
    if(keyStatus == "ENROLLED")
@@ -2613,12 +2651,19 @@ function OnCoolKeyRemoved(keyType, keyID)
 
   var  row = GetRowForKey(keyType, keyID);
 
+
   if(gHiddenPage)
   {
+      if(curChildWindow)
+      {
+          curChildWindow.close();
+          curChildWindow = null;
+      }
       var issuer = GetCachedIssuer(keyID);
       if(!issuer)
           issuer = getBundleString("unknownIssuer");
       TraySendNotificationMessage(getBundleString("keyRemoved"),"\"" + issuer + "\"" + " " + getBundleString("keyRemovedComputer"),1,4000,GetESCNotifyIconPath(keyType,keyID));
+       LogKeyInfo(keyType,keyID, "Key Removed ...");
 
   }
 
@@ -3531,19 +3576,30 @@ function IsPhoneHomeCached(aKeyID)
     phoneHomeUrl = GetCachedPhoneHomeURL(aKeyID);
 
     if(!phoneHomeUrl)
+    {
+        CoolKeyLogMsg(PR_LOG_ALWAYS,"IsPhoneHomeCached keyID:  " + aKeyID + " IsCached: false " );
         return false;
+    }
 
     phoneHomeIssuer = GetCachedIssuer(aKeyID);
 
     if(!phoneHomeIssuer)
+    {
+       CoolKeyLogMsg(PR_LOG_ALWAYS,"IsPhoneHomeCached keyID:  " + aKeyID + " IsCached: false " );
        return false;
+    }
 
     tpsURL = GetCachedTPSURL(aKeyID);
 
     if(!tpsURL)
+    {
+        CoolKeyLogMsg(PR_LOG_ALWAYS,"IsPhoneHomeCached keyID:  " + aKeyID + " IsCached: false " );
         return false;
+    }
+
     tpsUI = GetCachedTPSUI(aKeyID);
 
+    CoolKeyLogMsg(PR_LOG_ALWAYS,"IsPhoneHomeCached keyID:  " + aKeyID + " IsCached: true " );
     return true;
 }
 
@@ -3645,6 +3701,36 @@ function GetCachedTPSURL(aKeyID)
      return url;
 }
 
+//Log information about the key
+
+function LogKeyInfo(aKeyType,aKeyID,aMessage)
+{
+    var issuer = GetCachedIssuer(aKeyID);
+    var status =  GetStatusForKeyID(aKeyType, aKeyID);
+    var atr =     DoCoolKeyGetATR(aKeyType,aKeyID);
+    var tpsURI = GetCachedTPSURL(aKeyID);
+    var tpsUI  = GetCachedTPSUI(aKeyID);
+    var phoneHomeURI = GetCachedPhoneHomeURL(aKeyID);
+
+    if(aMessage)
+        CoolKeyLogMsg(PR_LOG_ALWAYS,aMessage);
+
+    CoolKeyLogMsg(PR_LOG_ALWAYS,"CoolKey ID: " + aKeyID);
+
+    if(issuer)
+        CoolKeyLogMsg(PR_LOG_ALWAYS,"CoolKey Issuer: " + issuer);
+
+    if(status)
+        CoolKeyLogMsg(PR_LOG_ALWAYS,"CoolKey Status: " + status);
+
+    if(atr)
+        CoolKeyLogMsg(PR_LOG_ALWAYS,"CoolKey Atr: " + atr);
+
+    if(phoneHomeURI)
+        CoolKeyLogMsg(PR_LOG_ALWAYS,"CoolKey Phone Home URI: " + phoneHomeURI);
+}
+
+
 //Update display when phone home data comes in
 function UpdateRowWithPhoneHomeData(keyType,keyID)
 {
@@ -3664,6 +3750,7 @@ function UpdateRowWithPhoneHomeData(keyType,keyID)
 function phoneHome(theUrl,aKeyID,resultCB)
 {
 
+   CoolKeyLogMsg(PR_LOG_ALWAYS,"Actually phoning Home for Key: " + aKeyID + " URI: " + theUrl); 
    var url = null ;
 
    if(!theUrl || !aKeyID)
@@ -3756,6 +3843,8 @@ function phoneHome(theUrl,aKeyID,resultCB)
                     {
                         recordMessage("Writing out config : " +cValue + " value: " + value);
                         DoCoolKeySetConfigValue(cValue,value);
+                        CoolKeyLogMsg(PR_LOG_ALWAYS,"Phone Home config value for Key: " + aKeyID + " ConfigKey: " + cValue + " ConfigValue: " + value);
+
                     }
                 }
                
@@ -3779,6 +3868,7 @@ function phoneHome(theUrl,aKeyID,resultCB)
 
                 var issuer_config_value = ConfigValueWithKeyID(aKeyID,KEY_ISSUER_URL);
                 var result = DoCoolKeySetConfigValue(issuer_config_value,url);
+                CoolKeyLogMsg(PR_LOG_ALWAYS,"Phone Home config value for Key: " + aKeyID + " ConfigKey: " + issuer_config_value + " ConfigValue: " + url);
                 resultCB(true);
             }
             return true;
