@@ -146,6 +146,7 @@ eCKMessage *AllocateMessage(eCKMessage::sntype type,unsigned char *data, unsigne
   void Release();
 
   HRESULT SetAuthParameter(const char *param_id, const char *value);
+  HRESULT CancelAuthParameters();
   HRESULT SetScreenName(const char *screenName);
   HRESULT SetPassword(const char *password);
   HRESULT SetTokenPin(const char *pin);
@@ -242,11 +243,11 @@ eCKMessage *AllocateMessage(eCKMessage::sntype type,unsigned char *data, unsigne
 
   HRESULT HttpSendSecurID(eCKMessage_SECURID_REQUEST *req);
   HRESULT HttpSendNewPin(eCKMessage_NEWPIN_REQUEST * req);
-  HRESULT HttpSendAuthResponse(eCKMessage_EXTENDED_LOGIN_REQUEST *req);
+  HRESULT HttpSendAuthResponse(CoolKeyHandler *context,eCKMessage_EXTENDED_LOGIN_REQUEST *req);
   HRESULT HttpBeginOpRequest();
   HRESULT HttpSendUsernameAndPW();
   HRESULT HttpProcessStatusUpdate(eCKMessage_STATUS_UPDATE_REQUEST * msg);
-  HRESULT HttpOnDisconnect();
+  HRESULT HttpDisconnect(int reason=0);
 
   static void HttpProcessTokenPDU(CoolKeyHandler *context,eCKMessage_TOKEN_PDU_REQUEST *req);
   static void HttpProcessEndOp(CoolKeyHandler* context, eCKMessage_END_OP *end);
