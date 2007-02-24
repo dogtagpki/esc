@@ -40,6 +40,13 @@
 #define __EXPORT
 #endif
 
+extern "C" {
+
+char *GetTStamp(char *aTime,int aSize);
+
+}
+
+
 typedef bool ( *PSChunkedResponseCallback)(unsigned char *entity_data,unsigned entity_data_len,void *uw, int status);
 
 class PSHttpResponse;
