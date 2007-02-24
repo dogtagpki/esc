@@ -175,6 +175,8 @@ COOLKEY_API HRESULT CoolKeyGetATR(const CoolKey *aKey, char *aBuf, int aBufLen);
 
 COOLKEY_API int CoolKeyGetAppletVer(const CoolKey *aKey, const bool isMajor);
 
+//Utility time function
+char *GetTStamp(char *aTime,int aSize);
 }
 
 ////////////////////////////////////////////////////////////////////////
