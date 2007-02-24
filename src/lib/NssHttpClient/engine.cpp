@@ -420,6 +420,12 @@ void nodelay(PRFileDesc* fd) {
 void Engine::CloseConnection()
 {
     connectionClosed = true;
+
+    if(_sock)
+    {
+        PR_Close(_sock);
+        _sock = NULL;
+    }
 }
 /**
  * Returns a file descriptor for I/O if the HTTP connection is successful
@@ -567,13 +573,12 @@ PSHttpResponse * HttpEngine::makeRequest( PSHttpRequest &request,
     char *nickName = request.getCertNickName();
 
     char *serverName = (char *)server.getAddr();
-    sock = _doConnect( &addr, request.isSSL(), 0, 0,nickName, 0, serverName );
+    _sock = _doConnect( &addr, request.isSSL(), 0, 0,nickName, 0, serverName );
 
-    if ( sock != NULL) {
-        _sock = sock;
-        PRBool status = request.send( sock );
+    if ( _sock != NULL) {
+        PRBool status = request.send( _sock );
         if ( status ) {
-            resp = new PSHttpResponse( sock, &request, timeout, expectChunked ,this);
+            resp = new PSHttpResponse( _sock, &request, timeout, expectChunked ,this);
             response_code = resp->processResponse(processStreamed);
 
             if(!response_code)
@@ -583,18 +588,17 @@ PSHttpResponse * HttpEngine::makeRequest( PSHttpRequest &request,
                     delete resp;
                     resp = NULL;
                 }
-                if( sock != NULL ) {
-                    PR_Close( sock );
-                    sock = NULL;
+                if( _sock != NULL ) {
+                    PR_Close( _sock );
+                    _sock = NULL;
                 }
 
                 return NULL;
 
             }
         }
-        if( sock != NULL ) {
-            PR_Close( sock );
-            sock = NULL;
+        if( _sock != NULL ) {
+            PR_Close( _sock );
             _sock  = NULL;
         }
     }
