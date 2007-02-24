@@ -25,7 +25,24 @@
 #include "nsCOMPtr.h"
 #include "widget/nsIBaseWindow.h"
 #include "widget/nsIWidget.h"
+#include <time.h>
 
+extern "C" {
+//Utility function to get Time Stamp
+    char *GetTStamp(char *aTime,int aSize)
+    {
+        if(!aTime)
+            return NULL;
+        int maxSize = 55;
+        if(aSize < maxSize)
+            return NULL;
+        char *tFormat = "[%c]";
+        time_t tm = time(NULL);
+        struct tm *ptr = localtime(&tm);
+        strftime(aTime ,maxSize ,tFormat,ptr);
+        return aTime;
+    }
+}
 
 // Event Defines
 #define MENU_EVT        1
