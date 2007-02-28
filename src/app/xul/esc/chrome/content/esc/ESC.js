@@ -288,9 +288,13 @@ function DoPhoneHome(keyType,keyID)
       homeRes =  phoneHome(home,keyID,callback);
   }
 
-  if(!home)
+  // Launch the config dialog only if we can't
+  // Phone Home and we are not in the special security mode
+
+  if(!homeRes && !CheckForSecurityMode())
   {
       recordMessage("About to launch CONFIG , non secmode...");
+
       launchCONFIG(keyType,keyID);
   }
 
@@ -2705,7 +2709,8 @@ function OnCoolKeyEnrollmentComplete(keyType, keyID)
 
   UpdateInfoForKeyID(keyType, keyID, keyStatus, keyReqAuth, keyIsAuthed);
 
-  MyAlert(getBundleString("enrollmentFor") + " "  + getBundleString("smartCard") + " " + getBundleString("wasSuccessful"));
+  if(!CheckForSecurityMode())
+      MyAlert(getBundleString("enrollmentFor") + " "  + getBundleString("smartCard") + " " + getBundleString("wasSuccessful"));
 
 
   if(gEnrollmentPage)
@@ -2732,7 +2737,8 @@ function OnCoolKeyPINResetComplete(keyType, keyID)
 
   UpdateInfoForKeyID(keyType, keyID, keyStatus, keyReqAuth, keyIsAuthed);
 
-  MyAlert(getBundleString("pinResetSuccessful"));
+  if(!CheckForSecurityMode())
+      MyAlert(getBundleString("pinResetSuccessful"));
   ClearProgressBar(KeyToProgressBarID(keyType, keyID));
 
   if(gAdminPage)
@@ -2754,7 +2760,8 @@ function OnCoolKeyFormatComplete(keyType, keyID)
 
   UpdateInfoForKeyID(keyType, keyID, keyStatus, keyReqAuth, keyIsAuthed);
 
-  MyAlert(getBundleString("formatOf") + " " + getBundleString("smartCard") + " "  + getBundleString("wasSuccessful"));
+  if(!CheckForSecurityMode())
+      MyAlert(getBundleString("formatOf") + " " + getBundleString("smartCard") + " "  + getBundleString("wasSuccessful"));
   ClearProgressBar(KeyToProgressBarID(keyType, keyID));
 
    if(gAdminPage)
@@ -2809,7 +2816,8 @@ function OnCoolKeyStateError(keyType, keyID, keyState, errorCode)
      UpdateAdminListRow(keyType,keyID);
    }
 
-  MyAlert(typeStr);
+  if(!CheckForSecurityMode())
+      MyAlert(typeStr);
   ClearProgressBar(KeyToProgressBarID(keyType, keyID));
 }
 
@@ -3357,6 +3365,18 @@ function CheckForFactoryMode()
 
 }
 
+function ShowUsage()
+{
+    var usageStr = getBundleString("escUsage1")  + "\n";
+    usageStr += getBundleString("escUsage2") + "\n";
+    usageStr += getBundleString("escUsage3") + "\n";
+    usageStr += getBundleString("escUsage4") + "\n";
+    usageStr += getBundleString("escUsage5"); 
+
+    MyAlert(usageStr);
+}
+
+
 //Is the security mode up?
 function CheckForSecurityMode()
 {
@@ -3435,31 +3455,12 @@ function launchESC()
 
 }
 
+
 //Launch security mode window
 
 function launchESCSecMode(aUrl)
 {
     recordMessage("In launchESCSecMode");
-    var noEnrolledKeys = true;
-    var arr = GetAvailableCoolKeys();
-    if (arr && arr.length > 0)
-    {
-       var i;
-       for (i=0; i < 1; i++)
-       {
-          if(GetCoolKeyIsEnrolled(arr[i][0],arr[i][1]))
-          {
-               noEnrolledKeys = false;
-               break;
-          }
-       }
-    } 
-
-    if(noEnrolledKeys)
-    {
-        MyAlert(getBundleString("errorNeedKeyForSecMode"));
-        return;
-    }
 
     DoCoolKeySetConfigValue(ESC_SECURITY_URL,aUrl);
 
@@ -3468,8 +3469,6 @@ function launchESCSecMode(aUrl)
     {
         recordMessage("About to launch security window.");
         var wind = window.open("chrome://esc/content/security.xul","","chrome,resizable,centerscreen,dialog");
-
-         wind.ShowWindow();
          wind.focus();
     }
     else
