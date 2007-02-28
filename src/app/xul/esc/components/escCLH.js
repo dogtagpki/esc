@@ -57,10 +57,23 @@
                cmdLine.preventDefault = true;
            }
 
+
+           var showUsage = cmdLine.handleFlag("usage",false);
+
+           recordMessage("ShowUsage flag: " + showUsage);
+           if(showUsage) {
+               cmdLine.preventDefault = true;
+           }
+
            if(win)
            {
                recordMessage("Subsequent command invocation. Launch appropriate  page.");
-
+               if(showUsage) 
+               {
+                   recordMessage("About to show usage.");
+                   win.ShowUsage();
+                   return;
+               }
                var locName = win.location.toString();
 
                recordMessage("Base window . " + locName);
