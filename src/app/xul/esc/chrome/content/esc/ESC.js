@@ -50,6 +50,7 @@ const  ESC_TOKEN_BROWSER_URL_ESTABLISHED = "esc.token.browser.established";
 const  ESC_IGNORE_KEY_ISSUER_INFO = "esc.ignore.key.issuer.info";
 const  ESC_FACE_TO_FACE_MODE = "esc.face.to.face.mode";
 const  ESC_SECURITY_URL="esc.security.url";
+const  ESC_SECURE_URL="esc.secure.url";
 
 const  CLEAN_TOKEN = "cleanToken";
 const  UNINITIALIZED        = 1;
@@ -1137,6 +1138,39 @@ function UpdateSecurityPage()
               ui_id.setAttribute("src",securityURL); 
           }
      }
+
+     window.setTimeout('GrantSecurityPagesPrivileges()',1500);
+}
+
+function GrantSecurityPagesPrivileges()
+{
+    var curSecUrl = null;
+    var i = 1;
+
+    var capability = "capability.principal.codebase";
+    var uni_connect = "UniversalXPConnect";
+    var granted     = "granted";
+    var id          = "id";
+
+    var base_iter = 2;
+
+    while(1)
+    {
+        curSecUrl = DoCoolKeyGetConfigValue(ESC_SECURE_URL + "." + i); 
+       
+        if(curSecUrl)
+        {
+            DoCoolKeySetConfigValue(capability + ".p" + base_iter + "." + granted,uni_connect);
+
+            DoCoolKeySetConfigValue(capability + ".p" + base_iter + "." + id,curSecUrl);
+        }
+
+        if(!curSecUrl)
+            break; 
+
+        i++;
+        base_iter++;
+    }
 }
 
 function DoShowFullEnrollmentUI()
@@ -2067,6 +2101,11 @@ function UpdateAdminKeyDetailsArea(keyType,keyID)
     if(!viewcertsbtn)
         return;
 
+    //hack for CAC cards that now have no CUID reported
+
+    if(!isCool)
+        keyStatus = "ENROLLED";
+
     var image_src = SelectImageForKeyStatus(keyStatus,1,1);
 
     recordMessage("image_src " + image_src);
@@ -2093,12 +2132,15 @@ function UpdateAdminKeyDetailsArea(keyType,keyID)
 
    if(!keyStatus)
    {
+
       DisableItem(viewcertsbtn);
       DisableItem(enrollbtn);
       DisableItem(resetpinbtn);
       DisableItem(formatbtn);
+
       detailsKeyLabel.setAttribute("value",getBundleString("noKeysPresent"));
       HideItem(detailsImage);
+
       return;
    }
 
@@ -2243,7 +2285,6 @@ function UpdateAdminListRow( keyType, keyID)
 
 function CreateAdminListRow(adminListBox,keyType,keyID,keyStatus,reqAuth,isAuthed,keyIssuer,keyIssuedTo)
 {
-   //alert("CreateAdminListRow keyType " + keyType + " keyID " + keyID + " keyStatus " + keyStatus);
 
   if(!gAdminPage)
       return null;
@@ -2627,6 +2668,7 @@ function OnCoolKeyInserted(keyType, keyID)
 
        if (!gCurrentSelectedRow)
           SelectRowByKeyID(keyType, keyID);
+
    }
 
   if(gHiddenPage)
@@ -3282,8 +3324,6 @@ function DoGetCoolKeyIsReallyCoolKey(keyType,keyID)
       netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
       var isCool =  netkey.GetCoolKeyIsReallyCoolKey(keyType, keyID);
 
-      //alert("isCool " + isCool);
-
       return isCool;
     } catch (e) {
 
@@ -3742,6 +3782,7 @@ function UpdateRowWithPhoneHomeData(keyType,keyID)
     {
           SelectRowByKeyID(keyType, keyID);
           UpdateAdminListRow(keyType,keyID);
+           UpdateAdminKeyDetailsArea(keyType,keyID);
     }
 }
 
@@ -3991,7 +4032,6 @@ function DoMyAlert(message,title)
 
    } catch(e) {
 
-       alert("Problem with nsIPromptService " + e);
    }
 }
 
