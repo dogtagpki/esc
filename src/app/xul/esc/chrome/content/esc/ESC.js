@@ -1139,7 +1139,7 @@ function UpdateSecurityPage()
           }
      }
 
-     window.setTimeout('GrantSecurityPagesPrivileges()',1500);
+     window.setTimeout('GrantSecurityPagesPrivileges()',5000);
 }
 
 function GrantSecurityPagesPrivileges()
