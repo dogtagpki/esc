@@ -2103,7 +2103,7 @@ function UpdateAdminKeyDetailsArea(keyType,keyID)
 
     //hack for CAC cards that now have no CUID reported
 
-    if(!isCool)
+    if(!isCool && !noKey)
         keyStatus = "ENROLLED";
 
     var image_src = SelectImageForKeyStatus(keyStatus,1,1);
