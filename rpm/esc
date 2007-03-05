@@ -20,7 +20,7 @@
 ESC_PROFILE_BASE=~/.redhat/esc
 ESC_LOG_FILE=esc.log
 
-ESC_PATH=$LIBDIR/esc-1.0.0
+ESC_PATH=$LIBDIR/esc-1.0.1
 ESC_BIN_PATH=/usr/bin
 ESC_EXEC=esc
 ESCD_EXEC=escd

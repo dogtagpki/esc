@@ -18,8 +18,8 @@
 # END COPYRIGHT BLOCK
 
 Name: esc 
-Version: 1.0.0
-Release: 16%{?dist} 
+Version: 1.0.1
+Release: 1%{?dist} 
 Summary: Enterprise Security Client Smart Card Client
 License: GPL
 URL: http://directory.fedora.redhat.com/wiki/CoolKey 
@@ -27,22 +27,8 @@ Group: Applications/Internet
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-Patch1: firefox-1.5.0.1-dumpstack.patch
-Patch2: xulrunner-1.8.0.1-coreconf.patch
-Patch3: firefox-1.5-with-system-nss.patch
-Patch4: firefox-1.1-nss-system-nspr.patch
-Patch5: esc-1.0.0-xul-sys-nss-nspr.patch
-Patch6: esc-1.0.0-ui-enhance.patch
-Patch7: esc-1.0.0-notify-icon-fixes.patch
-Patch8: esc-1.0.0-strings-fix.patch
-Patch11: esc-1.0.0.strings-1-fix.patch
-Patch12: esc-1.0.0-ui-enhance-1.patch
-Patch13: esc-1.0.0-pw-reset-fix.patch
-Patch14: esc-1.0.0-escd.patch
-Patch15: esc-1.0.0-escd1.patch
-Patch16: esc-1.0.0-escd2.patch
-Patch17: esc-1.0.0-build-fix.patch
-Patch18: esc-1.0.0-diag-fix.patch
+Patch1: firefox-1.5-with-system-nss.patch
+Patch2: firefox-1.1-nss-system-nspr.patch
 
 BuildRequires: doxygen fontconfig-devel freetype-devel >= 2.1
 BuildRequires: glib2-devel libIDL-devel atk-devel gtk2-devel libjpeg-devel
@@ -80,7 +66,7 @@ AutoReqProv: 0
 Source0: %{escname}.tar.bz2
 Source1: esc
 Source2: esc.desktop
-Source3: xulrunner-1.8.0.1-source.tar.bz2
+Source3: xulrunner-1.8.0.4-source.tar.bz2
 
 
 %description
@@ -91,20 +77,7 @@ cryptographic smartcards.
 
 %setup -q -c -n %{escname}
 
-#patch esc to use system nss and nspr.
 
-%patch5 -p1 -b .fix5
-%patch6 -p1 -b .fix6
-%patch7 -p1 -b .fix7
-%patch8 -p1 -b .fix8
-%patch11 -p1 -b .fix11
-%patch12 -p1 -b .fix12
-%patch13 -p1 -b .fix13
-%patch14 -p1 -b .fix14
-%patch15 -p1 -b .fix15
-%patch16 -p1 -b .fix16
-%patch17 -p1 -b .fix17
-%patch18 -p1 -b .fix18
 
 #Unpack xulrunner where esc expects it to be.
 
@@ -116,8 +89,6 @@ cd mozilla
 
 %patch1 -p1 -b .fix1
 %patch2 -p1 -b .fix2
-%patch3 -p1 -b .fix3
-%patch4 -p1 -b .fix4
 
 %build
 
@@ -130,7 +101,7 @@ export USE_64
 
 cd ../..
 
-make BUILD_OPT=1 HAVE_LIB_NOTIFY=1
+make BUILD_OPT=1 HAVE_LIB_NOTIFY=1 ESC_VERSION=%{version}-%{release}
 
 %install
 
@@ -145,6 +116,7 @@ mkdir -p $RPM_BUILD_ROOT/%{docdir}
 
 
 sed -e 's;\$LIBDIR;'%{_libdir}';g'  %{SOURCE1} > $RPM_BUILD_ROOT/%{escbindir}/%{name}
+
 
 
 chmod 755 $RPM_BUILD_ROOT/%{escbindir}/esc
@@ -213,7 +185,19 @@ if [ -x %{_bindir}/gtk-update-icon-cache ]; then
 fi
 
 %changelog
-* Fri Sep 22 2006 Jack Magne <jmagne@redhat.com>= 1.0.0-15
+* Mon Mar 05 2007 Jack Magne <jmagne@redhat.com>- 1.0.0-1
+- Stability fixes
+* Fri Oct 27 2006 Jack Magne <jmagne@redhat.com>- 1.0.0-19
+- More mac and win fixes.
+* Tue Oct 24 2006 Jack Magne <jmagne@redhat.com>- 1.0.0-18
+-rebuilt on RHEL-5 branch
+* Sun Oct 4  2006 Jack Magne <jmagne@redhat.com>- 1.0.0-17
+- Diagnostics display fixes, Mac and Window fixes.
+
+* Sun Oct 01 2006 Jesse Keating <jkeating@redhat.com> - 1.0.0-16
+- rebuilt for unwind info generation, broken in gcc-4.1.1-21
+
+* Fri Sep 22 2006 Jack Magne <jmagne@redhat.com>- 1.0.0-15
 - Fix to the build version
 
 * Fri Sep 22 2006 Jack Magne <jmagne@redhat.com>= 1.0.0-14
