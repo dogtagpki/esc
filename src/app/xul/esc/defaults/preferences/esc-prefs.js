@@ -25,8 +25,7 @@ pref("capability.principal.codebase.p0.id", "file://");
 
 pref("esc.tps.message.timeout","90");
 
-pref("esc.factory.mode","no");
-pref("esc.show.tabs.ui","no");
 
 pref("esc.windows.do.capi","yes");
-pref("esc.disable.password.prompt","no");
+
+pref("esc.disable.password.prompt","yes");
