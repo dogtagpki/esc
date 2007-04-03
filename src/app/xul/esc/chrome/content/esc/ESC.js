@@ -2249,6 +2249,7 @@ function HideAdminPage()
 }
 function UpdateAdminListRow( keyType, keyID)
 {
+
     if(!gAdminPage)
         return;
 
@@ -2527,6 +2528,7 @@ function DoEnrollCoolKey()
   {
     recordMessage("EnrollCoolKey failed.");
   }
+
   if(gAdminPage)
   {
      UpdateAdminListRow(keyType,keyID);
@@ -3778,11 +3780,14 @@ function UpdateRowWithPhoneHomeData(keyType,keyID)
         UpdateEnrollmentArea(keyType,keyID,1);
     }
 
-    if(gAdminPage)
+
+    var adminWnd  = IsPageWindowPresent(ADMIN_WINDOW);
+
+    if(adminWnd)
     {
-          SelectRowByKeyID(keyType, keyID);
-          UpdateAdminListRow(keyType,keyID);
-           UpdateAdminKeyDetailsArea(keyType,keyID);
+          adminWnd.SelectRowByKeyID(keyType, keyID);
+          adminWnd.UpdateAdminListRow(keyType,keyID);
+          adminWnd.UpdateAdminKeyDetailsArea(keyType,keyID);
     }
 }
 
