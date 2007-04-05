@@ -3351,10 +3351,25 @@ function DoCoolKeyGetIssuerUrl(keyType,keyID)
 
     try {
       netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
-      url =  netkey.GetCoolKeyIssuerInfo(keyType, keyID);
+      
+      var tries = 0;
+      while(tries < 3)
+      { 
+          url =  netkey.GetCoolKeyIssuerInfo(keyType, keyID);
 
-      if(url.length < 10)   // Check for bogus junk
-          url = null;
+          if(url.length < 10)   // Check for bogus junk
+          {
+              recordMessage("Bogus url found ....");
+              url = null;
+              Sleep(150);
+              recordMessage("Going to try again... ");
+          }
+          else
+              break;
+
+          tries ++;
+      }
+
 
       if(url)
       {
@@ -3362,7 +3377,26 @@ function DoCoolKeyGetIssuerUrl(keyType,keyID)
           var result = DoCoolKeySetConfigValue(issuer_config_value,url);
       }
     } catch (e) {
-      ReportException(getBundleString("errorIssuerInfo") + " " , e);
+      recordMessage("Exception attempting to get token issuer info.");
+
+      var tries = 0;
+      while(tries < 3)
+      {
+          url =  netkey.GetCoolKeyIssuerInfo(keyType, keyID);
+
+          if(url.length < 10)   // Check for bogus junk
+          {
+              recordMessage("Bogus url found from exception....");
+              url = null;
+              sleep(150);
+              recordMessage("From exception.  Going to try again... ");
+          }
+          else
+              break;
+
+          tries ++;
+      }
+      recordMessage("From exception returning " + url);
       return url;
   }
 
