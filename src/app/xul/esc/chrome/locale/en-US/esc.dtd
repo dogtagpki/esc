@@ -86,3 +86,14 @@
 <!ENTITY tpsConfigDesc3 "Enter the location of the smart card server (such as https://smartcardserver.example.com:7888)">
 <!ENTITY diagnosticsMessage "The information below is diagnostic information that your system generates as you use your smart card. If you are having smart card problems, you may be asked by your support engineer to send this information for analysis.">
 <!ENTITY dontLaunchBrowser "Don't launch the default browser when enrolled card is inserted.">
+<!ENTITY Close.accesskey "C">
+<!ENTITY OK.accesskey "O">
+<!ENTITY Format.accesskey "F">
+<!ENTITY Enroll.accesskey "E">
+<!ENTITY ResetPin.accesskey "R">
+<!ENTITY Test.accesskey "T">
+<!ENTITY Diagnostics.accesskey "D">
+<!ENTITY Cancel.accesskey "C">
+<!ENTITY Submit.accesskey "S">
+<!ENTITY ViewCerts.accesskey "V">
+<!ENTITY CopyClip.accesskey "T">
