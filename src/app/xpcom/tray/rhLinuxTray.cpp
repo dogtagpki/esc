@@ -22,11 +22,13 @@
 #include <prlog.h>
 #include "notifytray.h"
 #include "intl/nsIStringBundle.h"
+#include <gdk/gdkx.h>
 
 NS_IMPL_ISUPPORTS1(rhTray, rhITray)
 
 GtkWidget* rhTray::mWnd = NULL;
 GtkWidget* rhTray::mIconMenu = NULL;
+GtkWidget* rhTray::mIconBoxWidget = NULL;
 
 int rhTray::mInitialized = 0;
 
@@ -37,6 +39,44 @@ map< nsIBaseWindow *, rhTrayWindowListener *> rhTray::mWindowMap;
 
 static PRLogModuleInfo *trayLog = PR_NewLogModule("tray");
 
+static void popup_position(GtkMenu *menu,
+                                       gint *x,
+                                       gint *y,
+                                       gboolean *push_in,
+                                       gpointer user_data)
+{
+
+  char tBuff[56];
+  GtkWidget *icon_box_widget = GTK_WIDGET(user_data);
+
+  if(icon_box_widget)
+  {
+     GdkWindow* window = icon_box_widget->window;
+
+     gint width;
+     gint height;
+
+     gint px;
+     gint py;
+
+     gdk_drawable_get_size(window,&width,&height);
+
+     gdk_window_get_position(window,
+                                     &px,
+                                     &py);
+
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("%s popup_position width %d height %d  px %d py %d \n",GetTStamp(tBuff,56),width,height,px,py));
+
+
+     gint x_coord = px;
+     gint y_coord = (py + height);
+
+     *x = x_coord;
+     *y = y_coord; 
+
+  }
+
+}
 
 rhTray::rhTray() 
 {
@@ -232,11 +272,12 @@ HRESULT rhTray::Initialize()
        return E_FAIL;
     }
     
-    GtkWidget *icon_widget = notify_icon_get_box_widget();
+    mIconBoxWidget = notify_icon_get_box_widget();
 
-    if(icon_widget)
+    if(mIconBoxWidget)
     {
-        g_signal_connect(G_OBJECT(icon_widget), "button-press-event", G_CALLBACK(rhTray::IconCBProc), NULL);
+        g_signal_connect(G_OBJECT(mIconBoxWidget), "button-press-event", G_CALLBACK(rhTray::IconCBProc), NULL);
+
     }
 
     res = CreateEventWindow();
@@ -352,11 +393,23 @@ HRESULT rhTray::CreateIconMenu()
 
     GtkWidget *min_item = gtk_menu_item_new_with_label ("Hide");
     GtkWidget *max_item = gtk_menu_item_new_with_label ("Manage Keys");
-    GtkWidget *exit_item = gtk_menu_item_new_with_label ("Exit");
+    GtkWidget *exit_item = gtk_image_menu_item_new_with_label ("Exit");
 
-    gtk_menu_shell_append (GTK_MENU_SHELL (mIconMenu), max_item);
+    GtkWidget* quit_icon = gtk_image_new_from_stock(GTK_STOCK_QUIT,GTK_ICON_SIZE_SMALL_TOOLBAR);
+
+    if(max_item)
+       gtk_menu_shell_append (GTK_MENU_SHELL (mIconMenu), max_item);
     //gtk_menu_shell_append (GTK_MENU_SHELL (mIconMenu), min_item);
-    gtk_menu_shell_append (GTK_MENU_SHELL (mIconMenu), exit_item);
+    if(exit_item)
+    {
+        gtk_menu_shell_append (GTK_MENU_SHELL (mIconMenu), exit_item);
+
+        if(quit_icon)
+        {
+           gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(exit_item), quit_icon);
+
+        }
+    }
 
     g_signal_connect(G_OBJECT (min_item), "activate",
                               G_CALLBACK (rhTray::IconMenuCBProc),
@@ -404,8 +457,8 @@ void rhTray::IconCBProc(GtkWidget *button, GdkEventButton *event, void *data)
                 gtk_menu_popup(GTK_MENU(mIconMenu),
                                              NULL,
                                              NULL,
-                                             NULL,
-                                             NULL,
+                        (GtkMenuPositionFunc) popup_position,
+                                              mIconBoxWidget,
                                              event->button,
                                              event->time);
 
@@ -725,6 +778,7 @@ void rhTrayWindowListener::ShowWindow()
 
          if(widget->window)
          {
+             gdk_x11_window_set_user_time (widget->window, gdk_x11_get_server_time (widget->window));
              if(GTK_WIDGET_VISIBLE(mWnd))
              {
                  gdk_window_show(widget->window);

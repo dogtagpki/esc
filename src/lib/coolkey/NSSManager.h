@@ -68,11 +68,16 @@ class NSSManager
 
   static HRESULT GetKeyIssuedTo(const CoolKey *aKey, char *aBuf, int aBufLength);
 
-
+  static HRESULT GetKeyIssuer(const CoolKey *aKey, char *aBuf, int aBufLength);
 
 
  private:
 
+   static bool IsCACert(CERTCertificate *cert);
+
+#ifdef LINUX
+  PK11SlotInfo *systemCertDB;
+#endif
   SmartCardMonitoringThread *mpSCMonitoringThread;
 };
 

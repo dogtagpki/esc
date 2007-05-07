@@ -72,14 +72,14 @@
                           <listcol flex="1"/>
                           <listcol flex="1"/>
                           <listcol flex="1"/>
-                          <listcol flex="1"/>
+                      <!--    <listcol flex="1"/>  -->
                       </listcols>
                       <listhead>
                           <listheader />
                           <listheader flex="3" class="headerText" label="&keyIssuer;"/>
                           <listheader flex="4" class="headerText" label="&keyIssuedTo;"/>
                           <listheader flex="3" class="headerText" label="&keyStatus;"/>
-                          <listheader flex="1" class="headerText" label="&keyProgress;"/>
+            <!--              <listheader flex="1" class="headerText" label="&keyProgress;"/> -->
                       </listhead>
                   </listbox>
              </groupbox>
@@ -132,31 +132,34 @@
                           <spacer class="verticalSpacer"/>
                       </description>
 
-                          <button class="buttonText" id="formatbtn" label="&doFormat;" oncommand="DoFormatCoolKey('userKey')" disabled="true" hidden = "false"/>
+                          <button class="buttonText" id="formatbtn" label="&doFormat;" oncommand="DoFormatCoolKey('userKey')" disabled="true" hidden = "false" accesskey="&Format.accesskey;"/>
 
-                          <button class="buttonText" id="enrollbtn" label="&doEnroll;" oncommand="DoCollectPassword('enroll');" disabled="true" hidden="false"/>
+                          <button class="buttonText" id="enrollbtn" label="&doEnroll;" oncommand="DoCollectPassword('enroll');" disabled="true" hidden="false" accesskey="&Enroll.accesskey;"/>
 
-                          <button class="buttonText"  id="resetpinbtn" label="&doResetPin;" oncommand="DoCollectPassword('resetpin');" disabled="true" hidden="false"/>
+                          <button class="buttonText"  id="resetpinbtn" label="&doResetPin;" oncommand="DoCollectPassword('resetpin');" disabled="true" hidden="false" accesskey="&ResetPin.accesskey;"/>
 
-
-<!--                          <button class="buttonText"  id="viewcertsbtn" label="&doViewCerts;" oncommand="launchCertViewer()" disabled="true" hidden="false"/>
-
-                          <button class="buttonText" id="advancedbtn" label="&advancedInfo;" disabled="true" hidden="false" oncommand="DoShowAdvancedInfo();"/>
--->
                   </vbox> 
              </groupbox>
          </hbox>
         <hbox id = "enrollment_button_box" >
-            <button class="buttonText"  id="viewcertsbtn" label="&doViewCerts;" oncommand="launchCertViewer()" disabled="true" hidden="false"/>
-                          <button class="buttonText" id="advancedbtn" label="&advancedInfo;" disabled="true" hidden="false" oncommand="DoShowAdvancedInfo();"/>
+            <button class="buttonText"  id="viewcertsbtn" label="&doViewCerts;" oncommand="launchCertViewer()" disabled="true" hidden="false" accesskey="&ViewCerts.accesskey;"/>
+                          <button class="buttonText" id="advancedbtn" label="&advancedInfo;" disabled="true" hidden="false" oncommand="DoShowAdvancedInfo();" accesskey="&Diagnostics.accesskey;"/>
 
             <spacer flex = "1"/>
 
             <checkbox id="enrolled_key_browser" label="&dontLaunchBrowser;" checked="false" oncommand="DoHandleEnrolledBrowserLaunch(); " hidden="true" disabled="false" />  
             <spacer flex = "1"/>
-            <button class="buttonText" id="closebtn" label ="&closeAdminLater;" oncommand="HideAdminPage();"/>
+            <button class="buttonText" id="closebtn" label ="&closeAdminLater;" oncommand="HideAdminPage();" accesskey="&Close.accesskey;"/>
             <spacer class="horSpacerShort"/>
 
          </hbox>
   <!-- </groupbox> -->
+
+   <popupset>
+  <menupopup id="adminkeymenu">
+    <menuitem label="&doFormat;" id="menu-format" oncommand="DoFormatCoolKey('userKey');"/>
+    <menuitem label="&doEnroll;" id="menu-enroll" oncommand="DoCollectPassword('enroll');"/>
+    <menuitem label="&doResetPin;" id="menu-resetpassword" oncommand="DoCollectPassword('resetpin');"/>
+  </menupopup>
+</popupset>
 </window>

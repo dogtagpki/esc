@@ -229,9 +229,10 @@ function DoPhoneHome(keyType,keyID)
     var issuer = "";
     if(aResult == true)
     {
-        issuer = GetCachedIssuer(keyID);       
+        issuer = GetCoolKeyIssuer(keyType,keyID);       
         if(!issuer)
             issuer = getBundleString("unknownIssuer");
+        recordMessage("In DoPhoneHome callback success issuer " + issuer);
         TraySendNotificationMessage(getBundleString("keyInserted"),"\"" + issuer +"\"" + " " + getBundleString("keyInsertedComputer"),3,4000,GetESCNotifyIconPath(keyType,keyID));
         LogKeyInfo(keyType,keyID,"Key Inserted ...");
         UpdateRowWithPhoneHomeData(keyType,keyID);
@@ -248,7 +249,11 @@ function DoPhoneHome(keyType,keyID)
     }
     else
     {
-        issuer = getBundleString("unknownIssuer");
+  
+        issuer = GetCoolKeyIssuer(keyType,keyID);
+        if(!issuer)
+            issuer = getBundleString("unknownIssuer");
+        recordMessage("Phone home callback failed , issuer " + issuer);
         TraySendNotificationMessage(getBundleString("keyInserted"),"\"" + issuer +"\"" + " " + getBundleString("keyInsertedComputer"),3,4000,GetESCNotifyIconPath(keyType,keyID));
         LogKeyInfo(keyType,keyID,"Key Inserted ...");
     }
@@ -265,7 +270,7 @@ function DoPhoneHome(keyType,keyID)
       var phoneHomeURI = GetCachedPhoneHomeURL(keyID);
 
       recordMessage("Phone home info cached...");
-      issuer = GetCachedIssuer(keyID);
+      issuer = GetCoolKeyIssuer(keyType,keyID);
       TraySendNotificationMessage(getBundleString("keyInserted"),"\"" + issuer +"\"" + " " + getBundleString("keyInsertedComputer"),3,4000,GetESCNotifyIconPath(keyType,keyID));
       LogKeyInfo(keyType,keyID,"Key Inserted ...");
 
@@ -415,6 +420,11 @@ function commitConfigValues()
 
 function InitializePhoneHomeConfigUI()
 {
+    var uri_box = document.getElementById("phonehomeuri");
+    
+    if(uri_box)
+        uri_box.focus();
+
     window.sizeToContent();
 }
 
@@ -666,8 +676,24 @@ function GetCoolKeyIssuer(keyType,keyID)
 
      issuer = GetCachedIssuer(keyID);
 
-     if(!issuer)
-         issuer = getBundleString("unknownIssuer");
+
+     // Now try to read off the certs if applicable
+
+    if(!issuer && (GetStatusForKeyID(keyType, keyID) == getBundleString("statusEnrolled")))
+    {
+        try {
+            netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+            issuer = netkey.GetCoolKeyIssuer(keyType,keyID);
+
+        } catch (e)
+        {
+            issuer = null;
+        }
+    }
+
+
+    if(!issuer)
+        issuer = getBundleString("unknownIssuer");
 
     return issuer;
 }
@@ -719,11 +745,16 @@ function DoShowAdvancedInfo()
        var appletVerMaj = DoGetCoolKeyGetAppletVer(keyType, keyID , true);
        var appletVerMin = DoGetCoolKeyGetAppletVer(keyType, keyID, false);
 
-       var issuer = GetCachedIssuer(keyID);
+       var issuer = GetCoolKeyIssuer(keyType,keyID);
        if(!issuer)
            issuer = getBundleString("unknownIssuer");
 
-       textDump += getBundleString("smartCardU") + " " + i + ":"  + "\n\n";
+       var cardName = DoCoolKeyGetTokenName(keyType,keyID);
+
+       if(!cardName)
+           cardName = i;
+
+       textDump += getBundleString("smartCardU") + "  " + cardName + ":"  + "\n\n";
 
        textDump += "  " + getBundleString("appletVersion") + " " + appletVerMaj + "." + appletVerMin + "\n";
 
@@ -1008,24 +1039,24 @@ function SelectImageForKeyStatus(keyStatus,observeBusy,doubleSize)
 {
   var image_src = "";
 
-  if(observeBusy && (keyStatus == "BUSY" ))
+  if(observeBusy && (keyStatus == getBundleString("statusBusy")))
   {
       return "throbber-anim5.gif";
   }
-  if(keyStatus == "UNAVAILABLE")
+  if(keyStatus == getBundleString("statusUnavailable"))
   {
       return "";
   }
-  if(keyStatus == "ENROLLED")
+  if(keyStatus == getBundleString("statusEnrolled"))
   {
       image_src = "enrolled-key";
   }
   else
   {
-          if(keyStatus == "UNINITIALIZED")
+          if(keyStatus == getBundleString("statusUninitialized"))
               image_src = "initializecard";
            else
-               if(keyStatus == "NO APPLET")
+               if(keyStatus == getBundleString("statusNoApplet"))
                    image_src = "blank-card";
   }
 
@@ -1205,6 +1236,7 @@ function DoShowFullEnrollmentUI()
 
 function UpdateEnrollmentArea(keyType,keyID,inserted,showFullUI,showExternalUI)
 {
+
      if(!gEnrollmentPage)
          return;
 
@@ -1215,12 +1247,11 @@ function UpdateEnrollmentArea(keyType,keyID,inserted,showFullUI,showExternalUI)
      {
          alreadyEnrolled = true;
      } 
-      var arr = GetAvailableCoolKeys();
-      var numKeys = arr.length;
 
-      //alert("inserted " + inserted + " showFulUI " + showFullUI + " showExternalUI " + showExternalUI + " already enrolled " + alreadyEnrolled);
+      var numUnenrolledKeys = DoGetNumUnenrolledCoolKeys();
 
-     //If we already have external UI and keys left, don't mess it up
+      //alert("inserted " + inserted + " showFulUI " + showFullUI + " showExternalUI " + showExternalUI + " already enrolled " + alreadyEnrolled + " numUnenrolledKeys " + numUnenrolledKeys);
+
 
      var ui_id = document.getElementById("esc-ui");
 
@@ -1232,7 +1263,7 @@ function UpdateEnrollmentArea(keyType,keyID,inserted,showFullUI,showExternalUI)
 
          if(!inserted)
          {
-             if(!numKeys)
+             if(!numUnenrolledKeys)
              {
                ui_id.setAttribute("src",null);
              }
@@ -1389,6 +1420,9 @@ function EvaluatePasswordQuality()
    var pw = document.getElementById("pintf").value;
    var pwlength = 0;
 
+   var qualityMeter = document.getElementById("pass-progress-id");
+
+
    if(pw)
        pwlength = pw.length;
 
@@ -1422,6 +1456,11 @@ function EvaluatePasswordQuality()
   if ( pwstrength > 100 ) {
     pwstrength = 100;
   }
+   if(qualityMeter)
+   {
+       qualityMeter.setAttribute("value",  pwstrength);
+
+   }
    if(qualityImage)
    {
         if(pwlength==0)
@@ -1522,13 +1561,14 @@ function GetStatusForKeyID(keyType, keyID)
       break;
     case 4: // Available
     case 6: // UnblockInProgress
-    case 7: // PINResetInProgress
     case 8: // RenewInProgress
       keyStatus = PolicyToKeyType(GetCoolKeyPolicy(keyType, keyID));
       break;
-    case 5: // EnrollmentInProgress
+    case 7: // PINResetInProgress
       keyStatus = getBundleString("statusBusy");
       break;
+    case 5: // EnrollmentInProgress
+      keyStatus = getBundleString("statusBusy");
       break;
     case 9: // FormatInProgress
       keyStatus = getBundleString("statusBusy");
@@ -1604,7 +1644,7 @@ function InsertCoolKeyIntoAdminBindingList(keyType,keyID)
 function UpdateCoolKeyAvailabilityForEnrollment()
 {
   //Here we only allow ONE key
-  //Take the first one that shows up.
+  //Take the first unenrolled one that shows up.
 
   var arr = GetAvailableCoolKeys();
 
@@ -1616,17 +1656,24 @@ function UpdateCoolKeyAvailabilityForEnrollment()
 
   var i=0;
 
-  for (i=0; i < 1; i++)
+  for (i=0; i < arr.length; i++)
   {
-      var row = InsertCoolKeyIntoEnrollmentPage(arr[i][0],arr[i][1]);
+      var status =  GetStatusForKeyID(arr[i][0],arr[i][1]);
 
-      if(row)
-        gCurrentSelectedRow = row;
+      if(status  != getBundleString("statusEnrolled"))
+      {
+          var row = InsertCoolKeyIntoEnrollmentPage(arr[i][0],arr[i][1]);
 
-       var keyInserted = 1;
-       var showFullUI = 0;
+          if(row)
+            gCurrentSelectedRow = row;
+
+          var keyInserted = 1;
+          var showFullUI = 0;
     
-       UpdateEnrollmentArea(arr[i][0],arr[i][1],keyInserted,showFullUI);
+          UpdateEnrollmentArea(arr[i][0],arr[i][1],keyInserted,showFullUI);
+
+          break;
+      }
   }
 
   UpdateESCSize();
@@ -1660,6 +1707,8 @@ function UpdateAdminBindingListAvailability()
     {
         UpdateESCSize();
     }
+
+    window.focus();
 }
 
 function SetCurrentSelectedRowForEnrollment()
@@ -1703,6 +1752,9 @@ function InitializeAdminBindingList()
 
  DoSetEnrolledBrowserLaunchState(); 
  DoHandleEnrolledBrowserLaunch();
+
+ window.setTimeout('ShowWindow()',250);
+
 }
 
 //Window related functions
@@ -2039,11 +2091,15 @@ function UpdateAdminKeyDetailsArea(keyType,keyID)
     if(!gAdminPage)
         return;
 
-    var isCool =  DoGetCoolKeyIsReallyCoolKey(keyType, keyID);
+    var isCool = null;
+
+    //alert("blub " + " keyType " + keyType + " keyID " + keyID);
+
+    isCool = DoGetCoolKeyIsReallyCoolKey(keyType, keyID);
 
     var noKey = 0;
 
-    if(!keyType || !keyID)
+    if(!keyType && !keyID)
     {
         noKey = 1;
     }
@@ -2052,7 +2108,6 @@ function UpdateAdminKeyDetailsArea(keyType,keyID)
 
     if(!noKey)
         keyStatus = GetStatusForKeyID(keyType, keyID);
-
 
     recordMessage("No Key: " + noKey + " status " + keyStatus);
 
@@ -2101,11 +2156,6 @@ function UpdateAdminKeyDetailsArea(keyType,keyID)
     if(!viewcertsbtn)
         return;
 
-    //hack for CAC cards that now have no CUID reported
-
-    if(!isCool && !noKey)
-        keyStatus = "ENROLLED";
-
     var image_src = SelectImageForKeyStatus(keyStatus,1,1);
 
     recordMessage("image_src " + image_src);
@@ -2116,13 +2166,38 @@ function UpdateAdminKeyDetailsArea(keyType,keyID)
         ShowItem(detailsImage);
         detailsImage.setAttribute("src", image_src);
     }
+
+    // Now take care of the right click context menu that is
+    // Invisible at this point
+
+   var adminkeymenu = document.getElementById("adminkeymenu");
+   var menu_format = null;
+   var menu_enroll = null;
+   var menu_resetpassword = null;
+
+   if(adminkeymenu)
+   {
+       menu_format = document.getElementById("menu-format");
+       menu_enroll = document.getElementById("menu-enroll");
+       menu_resetpassword = document.getElementById("menu-resetpassword");
+       
+       if(!menu_format || !menu_enroll || !menu_resetpassword)
+       {
+           menu_format = null;
+           menu_enroll = null;
+           menu_resetpassword = null;
+           adminkeymenu = null;
+       }
+   }
+
+   recordMessage("Obtained admin popup menu object.");
     ShowItem(advancedbtn);
     EnableItem(advancedbtn);
 
     var isBusy =  0;
     var operationLabel = null;
 
-    if(keyStatus == "BUSY" || keyStatus == "UNAVAILABLE")
+    if(keyStatus == getBundleString("statusBusy") || keyStatus == getBundleString("statusUnavailable"))
         isBusy = 1;
 
     if(isBusy)
@@ -2132,9 +2207,15 @@ function UpdateAdminKeyDetailsArea(keyType,keyID)
 
    if(!keyStatus)
    {
-
       DisableItem(viewcertsbtn);
       DisableItem(enrollbtn);
+      if(adminkeymenu)
+      {
+         DisableItem(menu_enroll);
+         DisableItem(menu_resetpassword);
+         DisableItem(menu_format);
+      }
+
       DisableItem(resetpinbtn);
       DisableItem(formatbtn);
 
@@ -2144,21 +2225,44 @@ function UpdateAdminKeyDetailsArea(keyType,keyID)
       return;
    }
 
-   if(keyStatus == "ENROLLED")
+   if(keyStatus == getBundleString("statusEnrolled"))
    {
+       var isLoginKey = IsKeyLoginKey(keyType,keyID);
        EnableItem(viewcertsbtn);
 
        DisableItem(enrollbtn);
+       if(adminkeymenu)
+           DisableItem(menu_enroll);
 
        if(isCool)
        {
+           if(adminkeymenu)
+               EnableItem(menu_resetpassword);
+
            EnableItem(resetpinbtn);
-           EnableItem(formatbtn);
+
+           if(!isLoginKey)
+           {
+               EnableItem(formatbtn);
+               if(adminkeymenu)
+                   EnableItem(menu_format);
+           }
+           else
+           {
+               DisableItem(formatbtn);
+               if(adminkeymenu)
+                   DisableItem(menu_format);
+           }
        }
        else
        {
            DisableItem(resetpinbtn);
            DisableItem(formatbtn);
+           if(adminkeymenu)
+           {
+               DisableItem(menu_format);
+               DisableItem(menu_resetpassword);
+           }
        }
 
        if(!isBusy)
@@ -2167,51 +2271,75 @@ function UpdateAdminKeyDetailsArea(keyType,keyID)
        return;
    }
 
-   if(keyStatus == "UNINITIALIZED")
+   if(keyStatus == getBundleString("statusUninitialized"))
    {
          DisableItem(viewcertsbtn);
 
          if(isCool)
          {
               EnableItem(enrollbtn);
+              if(adminkeymenu)
+                  EnableItem(menu_enroll);
          }
          else
          {
+              if(adminkeymenu)
+                  DisableItem(menu_enroll);
+
               DisableItem(enrollbtn);
          }
 
          DisableItem(resetpinbtn);
+         if(adminkeymenu)
+             DisableItem(menu_resetpassword);
+
          if(!isBusy)
-           detailsKeyLabel.setAttribute("value",getBundleString("uninitializedKey"));
+           detailsKeyLabel.setAttribute("value",getBundleString("statusUninitialized"));
 
          if(isCool)
          {
              EnableItem(formatbtn);
-
+             if(adminkeymenu)
+                 EnableItem(menu_format);
          }
          else
          {
+             if(adminkeymenu) 
+                 DisableItem(menu_format);
+
              DisableItem(formatbtn);
          }
 
        return;
    }
 
-   if(keyStatus == "NO APPLET")
+   if(keyStatus == getBundleString("statusNoApplet"))
    {
        DisableItem(viewcertsbtn);
        DisableItem(enrollbtn);
        DisableItem(resetpinbtn);
 
+       if(adminkeymenu)
+       {
+           DisableItem(menu_enroll);
+           DisableItem(menu_resetpassword);
+       }
+
        if(!isBusy)
-           detailsKeyLabel.setAttribute("value",getBundleString("blankKey"));
+           detailsKeyLabel.setAttribute("value",getBundleString("statusNoApplet"));
 
        if(isCool)
        {
+           if(adminkeymenu)
+               EnableItem(menu_format);
+
            EnableItem(formatbtn);
        }
        else
        {
+           if(adminkeymenu)
+               DisableItem(menu_format);
+
            DisableItem(formatbtn);
 
        }
@@ -2229,6 +2357,12 @@ function UpdateAdminKeyDetailsArea(keyType,keyID)
        if(operationLabel)
             detailsKeyLabel.setAttribute("value",operationLabel);
 
+       if(adminkeymenu)
+       {
+           DisableItem(menu_enroll);
+           DisableItem(menu_format);
+           DisableItem(menu_resetpassword);
+       }
    }
 }
 
@@ -2249,7 +2383,6 @@ function HideAdminPage()
 }
 function UpdateAdminListRow( keyType, keyID)
 {
-
     if(!gAdminPage)
         return;
 
@@ -2261,6 +2394,8 @@ function UpdateAdminListRow( keyType, keyID)
     var listbox = document.getElementById("AdminBindingList");
     if(!listbox)
        return;
+
+    var isLoginKey = IsKeyLoginKey(keyType,keyID);
 
     var issuer = GetCoolKeyIssuer(keyType,keyID);
     var issuedTo = GetCoolKeyIssuedTo(keyType,keyID);
@@ -2278,7 +2413,13 @@ function UpdateAdminListRow( keyType, keyID)
         issuedToCell.setAttribute("label",issuedTo);
 
     if(statusCell)
-        statusCell.setAttribute("label",keyStatus);
+    {
+        if(!isLoginKey)
+            statusCell.setAttribute("label",keyStatus);
+        else
+            statusCell.setAttribute("label",getBundleString("statusLoggedIn"));
+
+    }
 
     if(imageCell)
         imageCell.setAttribute("image",SelectImageForKeyStatus(keyStatus,1,0));
@@ -2332,7 +2473,13 @@ function CreateAdminListRow(adminListBox,keyType,keyID,keyStatus,reqAuth,isAuthe
       return null;
 
   status.setAttribute("class","rowLabelText");
-  status.setAttribute("label",keyStatus);
+
+  var isLoginKey = IsKeyLoginKey(keyType,keyID);
+  if(!isLoginKey)
+      status.setAttribute("label",keyStatus);
+  else
+      status.setAttribute("label",getBundleString("statusLoggedIn"));
+
   status.setAttribute("id",KeyToCellID(keyType,keyID,"status"));
 
   var progressCell = InsertListCell(listrow);
@@ -2351,9 +2498,12 @@ function CreateAdminListRow(adminListBox,keyType,keyID,keyStatus,reqAuth,isAuthe
       progressMeter.setAttribute("value", "0%");
 
       progressMeter.setAttribute("class","progressMeter");
+      HideItem(progressMeter);
   }
 
   listrow.setAttribute("onclick","DoSelectAdminListRow(this);");
+  listrow.setAttribute("ondblclick","launchCertViewerIfCerts();");
+  listrow.setAttribute("context","adminkeymenu");
 
   adminListBox.appendChild(listrow);
   return listrow;
@@ -2396,6 +2546,12 @@ function ClearProgressBar(progMeterID)
 {
   SetProgressMeterValue(progMeterID, 0);
   SetProgressMeterStatus(progMeterID, "");
+
+  var meter = document.getElementById(progMeterID);
+  if(meter)
+      HideItem(meter);
+
+  
 }
 
 function KeyToProgressBarID(keyType, keyID)
@@ -2504,6 +2660,8 @@ function DoEnrollCoolKey()
 
   var screennamepwd = null;
   var tokencode = null;
+  
+  var failed = 0;
 
   if (type == "userKey")
   {
@@ -2526,6 +2684,7 @@ function DoEnrollCoolKey()
 
   if (!EnrollCoolKey(keyType, keyID, type, screenname, pin,screennamepwd,tokencode))
   {
+    failed = 1;
     recordMessage("EnrollCoolKey failed.");
   }
 
@@ -2533,7 +2692,11 @@ function DoEnrollCoolKey()
   {
      UpdateAdminListRow(keyType,keyID);
      UpdateAdminKeyDetailsArea(keyType,keyID);
-     UpdateAdminKeyAreaDetailsLabel(getBundleString("enrollingToken"));
+     if(!failed)
+     {
+          AdminToggleStatusProgress(1,keyType,keyID);
+          UpdateAdminKeyAreaDetailsLabel(getBundleString("enrollingToken"));
+     }
   }
 }
 
@@ -2558,16 +2721,20 @@ function DoResetSelectedCoolKeyPIN()
   var pin =  GetPINValue();
   var screennamepwd = null;
 
+  var failed = 0;
+
   if (GetCoolKeyIsEnrolled(keyType, keyID))
   {
 
     if (!ResetCoolKeyPIN(keyType, keyID, screenname, pin,screennamepwd))
     {
+      failed = 1;
       recordMessage("ResetCoolKeyPIN failed.");
     }
   }
   else
   {
+      failed = 1;
       MyAlert(getBundleString("errorEnrolledFirst"));
   }
 
@@ -2575,7 +2742,12 @@ function DoResetSelectedCoolKeyPIN()
   {
      UpdateAdminListRow(keyType,keyID);
      UpdateAdminKeyDetailsArea(keyType,keyID);
-      UpdateAdminKeyAreaDetailsLabel(getBundleString("resettingTokenPIN"));
+
+      if(!failed)
+      {
+          AdminToggleStatusProgress(1,keyType,keyID);
+          UpdateAdminKeyAreaDetailsLabel(getBundleString("resettingTokenPIN"));
+      }
   }
 }
 
@@ -2590,6 +2762,7 @@ function DoFormatCoolKey(type)
   var keyType = keyInfo[0];
   var keyID = keyInfo[1];
 
+  var failed = 0;
   var globalType = GetCachedTokenType(keyID);
 
   if(!type)
@@ -2609,6 +2782,7 @@ function DoFormatCoolKey(type)
 
   if (!FormatCoolKey(keyType, keyID, lType, screenname, pin,screennamepwd,tokencode))
   {
+    failed = 1;
     recordMessage("FormatCoolKey failed.");
   }
 
@@ -2616,7 +2790,11 @@ function DoFormatCoolKey(type)
   {
       UpdateAdminListRow(keyType,keyID);
       UpdateAdminKeyDetailsArea(keyType,keyID);
-      UpdateAdminKeyAreaDetailsLabel(getBundleString("formatingToken"));
+      if(!failed)
+      {
+          AdminToggleStatusProgress(1,keyType,keyID);
+          UpdateAdminKeyAreaDetailsLabel(getBundleString("formatingToken"));
+      }
   }
 }
 function DoCancelOperation()
@@ -2677,18 +2855,25 @@ function OnCoolKeyInserted(keyType, keyID)
   {
       var phoneHomeSuccess = 1;
       if(DoGetCoolKeyIsReallyCoolKey(keyType, keyID))
+      {
           phoneHomeSuccess = DoPhoneHome(keyType,keyID);
+      }
+      else
+      {
+          var issuer = GetCoolKeyIssuer(keyType,keyID);
+          if(!issuer )
+              issuer = getBundleString("unknownIssuer");
+
+          TraySendNotificationMessage(getBundleString("keyInserted"),"\"" + issuer +"\"" + " " + getBundleString("keyInsertedComputer"),3,4000,GetESCNotifyIconPath(keyType,keyID));
+
+      }
+
       ShowAllWindows();
       if(!CheckForSecurityMode())
       {
           SelectESCPage(keyType,keyID,1 - phoneHomeSuccess);
       }
 
-      var issuer = GetCachedIssuer(keyID);
-      if(!issuer )
-      {
-          issuer = getBundleString("unknownIssuer");
-      }
   }
 
 }
@@ -2699,7 +2884,6 @@ function OnCoolKeyRemoved(keyType, keyID)
 
   var  row = GetRowForKey(keyType, keyID);
 
-
   if(gHiddenPage)
   {
       if(curChildWindow)
@@ -2707,7 +2891,7 @@ function OnCoolKeyRemoved(keyType, keyID)
           curChildWindow.close();
           curChildWindow = null;
       }
-      var issuer = GetCachedIssuer(keyID);
+      var issuer = GetCoolKeyIssuer(keyType,keyID);
       if(!issuer)
           issuer = getBundleString("unknownIssuer");
       TraySendNotificationMessage(getBundleString("keyRemoved"),"\"" + issuer + "\"" + " " + getBundleString("keyRemovedComputer"),1,4000,GetESCNotifyIconPath(keyType,keyID));
@@ -2723,9 +2907,17 @@ function OnCoolKeyRemoved(keyType, keyID)
   {
       RemoveAdminRow(row);
       if (row == gCurrentSelectedRow)
+      {
           gCurrentSelectedRow = null;
-
-      UpdateAdminKeyDetailsArea(null,null);
+          UpdateAdminBindingListAvailability();
+      }
+      else
+      {
+          if(DoGetNumCoolKeys() == 0)
+          {
+              UpdateAdminKeyDetailsArea(null,null);
+          }
+      }
   }
 
 }
@@ -2765,6 +2957,7 @@ function OnCoolKeyEnrollmentComplete(keyType, keyID)
   {
       UpdateAdminKeyDetailsArea(keyType,keyID);
       UpdateAdminListRow(keyType,keyID);
+      AdminToggleStatusProgress(0,keyType,keyID);
   }
 
   ClearProgressBar(KeyToProgressBarID(keyType, keyID));
@@ -2789,6 +2982,7 @@ function OnCoolKeyPINResetComplete(keyType, keyID)
    {
      UpdateAdminKeyDetailsArea(keyType,keyID);
      UpdateAdminListRow(keyType,keyID);
+     AdminToggleStatusProgress(0,keyType,keyID);
    }
 
 }
@@ -2812,6 +3006,7 @@ function OnCoolKeyFormatComplete(keyType, keyID)
    {
      UpdateAdminKeyDetailsArea(keyType,keyID);
      UpdateAdminListRow(keyType,keyID);
+     AdminToggleStatusProgress(0,keyType,keyID);
    }
 
 }
@@ -2858,6 +3053,7 @@ function OnCoolKeyStateError(keyType, keyID, keyState, errorCode)
    {
      UpdateAdminKeyDetailsArea(keyType,keyID);
      UpdateAdminListRow(keyType,keyID);
+     AdminToggleStatusProgress(0,keyType,keyID);
    }
 
   if(!CheckForSecurityMode())
@@ -3319,9 +3515,35 @@ function DoGetNumCoolKeys()
 
     return num;
 }
+
+//Return how many unenrolled cards are plugged in.
+function DoGetNumUnenrolledCoolKeys()
+{
+    var num = 0;
+    var arr = GetAvailableCoolKeys();
+    if (arr && arr.length )
+    {
+        for (i=0; i < arr.length; i++)
+        {
+            var status =  GetStatusForKeyID(arr[i][0],arr[i][1]);
+
+            if(status  != getBundleString("statusEnrolled"))
+                num++;
+
+        }
+    }
+
+    return num;
+
+}
+
+
 //Is this really a CoolKey and not a CAC card?
 function DoGetCoolKeyIsReallyCoolKey(keyType,keyID)
 {
+    if(!keyType && !keyID)
+        return 0;
+
     try {
       netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
       var isCool =  netkey.GetCoolKeyIsReallyCoolKey(keyType, keyID);
@@ -3415,6 +3637,24 @@ function DoCoolKeyGetATR(keyType,keyID)
 
   return atr;
 }
+
+//Get Token Name of card
+function DoCoolKeyGetTokenName(keyType,keyID)
+{
+    if(!keyType && !keyID)
+        return null;
+
+    var name = null;
+    try {
+      netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+      name =  netkey.GetCoolKeyTokenName(keyType, keyID);
+    } catch (e) {
+      return name;
+    }
+
+    return name;
+}
+
 //Get applet version of card
 function DoGetCoolKeyGetAppletVer(keyType, keyID , isMajor)
 {
@@ -3452,6 +3692,13 @@ function ShowUsage()
     MyAlert(usageStr);
 }
 
+function ShowVersion()
+{
+    var verStr = getBundleString("coolkeyComponentVersion")  + "\n\n";
+
+    MyAlert(verStr + " " + GetCoolKeyVersion());
+
+}
 
 //Is the security mode up?
 function CheckForSecurityMode()
@@ -3492,6 +3739,33 @@ function launchCONFIG(keyType,keyID)
     }
 }
 
+//Launch cert viewer if key has certs
+
+function launchCertViewerIfCerts()
+{
+  var row = null;
+
+  if(gCurrentSelectedRow)
+     row = gCurrentSelectedRow;
+
+  if(!row)
+      return;
+
+  var theID = row.getAttribute("id");
+
+  if (!theID)
+    return;
+
+  var keyInfo = RowIDToKeyInfo(theID);
+
+  var status = GetStatusForKeyID(keyInfo[0],keyInfo[1]);
+
+  if(status == getBundleString("statusEnrolled"))
+  {
+      launchCertViewer();
+  }
+}
+
 //Launch page to view card's certificates
 function launchCertViewer()
 {
@@ -3507,7 +3781,6 @@ function launchSETTINGS()
     if(!adminWnd)
     {
         var wind = window.open("chrome://esc/content/settings.xul","","chrome,resizable,centerscreen,dialog");
-
     } else
     {
         adminWnd.focus();
@@ -3780,7 +4053,7 @@ function GetCachedTPSURL(aKeyID)
 
 function LogKeyInfo(aKeyType,aKeyID,aMessage)
 {
-    var issuer = GetCachedIssuer(aKeyID);
+    var issuer = GetCoolKeyIssuer(aKeyType,aKeyID);
     var status =  GetStatusForKeyID(aKeyType, aKeyID);
     var atr =     DoCoolKeyGetATR(aKeyType,aKeyID);
     var tpsURI = GetCachedTPSURL(aKeyID);
@@ -4129,4 +4402,85 @@ function recordMessage( message ) {
 
   if(consoleService)
       consoleService.logStringMessage("esc: " + message  + "\n");
+}
+
+function GetEnvironmentVar(aVar)
+{
+    if(!aVar)
+        return null;
+
+    var environ =     Components.classes["@mozilla.org/process/environment;1"]
+      .getService(Components.interfaces.nsIEnvironment);
+
+
+    var retVar = null;
+
+    if(environ)
+        retVar =   environ.get(aVar); 
+
+    //alert("var: " + aVar + " value: " + retVar);
+
+   return retVar;
+}
+
+function SetEnvironmentVar(aVar,aValue)
+{
+    if(!aVar || !aValue)
+        return ;
+
+    var environ =     Components.classes["@mozilla.org/process/environment;1"]
+      .getService(Components.interfaces.nsIEnvironment);
+
+    if(environ)
+        retVar =   environ.set(aVar,aValue);
+}
+
+function IsKeyLoginKey(keyType,keyID)
+{
+    var result = 0;
+
+    var token_name = DoCoolKeyGetTokenName(keyType,keyID);
+    var login_token_name = GetEnvironmentVar("PKCS11_LOGIN_TOKEN_NAME");
+
+    if(token_name == login_token_name)
+    {
+        result = 1;
+    }
+
+    return result;
+}
+
+function AdminToggleStatusProgress(aOn,keyType,keyID)
+{
+    if(!gAdminPage)
+        return;
+
+    var statusCell   = document.getElementById(KeyToCellID(keyType,keyID,"status"));
+
+    if(!statusCell)
+        return;
+
+    var progMeterID = KeyToProgressBarID(keyType, keyID);
+    if(!progMeterID)
+        return;
+
+    var meter = document.getElementById(progMeterID);
+
+    if(!meter)
+        return;
+
+    if(aOn)
+    {
+        HideItem(statusCell);
+        ShowItem(meter);
+    }
+    else
+    {
+        HideItem(meter);
+        ShowItem(statusCell);
+
+        var adminList = document.getElementById("AdminBindingList");
+        if(adminList)
+            adminList.focus();
+    }
 }

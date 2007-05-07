@@ -844,6 +844,16 @@ CoolKeyGetIssuedTo(const CoolKey *aKey, char *aBuf, int aBufLength)
     return NSSManager::GetKeyIssuedTo(aKey,aBuf,aBufLength);
 }
 
+HRESULT
+CoolKeyGetIssuer(const CoolKey *aKey, char *aBuf, int aBufLength)
+{
+    if (!aKey || !aKey->mKeyID || !aBuf || aBufLength < 1)
+        return E_FAIL;
+
+    return NSSManager::GetKeyIssuer(aKey,aBuf,aBufLength);
+}
+
+
 HRESULT CoolKeyGetATR(const CoolKey *aKey, char *aBuf, int aBufLen)
 {
     char tBuff[56];

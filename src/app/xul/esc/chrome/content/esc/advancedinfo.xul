@@ -55,8 +55,8 @@
  </groupbox>
 <hbox >
 <spacer flex = "1"/>
-<button id="copytocp" label = "&copyToClipboard;" oncommand="DoCopyAdvancedInfoToClipBoard();"/> 
-<button id="closebtn" label="&closeNow;" oncommand="window.close();" />
+<button id="copytocp" label = "&copyToClipboard;" oncommand="DoCopyAdvancedInfoToClipBoard();" accesskey="&CopyClip.accesskey;"/> 
+<button id="closebtn" label="&closeNow;" oncommand="window.close();" accesskey="&Close.accesskey;" />
  </hbox> 
 
 

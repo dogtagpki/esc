@@ -151,8 +151,8 @@
   </groupbox>
   <hbox id = "enrollment_button_box">
         <spacer flex = "4"/>
-        <button id="closebtn" label ="&closeNow;" oncommand="HideEnrollmentPage()"/>
-        <button id="enrollbtn" label = "&enrollKeyNow;" oncommand="DoShowFullEnrollmentUI();" hidden="true" disabled="false"/>
+        <button id="closebtn" label ="&closeNow;" oncommand="HideEnrollmentPage()" accesskey="&Close.accesskey;"/>
+        <button id="enrollbtn" label = "&enrollKeyNow;" oncommand="DoShowFullEnrollmentUI();" hidden="true" disabled="false" accesskey="&Enroll.accesskey;"/>
         <spacer class="horSpacerShort"/>
     </hbox>
 </vbox>

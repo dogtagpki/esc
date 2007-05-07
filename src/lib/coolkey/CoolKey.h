@@ -134,6 +134,7 @@ COOLKEY_API HRESULT CoolKeyGetCertNicknames( const CoolKey *aKey , std::vector<s
 COOLKEY_API HRESULT CoolKeyGetCertInfo(const CoolKey *aKey, char *aCertNickname, std::string & aCertInfo);
 
 COOLKEY_API HRESULT CoolKeyGetIssuedTo(const CoolKey *aKey, char *aBuf, int aBufLength);
+COOLKEY_API HRESULT CoolKeyGetIssuer(const CoolKey *aKey, char *aBuf, int aBufLength);
 
 COOLKEY_API bool    CoolKeyRequiresAuthentication(const CoolKey *aKey);
 COOLKEY_API bool    CoolKeyIsAuthenticated(const CoolKey *aKey);

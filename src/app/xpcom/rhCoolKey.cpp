@@ -1074,7 +1074,7 @@ NS_IMETHODIMP rhCoolKey::GetCoolKeyIsReallyCoolKey(PRUint32 aKeyType, const char
     char tBuff[56];
     PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::GetCoolKeyIsReallyCoolKey thread: %p \n",GetTStamp(tBuff,56),PR_GetCurrentThread()));
 
-    if (ASCCoolKeyIsAvailable(aKeyType, (char *) aKeyID)) {
+    if (aKeyType && aKeyID && ASCCoolKeyIsAvailable(aKeyType, (char *) aKeyID)) {
         if (aKeyID) {
             AutoCoolKey key(aKeyType, aKeyID);
             PRBool isCool = CoolKeyIsReallyCoolKey(&key);
@@ -1164,6 +1164,34 @@ NS_IMETHODIMP rhCoolKey::GetCoolKeyCertInfo(PRUint32 aKeyType, const char *aKeyI
       return NS_OK;
   }
 
+/* string GetCoolKeyTokenName (in unsigned long aKeyType, in string aKeyID); */
+ NS_IMETHODIMP rhCoolKey::GetCoolKeyTokenName(PRUint32 aKeyType, const char *aKeyID, char **_retval)
+{
+  char tBuff[56];
+
+  *_retval = NULL;
+
+  if(!aKeyType && !aKeyID)
+      return NS_OK;
+
+  AutoCoolKey key(aKeyType,aKeyID);
+  
+  char *tokenName = NULL;
+
+  tokenName = (char *) CoolKeyGetTokenName(&key);
+
+  PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::GetCoolKeyTokenName %s \n",GetTStamp(tBuff,56),tokenName));
+  if(tokenName)
+  {
+      char *temp =  (char *) nsMemory::Clone(tokenName,sizeof(char) * strlen((char *)tokenName) + 1);
+      *_retval  = temp;
+
+  }
+
+  return NS_OK;
+
+}
+
 /* string GetCoolKeyIssuerInfo (in unsigned long aKeyType, in string aKeyID); */  NS_IMETHODIMP rhCoolKey::GetCoolKeyIssuerInfo(PRUint32 aKeyType, const char *aKeyID, char **_retval)
 {
     char tBuff[56];
@@ -1251,6 +1279,40 @@ NS_IMETHODIMP rhCoolKey::GetCoolKeyIssuedTo(PRUint32 aKeyType, const char *aKeyI
     return NS_OK;
 
 }
+
+/* string GetCoolKeyIssuer (in unsigned long aKeyType, in string aKeyID); */
+NS_IMETHODIMP rhCoolKey::GetCoolKeyIssuer(PRUint32 aKeyType, const char *aKeyID, char **issuer)
+{
+    char tBuff[56];
+    if (!aKeyID) {
+        return NS_ERROR_FAILURE;
+    }
+
+    AutoCoolKey key(aKeyType, ( char *)aKeyID);
+
+  //  const char *keyName = CoolKeyGetTokenName(&key);
+
+    char buff[512];
+    int bufLength = 512;
+    buff[0] = 0;
+   
+    CoolKeyGetIssuer(&key, (char *) buff, bufLength);
+
+    if(!buff[0])
+    {
+        return NS_OK;
+    }
+
+    PR_LOG(coolKeyLog,PR_LOG_DEBUG,("%s rhCoolKey::RhGetCoolKeyGetIssuer  %s \n",GetTStamp(tBuff,56),(char *) buff));
+
+    char *temp =  (char *) nsMemory::Clone(buff,sizeof(char) * strlen(buff) + 1);
+
+    *issuer = temp;
+
+    return NS_OK;
+
+}
+
 /* boolean SetCoolKeyConfigValue (in string aName, in string aValue); */
 NS_IMETHODIMP rhCoolKey::SetCoolKeyConfigValue(const char *aName, const char *aValue, PRBool *_retval)
 {

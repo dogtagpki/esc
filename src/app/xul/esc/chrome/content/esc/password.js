@@ -16,6 +16,9 @@
  * END COPYRIGHT BLOCK **/
 
 var parentWindow = window.opener;
+var gStringBundle=null;
+
+loadStringBundle();
 
 function doOperation()
 {
@@ -57,16 +60,16 @@ function GetLocalPINValue()
   if(reenterpintf_obj)
       rpinVal =  reenterpintf_obj.value;
 
-  if (! pinVal && pintf_obj)
+  if (!pinVal && pintf_obj)
   {
-    MyAlert("You must provide a valid Token PIN!");
-    return null;
+      MyAlert(getBundleString("errorProvideTokenPIN"));
+      return null;
   }
 
-  if ( pinVal != rpinVal && reenterpintf_obj)
+  if ( pinVal != rpinVal )
   {
-    MyAlert("The PIN values you entered don't match!");
-    return null;
+      MyAlert(getBundleString("errorMatchPinValues"));
+      return null;
   }
 
   return pinVal;
@@ -75,4 +78,27 @@ function GetLocalPINValue()
 function PasswordLoad()
 {
     window.sizeToContent();
+    var pintf_obj = document.getElementById("pintf");
+    if(pintf_obj)
+        pintf_obj.focus();
 }
+
+//String bundling related functions
+
+function loadStringBundle()
+{
+    gStringBundle = document.getElementById("esc_strings");
+}
+
+function getBundleString(string_id)
+{
+    var str = null;
+
+    if(!string_id || !gStringBundle)
+       return null;
+
+    str = gStringBundle.getString(string_id);
+
+    return str;
+}
+

@@ -263,6 +263,7 @@ protected:
   // Icon menu related
 
     static GtkWidget *mIconMenu;
+    static GtkWidget *mIconBoxWidget;
     static void IconMenuCBProc(GtkWidget *widget, gpointer data);
     HRESULT CreateIconMenu();     
 
