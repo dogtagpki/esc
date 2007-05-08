@@ -529,6 +529,7 @@ function ConstructUI(aKeyType,aKeyID,uiData)
     }
 
     var i = 0;
+    var first_box = 1;
 
     for(i = 0 ; i < len ; i ++)
     {
@@ -594,6 +595,11 @@ function ConstructUI(aKeyType,aKeyID,uiData)
                if(field)
                {
                     row.appendChild(field);
+                    if(first_box)
+                    {
+                        field.focus();
+                        first_box = 0;
+                    }
                }
 
            }
@@ -602,19 +608,20 @@ function ConstructUI(aKeyType,aKeyID,uiData)
 
     }
 
-    var last_row = AddRowToGrid(grid);
-
-    if(last_row)
+    var ui_hbox = document.createElement("hbox");
+    if(ui_hbox)
     {
-         AddSpacerToNode(last_row,"1","min-height: 20px");
-         AddSpacerToNode(last_row,"1","min-height: 20px");
-        var button = AddButton("","Submit"); 
+        box.appendChild(ui_hbox);
+        AddSpacerToNode(ui_hbox,"1","");
+        var button = AddButton("",getBundleString("authSubmit")); 
         if(button)
+        {
             button.setAttribute("oncommand" , "FormSubmit();");
-
+            button.setAttribute("accesskey", getBundleString("authSubmitAccessKey"));
+        }
 
         if(button)
-            last_row.appendChild(button);
+            ui_hbox.appendChild(button);
     } 
 }
 
