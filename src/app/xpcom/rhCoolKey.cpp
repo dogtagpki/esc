@@ -726,6 +726,14 @@ NS_IMETHODIMP rhCoolKey::RhCoolKeySetNotifyCallback(rhIKeyNotify *jsNotify)
 
 }
 
+/* void CoolKeyInitializeLog (in string aPathName, in unsigned long aMaxLines); */
+NS_IMETHODIMP rhCoolKey::CoolKeyInitializeLog(const char *aPathName, PRUint32 aMaxLines)
+{
+    ::CoolKeyInitializeLog((char *)aPathName, aMaxLines);  
+
+    return NS_OK;
+}
+
 /* void CoolKeyLogMsg (in unsigned long aLogLevel, in string aMessage); */
 NS_IMETHODIMP rhCoolKey::CoolKeyLogMsg(PRUint32 aLogLevel, const char *aMessage)
 {
@@ -733,7 +741,8 @@ NS_IMETHODIMP rhCoolKey::CoolKeyLogMsg(PRUint32 aLogLevel, const char *aMessage)
 
     if(aMessage && ((PRLogModuleLevel) aLogLevel >=  PR_LOG_NONE && aLogLevel <= PR_LOG_MAX))
     {
-        PR_LOG( coolKeyLog, (PRLogModuleLevel) aLogLevel, ("%s %s",GetTStamp(tBuff,56),aMessage));    
+        ::CoolKeyLogMsg((PRLogModuleLevel) aLogLevel, "%s %s \n",GetTStamp(tBuff,56),aMessage);
+        PR_LOG( coolKeyLog, (PRLogModuleLevel) aLogLevel, ("%s %s",GetTStamp(tBuff,56),aMessage));
     }
 
     return NS_OK;
@@ -776,7 +785,7 @@ NS_IMETHODIMP rhCoolKey::EnrollCoolKey(PRUint32 aKeyType, const char *aKeyID, co
 {
 
     char tBuff[56];
-    PR_LOG( coolKeyLog, PR_LOG_ALWAYS, ("%s Attempting to Enroll Key ,ID: %s \n",GetTStamp(tBuff,56),aKeyID));
+    ::CoolKeyLogMsg( PR_LOG_ALWAYS, "%s Attempting to Enroll Key ,ID: %s \n",GetTStamp(tBuff,56),aKeyID);
     
     CoolKeyNode *node = GetCoolKeyInfo(aKeyType, aKeyID);
 
@@ -808,7 +817,7 @@ NS_IMETHODIMP rhCoolKey::EnrollCoolKey(PRUint32 aKeyType, const char *aKeyID, co
 NS_IMETHODIMP rhCoolKey::ResetCoolKeyPIN(PRUint32 aKeyType, const char *aKeyID, const char *aScreenName, const char *aPIN, const char *aScreenNamePwd)
 {
     char tBuff[56];
-    PR_LOG( coolKeyLog, PR_LOG_ALWAYS, ("%s Attempting to Reset Key PIN, ID: %s \n",GetTStamp(tBuff,56),aKeyID));
+    ::CoolKeyLogMsg( PR_LOG_ALWAYS, "%s Attempting to Reset Key PIN, ID: %s \n",GetTStamp(tBuff,56),aKeyID);
     CoolKeyNode *node = GetCoolKeyInfo(aKeyType, aKeyID);
 
     if (!node)
@@ -859,7 +868,7 @@ NS_IMETHODIMP rhCoolKey::RenewCoolKey(PRUint32 aKeyType, const char *aKeyID)
 NS_IMETHODIMP rhCoolKey::FormatCoolKey(PRUint32 aKeyType, const char *aKeyID, const char *aEnrollmentType, const char *aScreenName, const char *aPIN, const char *aScreenNamePWord, const char *aTokenCode)
 {
     char tBuff[56];
-    PR_LOG( coolKeyLog, PR_LOG_ALWAYS, ("%s Attempting to Format Key, ID: %s. ",GetTStamp(tBuff,56),aKeyID));
+    ::CoolKeyLogMsg( PR_LOG_ALWAYS, "%s Attempting to Format Key, ID: %s. ",GetTStamp(tBuff,56),aKeyID);
     CoolKeyNode *node = GetCoolKeyInfo(aKeyType, aKeyID);
 
     if (!node)
@@ -1203,7 +1212,7 @@ NS_IMETHODIMP rhCoolKey::GetCoolKeyCertInfo(PRUint32 aKeyType, const char *aKeyI
 
     HRESULT res =  CoolKeyGetIssuerInfo(&key, (char *)&issuerInfo,256);
 
-     PR_LOG( coolKeyLog, PR_LOG_ALWAYS, ("%s Attempting to get the key's Issuer: Key: %s, Issuer  %s. \n",GetTStamp(tBuff,56),aKeyID, (char *) issuerInfo));
+    ::CoolKeyLogMsg( PR_LOG_ALWAYS, "%s Attempting to get the key's Issuer: Key: %s, Issuer  %s. \n",GetTStamp(tBuff,56),aKeyID, (char *) issuerInfo);
 
     if(res == S_OK)
     {

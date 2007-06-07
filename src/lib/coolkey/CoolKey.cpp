@@ -16,6 +16,7 @@
  * END COPYRIGHT BLOCK **/
 
 #define FORCE_PR_LOG 1
+#define LINE_BUF_SIZE           512
 
 #include "SlotUtils.h"
 
@@ -45,6 +46,161 @@ struct ActiveKeyNode;
 HRESULT AddNodeToActiveKeyList(ActiveKeyNode *aNode);
 HRESULT ClearActiveKeyList(void);
 ActiveKeyNode *GetNodeInActiveKeyList(const CoolKey *aKey);
+
+class CoolKeyLogger {
+public:
+
+    CoolKeyLogger(char *logFileName, int maxNumLines);
+    ~CoolKeyLogger();
+
+    void LogMsg(int logLevel, const char *fmt, ...);
+    void LogMsg(int logLevel,const char *msg, va_list argp);
+
+    void init();
+
+    int IsInitialized() { return initialized; }
+
+private:
+
+    void LockLog();
+    void UnlockLog();
+
+    PRLock *logLock;
+
+    int maxLines;
+
+    char *pathName;
+    PRFileDesc *fd;
+
+    int initialized;
+
+};
+
+CoolKeyLogger::CoolKeyLogger(char *logFileName, int maxNumLines)
+{
+    fd = NULL;
+    logLock = NULL;
+
+    maxLines = maxNumLines;
+    if(logFileName)
+        pathName = strdup(logFileName);
+    initialized = 0;
+}
+
+CoolKeyLogger::~CoolKeyLogger()
+{
+   char tBuff[56];
+
+   PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s ~CoolKeyLogger:\n",GetTStamp(tBuff,56)));
+   LockLog();
+
+   PR_Close(fd);
+
+   fd = NULL;
+
+   UnlockLog(); 
+
+   PR_DestroyLock(logLock);
+
+   logLock = NULL;
+
+   if(pathName)
+       free(pathName);
+
+   pathName = NULL;
+}
+
+void CoolKeyLogger::LockLog()
+{
+    PR_Lock(logLock);
+}
+
+void CoolKeyLogger::UnlockLog()
+{
+   PR_Unlock(logLock); 
+}
+
+void CoolKeyLogger::init()
+{
+    char tBuff[56];
+
+    PRFileInfo info;
+
+    if( !pathName)
+         return;
+
+    logLock = PR_NewLock();
+
+    PRStatus rv = PR_GetFileInfo(pathName,&info);
+
+    int fileSize = 0;
+
+    if(rv == PR_SUCCESS)
+    {
+        fileSize = info.size;
+        PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s File info size %d! \n",GetTStamp(tBuff,56),fileSize));
+    }
+  
+    //Assume average line size of about 40
+ 
+    if((fileSize / 40) > maxLines)
+    {
+
+       PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s Number of lines too big, truncate file %d! \n",GetTStamp(tBuff,56),fileSize / 80));
+
+        fd = PR_Open(pathName, PR_WRONLY |  PR_CREATE_FILE | PR_TRUNCATE, 0600);
+    }
+    else
+    {
+        fd = PR_Open(pathName, PR_WRONLY |  PR_CREATE_FILE | PR_APPEND, 0600);
+    }
+
+    if(!fd)
+        return; 
+
+    initialized = 1;
+
+    return;
+}
+
+void CoolKeyLogger::LogMsg(int logLevel, const char *fmt, ...)
+{
+    va_list ap;
+    char line[LINE_BUF_SIZE]; 
+
+    if(!initialized)
+        return;
+
+    va_start(ap, fmt);
+
+    int end = PR_vsnprintf(line, sizeof(line)-1, fmt, ap);
+
+    LockLog();
+
+    PR_Write(fd,line,end);
+
+    UnlockLog();
+
+    va_end(ap);
+}
+
+void CoolKeyLogger::LogMsg(int logLevel, const char *msg, va_list argp)
+{
+    char line[LINE_BUF_SIZE];
+
+    if(!initialized)
+        return;
+
+    int end = PR_vsnprintf(line, sizeof(line)-1, msg, argp);
+
+    LockLog();
+
+    PR_Write(fd,line,end);
+
+    UnlockLog();
+}
+
+static CoolKeyLogger *g_Log = NULL;
 
 COOLKEY_API HRESULT CoolKeyInit(const char *aAppDir)
 {
@@ -91,6 +247,9 @@ COOLKEY_API HRESULT CoolKeyShutdown()
         delete g_NSSManager;
         g_NSSManager = 0;
     }
+
+    if(g_Log)
+        delete g_Log ;    
 
     return S_OK;
 }
@@ -903,7 +1062,7 @@ HRESULT CoolKeyGetIssuerInfo(const CoolKey *aKey, char *aBuf, int aBufLen)
 
     assert(cardCtxt);
     if (!cardCtxt) {
-        PR_LOG( coolKeyLog, PR_LOG_ERROR, ("%s Attempting to get key issuer info. Can't create Card Context !.\n",GetTStamp(tBuff,56)));
+        CoolKeyLogMsg( PR_LOG_ERROR, "%s Attempting to get key issuer info. Can't create Card Context !.\n",GetTStamp(tBuff,56));
         result = E_FAIL;
         goto done;
     }
@@ -911,7 +1070,7 @@ HRESULT CoolKeyGetIssuerInfo(const CoolKey *aKey, char *aBuf, int aBufLen)
     conn = CKYCardConnection_Create(cardCtxt);
     assert(conn);
     if (!conn) {
-        PR_LOG( coolKeyLog, PR_LOG_ERROR, ("%s Attempting to get key issuer info.  Can't create Card Connection!\n",GetTStamp(tBuff,56)));
+        CoolKeyLogMsg( PR_LOG_ERROR, "%s Attempting to get key issuer info.  Can't create Card Connection!\n",GetTStamp(tBuff,56));
         result = E_FAIL;
         goto done;
     }
@@ -919,14 +1078,14 @@ HRESULT CoolKeyGetIssuerInfo(const CoolKey *aKey, char *aBuf, int aBufLen)
     readerName = GetReaderNameForKeyID(aKey);
     assert(readerName);
     if (!readerName) {
-        PR_LOG( coolKeyLog, PR_LOG_ERROR, ("%s Attempting to get key issuer info.  Can't get reader name!\n",GetTStamp(tBuff,56)));
+        CoolKeyLogMsg( PR_LOG_ERROR, "%s Attempting to get key issuer info.  Can't get reader name!\n",GetTStamp(tBuff,56));
         result = E_FAIL;
         goto done;
     }
 
     status = CKYCardConnection_Connect(conn, readerName);
     if (status != CKYSUCCESS) {
-        PR_LOG( coolKeyLog, PR_LOG_ERROR, ("%s Attempting to get key issuer info. Can't connect to Card!\n",GetTStamp(tBuff,56)));
+        CoolKeyLogMsg( PR_LOG_ERROR, "%s Attempting to get key issuer info. Can't connect to Card!\n",GetTStamp(tBuff,56));
 
         result = E_FAIL;
         goto done;
@@ -938,7 +1097,7 @@ CKYCardConnection_BeginTransaction(conn);
     apduRC = 0;
     status = CKYApplet_SelectCoolKeyManager(conn, &apduRC);
     if (status != CKYSUCCESS) {
-        PR_LOG( coolKeyLog, PR_LOG_ERROR, ("%s Attempting to get key issuer info.  Can't select CoolKey manager!\n",GetTStamp(tBuff,56)));
+        CoolKeyLogMsg( PR_LOG_ERROR, "%s Attempting to get key issuer info.  Can't select CoolKey manager!\n",GetTStamp(tBuff,56));
         goto done;
     }
 
@@ -946,7 +1105,7 @@ CKYCardConnection_BeginTransaction(conn);
                         &apduRC);
     if(status != CKYSUCCESS)
     {
-        PR_LOG( coolKeyLog, PR_LOG_ERROR, ("%s Attempting to get key issuer info.  Error actually getting IssuerInfo!\n",GetTStamp(tBuff,56)));
+        CoolKeyLogMsg( PR_LOG_ERROR, "%s Attempting to get key issuer info.  Error actually getting IssuerInfo!\n",GetTStamp(tBuff,56));
         result = E_FAIL;
         goto done;
     }
@@ -1151,6 +1310,42 @@ HRESULT     CoolKeySetConfig(const char *aName,const char *aValue)
    HRESULT res = (*g_SetConfigValue)(aName,aValue);
 
    return res;
+}
+
+HRESULT CoolKeyInitializeLog(char *logFileName, int maxNumLines)
+{
+   if(g_Log)
+       return S_OK;
+   
+   g_Log = new  CoolKeyLogger(logFileName,maxNumLines);
+
+   if(g_Log)
+       g_Log->init();
+   else
+       return E_FAIL;
+       
+   if(g_Log->IsInitialized())
+      return S_OK;
+   else
+      return E_FAIL;
+}
+
+HRESULT CoolKeyLogMsg(int logLevel, const char *fmt, ...)
+{
+
+    if(!g_Log)
+        return S_OK;
+
+    va_list ap;
+
+
+    va_start(ap, fmt);
+
+    g_Log->LogMsg(logLevel,fmt,ap);
+
+    va_end(ap);
+
+    return S_OK;
 }
 
 //Utility function to get Time Stamp

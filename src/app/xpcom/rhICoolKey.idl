@@ -32,6 +32,7 @@ interface rhICoolKey: nsISupports
 
     void rhCoolKeyUnSetNotifyCallback(in rhIKeyNotify jsNotify);
 
+    void CoolKeyInitializeLog(in string aPathName, in unsigned long aMaxLines);
     void CoolKeyLogMsg(in unsigned long aLogLevel, in string aMessage);
     void BlinkCoolKey(in unsigned long aKeyType, in string aKeyID,in unsigned long aRate,in unsigned long aDuration);
 

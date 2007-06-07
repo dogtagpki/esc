@@ -453,7 +453,7 @@ HRESULT CoolKeyHandler::Init(const CoolKey *aKey,
     const char *readerName =  NULL;
 
     if (!aKey || aKey->mKeyType != eCKType_CoolKey ||  !aKey->mKeyID) {
-        PR_LOG( coolKeyLogHN, PR_LOG_ERROR, ("%s Cannot begin CoolKey operation. Insuficient input parameters. \n",GetTStamp(tBuff,56)));
+        CoolKeyLogMsg( PR_LOG_ERROR, "%s Cannot begin CoolKey operation. Insuficient input parameters. \n",GetTStamp(tBuff,56));
       goto done;
     }
   
@@ -466,14 +466,14 @@ HRESULT CoolKeyHandler::Init(const CoolKey *aKey,
 
   
     if (!readerName) {
-        PR_LOG( coolKeyLogHN, PR_LOG_ERROR, ("%s Cannot begin CoolKey operation. Cannot locate card reader name! \n",GetTStamp(tBuff,56)));
+        CoolKeyLogMsg( PR_LOG_ERROR, "%s Cannot begin CoolKey operation. Cannot locate card reader name! \n",GetTStamp(tBuff,56));
         goto done;
     }
  
     mDataLock = PR_NewLock();
     if (!mDataLock)
     {
-        PR_LOG( coolKeyLogHN, PR_LOG_ERROR, ("%s Cannot begin CoolKey operation.  Cannnot initialize internal locking mechanism.\n",GetTStamp(tBuff,56)));
+        CoolKeyLogMsg( PR_LOG_ERROR, "%s Cannot begin CoolKey operation.  Cannnot initialize internal locking mechanism.\n",GetTStamp(tBuff,56));
         return E_FAIL;
 
     }
@@ -481,7 +481,7 @@ HRESULT CoolKeyHandler::Init(const CoolKey *aKey,
     mDataCondVar = PR_NewCondVar(mDataLock);
     if (!mDataCondVar)
     {
-        PR_LOG( coolKeyLogHN, PR_LOG_ERROR, ("%s Cannot begin CoolKey operation. Cannot initialize internal syncronization mechanism.\n",GetTStamp(tBuff,56)));
+        CoolKeyLogMsg( PR_LOG_ERROR, "%s Cannot begin CoolKey operation. Cannot initialize internal syncronization mechanism.\n",GetTStamp(tBuff,56));
         return E_FAIL;
 
     }
@@ -493,7 +493,7 @@ HRESULT CoolKeyHandler::Init(const CoolKey *aKey,
 
     if(!mCharHostName || !mRAUrl)
     {
-        PR_LOG( coolKeyLogHN, PR_LOG_ERROR, ("%s Cannot begin CoolKey operation. Didn't collect proper config information.\n",GetTStamp(tBuff,56)));
+        CoolKeyLogMsg( PR_LOG_ERROR, "%s Cannot begin CoolKey operation. Didn't collect proper config information.\n",GetTStamp(tBuff,56));
         error_no = config_error_no;
         goto done;
     }
@@ -502,7 +502,7 @@ HRESULT CoolKeyHandler::Init(const CoolKey *aKey,
 
     mCardContext = CKYCardContext_Create(SCARD_SCOPE_USER);
     if (!mCardContext) {
-        PR_LOG( coolKeyLogHN, PR_LOG_ERROR, ("%s Cannot begin CoolKey operation. Cannot create card context! \n",GetTStamp(tBuff,56)));
+        CoolKeyLogMsg( PR_LOG_ERROR, "%s Cannot begin CoolKey operation. Cannot create card context! \n",GetTStamp(tBuff,56));
         error_no = CARD_CONTEXT_ERROR;
         goto done;
     }
@@ -510,7 +510,7 @@ HRESULT CoolKeyHandler::Init(const CoolKey *aKey,
     mPDUWriter = new PDUWriterThread(this);
     if (!mPDUWriter) {
         error_no = PDU_WRITER_ERROR;
-        PR_LOG( coolKeyLogHN, PR_LOG_ERROR, ("%s Cannot begin CoolKey operation. Cannot  create internal PDU writer thread!\n",GetTStamp(tBuff,56)));
+        CoolKeyLogMsg( PR_LOG_ERROR, "%s Cannot begin CoolKey operation. Cannot  create internal PDU writer thread!\n",GetTStamp(tBuff,56));
         goto done;
     }
 
@@ -581,7 +581,7 @@ void CoolKeyHandler::CollectPreferences()
 
     if(!keyID)
     {
-        PR_LOG( coolKeyLogHN, PR_LOG_ERROR,("%s Collecting CoolKey preferences. Cannot get keyID , cannot proceed. \n",GetTStamp(tBuff,56)));
+        CoolKeyLogMsg( PR_LOG_ERROR,"%s Collecting CoolKey preferences. Cannot get keyID , cannot proceed. \n",GetTStamp(tBuff,56));
 
         return;
     }
@@ -621,7 +621,7 @@ void CoolKeyHandler::CollectPreferences()
 
         if(!tps_url)
         {
-            PR_LOG( coolKeyLogHN, PR_LOG_ERROR, ("%s Collecting CoolKey preferences. Cannot find value for the TPS URL. \n",GetTStamp(tBuff,56)));
+            CoolKeyLogMsg( PR_LOG_ERROR, "%s Collecting CoolKey preferences. Cannot find value for the TPS URL. \n",GetTStamp(tBuff,56));
 
             return;
         }
@@ -651,7 +651,7 @@ void CoolKeyHandler::CollectPreferences()
         pos = tps_url_str.find(non_ssl_str,0);
         if(pos == string::npos)
         {
-            PR_LOG( coolKeyLogHN, PR_LOG_ERROR, ("%s Collecting CoolKey preferences.  TPS URL has specified an illegal protocol! \n",GetTStamp(tBuff,56))); 
+            CoolKeyLogMsg( PR_LOG_ERROR, "%s Collecting CoolKey preferences.  TPS URL has specified an illegal protocol! \n",GetTStamp(tBuff,56)); 
             return;
         }
 
@@ -692,7 +692,7 @@ void CoolKeyHandler::CollectPreferences()
 
     if(!host_name_port_str.length())
     {
-        PR_LOG( coolKeyLogHN, PR_LOG_ERROR, ("%s Collecting CoolKey preferences.  Bad hostname and port value!.\n",GetTStamp(tBuff,56)));
+        CoolKeyLogMsg(PR_LOG_ERROR, "%s Collecting CoolKey preferences.  Bad hostname and port value!.\n",GetTStamp(tBuff,56));
         return;
      }
 
@@ -1198,7 +1198,7 @@ void CoolKeyHandler::HttpProcessTokenPDU(CoolKeyHandler *context,eCKMessage_TOKE
     PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("%s CoolKeyHandler::ProcessTokenPDU:\n",GetTStamp(tBuff,56)));
     if(!req || !context)
     {
-        PR_LOG( coolKeyLogHN, PR_LOG_ERROR, ("%s Processing HTTP message.  Bad input data. \n",GetTStamp(tBuff,56)));
+        CoolKeyLogMsg( PR_LOG_ERROR, "%s Processing HTTP message.  Bad input data. \n",GetTStamp(tBuff,56));
         return;
     }
 
@@ -1210,7 +1210,7 @@ void CoolKeyHandler::HttpProcessTokenPDU(CoolKeyHandler *context,eCKMessage_TOKE
 
     if(size == 0)
     {
-        PR_LOG( coolKeyLogHN, PR_LOG_ERROR, ("%s Processing HTTP message.  Can't extract PDU data from message! \n",GetTStamp(tBuff,56)));
+        CoolKeyLogMsg(PR_LOG_ERROR, "%s Processing HTTP message.  Can't extract PDU data from message! \n",GetTStamp(tBuff,56));
         context->HttpDisconnect();
         return;
     }
@@ -1231,10 +1231,10 @@ void CoolKeyHandler::HttpProcessTokenPDU(CoolKeyHandler *context,eCKMessage_TOKE
     CKYStatus status = CKYCardConnection_ExchangeAPDU(context->GetCardConnection(),
                                                   requestAPDU, &response);
     if (status != CKYSUCCESS) {
-        PR_LOG( coolKeyLogHN, PR_LOG_ERROR, 
-            ("%s Processing HTTP message.  Can't write apdu to card! status %d response[0] %x response[1] %x error %d \n"
+        CoolKeyLogMsg( PR_LOG_ERROR, 
+            "%s Processing HTTP message.  Can't write apdu to card! status %d response[0] %x response[1] %x error %d \n"
          ,GetTStamp(tBuff,56)   ,status,CKYBuffer_GetChar(&response,0),CKYBuffer_GetChar(&response,1),
-        CKYCardConnection_GetLastError(context->GetCardConnection())));
+        CKYCardConnection_GetLastError(context->GetCardConnection()));
 
         context->HttpDisconnect(ERR_CONN_TOKEN);
 
@@ -1248,7 +1248,7 @@ void CoolKeyHandler::HttpProcessTokenPDU(CoolKeyHandler *context,eCKMessage_TOKE
 
     if(pduSizeRet == 0 || !pduDataRet )
     {
-        PR_LOG( coolKeyLogHN, PR_LOG_ERROR, ("%s Processing HTTP message. No PDU response from card! \n",GetTStamp(tBuff,56)));
+        CoolKeyLogMsg( PR_LOG_ERROR, "%s Processing HTTP message. No PDU response from card! \n",GetTStamp(tBuff,56));
         context->HttpDisconnect(ERR_CONN_TOKEN);
         return;
     }
@@ -1267,7 +1267,7 @@ void CoolKeyHandler::HttpProcessTokenPDU(CoolKeyHandler *context,eCKMessage_TOKE
 
         if(res == 0)
         {
-            PR_LOG( coolKeyLogHN, PR_LOG_ERROR, ("%s Processing HTTP message. Write back to TPS failed , disconnecting. \n",GetTStamp(tBuff,56)));
+            CoolKeyLogMsg( PR_LOG_ERROR, "%s Processing HTTP message. Write back to TPS failed , disconnecting. \n",GetTStamp(tBuff,56));
             context->HttpDisconnect();
         }
         else
@@ -1619,32 +1619,33 @@ void NotifyEndResult(CoolKeyHandler* context, int operation, int result, int des
     case ENROLL:
         if (result == 0) {
 
-            PR_LOG( coolKeyLogHN, PR_LOG_ALWAYS, ("%s Key Enrollment success.\n",GetTStamp(tBuff,56)));
+            CoolKeyLogMsg(PR_LOG_ALWAYS,"%s Key Enrollment success.\n",GetTStamp(tBuff,56));
             CoolKeyAuthenticate(context->GetAutoCoolKey(), context->GetPIN());
             CoolKeyNotify(context->GetAutoCoolKey(), eCKState_EnrollmentComplete,
                    context->GetScreenName() == NULL ? 1 : 0);
         } else {
-            PR_LOG( coolKeyLogHN, PR_LOG_ALWAYS, ("%s Key Enrollment failure. Error: %d.\n",GetTStamp(tBuff,56),description));
+            CoolKeyLogMsg( PR_LOG_ALWAYS, "%s Key Enrollment failure. Error: %d.\n",GetTStamp(tBuff,56),description);
 	    CoolKeyNotify(context->GetAutoCoolKey(), eCKState_EnrollmentError, description); // XXX: Need INIT_FAILED error code!
         }
         break;
     case RESET_PIN:
         if (result == 0) {
      
-            PR_LOG( coolKeyLogHN, PR_LOG_ALWAYS, ("%s Key Reset Password success.\n",GetTStamp(tBuff,56))); 
+            CoolKeyLogMsg(PR_LOG_ALWAYS,"%s Key Reset Password success.\n",GetTStamp(tBuff,56));
+
             CoolKeyAuthenticate(context->GetAutoCoolKey(), context->GetPIN());
             CoolKeyNotify(context->GetAutoCoolKey(), eCKState_PINResetComplete, 0);
         } else {
-            PR_LOG( coolKeyLogHN, PR_LOG_ALWAYS, ("%s Key Reset Password failure. Error: %d.\n",GetTStamp(tBuff,56),description));
+            CoolKeyLogMsg(PR_LOG_ALWAYS, "%s Key Reset Password failure. Error: %d.\n",GetTStamp(tBuff,56),description);
             CoolKeyNotify(context->GetAutoCoolKey(), eCKState_PINResetError, description); // XXX: Need PIN_RESET_FAILED error code!
         }
         break;
     case FORMAT:
         if (result == 0) {
-            PR_LOG( coolKeyLogHN, PR_LOG_ALWAYS, ("%s Key Format success.\n",GetTStamp(tBuff,56)));
+            CoolKeyLogMsg( PR_LOG_ALWAYS, "%s Key Format success.\n",GetTStamp(tBuff,56));
             CoolKeyNotify(context->GetAutoCoolKey(), eCKState_FormatComplete, 0);
         } else {
-            PR_LOG( coolKeyLogHN, PR_LOG_ALWAYS, ("%s Key Format failure. Error: %d.\n",GetTStamp(tBuff,56),description));
+            CoolKeyLogMsg( PR_LOG_ALWAYS, "%s Key Format failure. Error: %d.\n",GetTStamp(tBuff,56),description);
             CoolKeyNotify(context->GetAutoCoolKey(), eCKState_FormatError, description); // XXX: Need FORMAT_FAILED error code!
         }
         break;

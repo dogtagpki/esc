@@ -176,6 +176,11 @@ COOLKEY_API HRESULT CoolKeyGetATR(const CoolKey *aKey, char *aBuf, int aBufLen);
 
 COOLKEY_API int CoolKeyGetAppletVer(const CoolKey *aKey, const bool isMajor);
 
+COOLKEY_API HRESULT CoolKeyInitializeLog(char *logFileName, int maxNumLines);
+
+COOLKEY_API HRESULT CoolKeyLogMsg(int logLevel, const char *fmt, ...);
+
+
 //Utility time function
 char *GetTStamp(char *aTime,int aSize);
 }
