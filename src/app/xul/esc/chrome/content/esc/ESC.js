@@ -131,6 +131,9 @@ jsNotify.prototype = {
     netkey = netkey.QueryInterface(Components.interfaces.rhICoolKey);
     gNotify = new jsNotify;
     netkey.rhCoolKeySetNotifyCallback(gNotify);
+
+    var logFileName = GetESCLogPathName("esc.log");
+    netkey.CoolKeyInitializeLog(logFileName, 1000);
   } catch(e) {
      MyAlert(getBundleString("errorUniversalXPConnect") + e);
   }
@@ -167,33 +170,33 @@ var gCurKeyID = null;
 
 var Status_Messages = new Array(
     getBundleString("errorNone"),
-    getBundleString("serverError"),
-    getBundleString("errorProblemCommToken"),
+    getBundleString("errorInternalServer"),
+    getBundleString("errorInternalServer"),
     getBundleString("errorProblemCommToken"),
     getBundleString("errorProblemResetTokenPin"),
     getBundleString("errorInternalServer"),
-    getBundleString("errorInternalServer"),
+    getBundleString("errorLifeCyclePDU"),
     getBundleString("errorTokenEnrollment"),
     getBundleString("errorProblemCommToken"),
     getBundleString("errorInternalServer"),
-    getBundleString("errorCommCA"),
     getBundleString("errorInternalServer"),
-    getBundleString("errorResetPin"),
     getBundleString("errorInternalServer"),
+    getBundleString("errorInternalServer"),
+    getBundleString("errorTermSecureConn"),
     getBundleString("errorAuthFailure"),
     getBundleString("errorInternalServer"),
     getBundleString("errorTokenDisabled"),
-    getBundleString("errorProblemCommToken"),
-    getBundleString("errorInternalServer"),
+    getBundleString("errorSecureChannel"),
+    getBundleString("errorServerMisconfig"),
     getBundleString("errorTokenUpgrade"),
     getBundleString("errorInternalServer"),
-    getBundleString("errorProblemCommToken"),
+    getBundleString("errorExternalAuth"),
     getBundleString("errorInvalidTokenType"),
-    getBundleString("errorInvalidTokenType"),
+    getBundleString("errorInvalidTokenTypeParams"),
     getBundleString("errorCannotPublish"),
     getBundleString("errorCommTokenDB"),
-    getBundleString("errorTokenDisabled"),
-    getBundleString("errorPinReset"),
+    getBundleString("errorTokenSuspended"),
+    getBundleString("errorPinResetable"),
     getBundleString("errorConnLost"),
     getBundleString("errorEntryTokenDB"),
     getBundleString("errorNoTokenState"),
@@ -201,10 +204,10 @@ var Status_Messages = new Array(
     getBundleString("errorTokenUnusable"),
     getBundleString("errorNoInactiveToken"),
     getBundleString("errorProcessMultiTokens"),
+    getBundleString("errorTokenTerminated"),
     getBundleString("errorInternalServer"),
-    getBundleString("errorKeyRecoveryProcessed"),
     getBundleString("errorKeyRecoveryFailed"),
-    getBundleString("errorNoOperateLostToken"),
+    getBundleString("errorInternalServer"),
     getBundleString("errorKeyArchival"),
     getBundleString("errorConnTKS"),
     getBundleString("errorFailUpdateTokenDB"),
@@ -559,9 +562,9 @@ function CoolKeySetUidPassword(uid,pwd)
  
 function TestStatusMessages()
 {
-    for(i = 0 ; i < 48; i++)
+    for(i = 0 ; i < 49; i++)
     {
-        MyAlert(Status_Messages[i]);
+        MyAlert( i + " " + Status_Messages[i]);
     }
 }
  
@@ -4263,9 +4266,9 @@ function ReadESCLog()
 
         var value = line.value;
 
-        var colonIndex = value.indexOf(":");
+        //var colonIndex = value.indexOf(":");
 
-        value = value.substring(colonIndex + 1);
+        //value = value.substring(colonIndex + 1);
 
         lines.push(value); 
     } while(hasmore);
@@ -4483,4 +4486,30 @@ function AdminToggleStatusProgress(aOn,keyType,keyID)
         if(adminList)
             adminList.focus();
     }
+}
+
+function GetESCLogPathName(aName)
+{
+
+    if(!aName)
+        return null;
+
+    const logFileName = aName;
+
+    // Get executable directory
+
+    var file = Components.classes["@mozilla.org/file/directory_service;1"]
+                     .getService(Components.interfaces.nsIProperties)
+                     .get("ProfD", Components.interfaces.nsIFile);
+
+    file = file.parent;
+    file.append(logFileName);
+
+   
+    //alert("LogPathName " + file.path); 
+
+
+    return file.path;
+
+
 }
