@@ -1,0 +1,825 @@
+# ***** BEGIN COPYRIGHT BLOCK *****
+# This Program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; version 2 of the License.
+#
+# This Program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.#
+# You should have received a copy of the GNU General Public License along with
+# this Program; if not, write to the Free Software Foundation, Inc., 59 Temple
+# Place, Suite 330, Boston, MA 02111-1307 USA.
+#
+# Copyright (C) 2005 Red Hat, Inc.
+# All rights reserved.
+# ***** END COPYRIGHT BLOCK
+# extracted from en-US/esc.properties
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2007-06-07 10:13-0700\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"X-Generator: Translate Toolkit 1.0\n"
+"X-Accelerator-Marker: &\n"
+
+#ESC strings used in Javascript
+#Strings for ESC.js 
+#: escTitle
+msgid "Smart Card Manager"
+msgstr ""
+
+#: smartCard
+msgid "smart card"
+msgstr ""
+
+#: smartCardU
+msgid "Smart Card"
+msgstr ""
+
+#: enrolledKey
+#: statusEnrolled
+msgid "Enrolled"
+msgstr ""
+
+#: noKeysPresent
+msgid "No Cards Present"
+msgstr ""
+
+#: blankKey
+msgid "Blank"
+msgstr ""
+
+#: uninitializedKey
+msgid "Uninitialized"
+msgstr ""
+
+#: statusUnavailable
+msgid "Unavailable"
+msgstr ""
+
+#: statusNoApplet
+msgid "Unformatted"
+msgstr ""
+
+#: statusUninitialized
+msgid "Formatted"
+msgstr ""
+
+#: statusLoggedIn
+msgid "Logged In"
+msgstr ""
+
+#: statusUnknown
+#: unknownIssuer
+msgid "Unknown"
+msgstr ""
+
+#: statusBusy
+msgid "Busy"
+msgstr ""
+
+#: redHatUser
+msgid "User"
+msgstr ""
+
+#: appletVersion
+msgid "Smart Card Applet Version:"
+msgstr ""
+
+#: operationPINReset
+msgid "Resetting Key Password.."
+msgstr ""
+
+#: operationEnrollment
+msgid "Enrolling Key.."
+msgstr ""
+
+#: operationFormat
+msgid "Formatting Key.."
+msgstr ""
+
+#: tokenInformation
+msgid "CARD INFORMATION"
+msgstr ""
+
+#: advancedInformation
+msgid "Diagnostics Information"
+msgstr ""
+
+#: keyID
+msgid "Key ID:"
+msgstr ""
+
+#: tpsURI
+msgid "Smart Card Server URL:"
+msgstr ""
+
+#: tpsUI
+msgid "Enrollment UI URL:"
+msgstr ""
+
+#: tpsPhoneHomeURL
+msgid "Phone Home URL:"
+msgstr ""
+
+#: status
+msgid "Status:"
+msgstr ""
+
+#: issuer
+msgid "Issuer:"
+msgstr ""
+
+#: atr
+msgid "Atr:"
+msgstr ""
+
+#: escLogEntries
+msgid "Smart Card Activity"
+msgstr ""
+
+#: noLogFileOrData
+msgid "No log file or log file has no data."
+msgstr ""
+
+#: dataCopiedToClipboard
+msgid "Diagnostics information copied to the clipboard."
+msgstr ""
+
+#: diagnosticsReport
+msgid "SMART CARD DIAGNOSTICS REPORT"
+msgstr ""
+
+#: diagnosticsSystemInfo
+msgid "Software Version Information"
+msgstr ""
+
+#: diagnosticsSoftVersioInfo
+msgid "System Versions:"
+msgstr ""
+
+#: diagnosticsDetails
+msgid "Active Smart Card Details"
+msgstr ""
+
+#: secCard
+msgid "Card"
+msgstr ""
+
+#: certsOnToken
+msgid "Certificates on Smart Card"
+msgstr ""
+
+#: certificateNickname
+msgid "Certificate Nickname:"
+msgstr ""
+
+#: certIssuedTo
+msgid "Issued to;"
+msgstr ""
+
+#: certIssuedBy
+msgid "Issued by;"
+msgstr ""
+
+#: certValidityFrom
+msgid "Validity from:"
+msgstr ""
+
+#: certValidityTo
+msgid "Validity to:"
+msgstr ""
+
+#: certSerialNumber
+msgid "Serial number:"
+msgstr ""
+
+#: coolkeyComponentVersion
+msgid "Smart Card Manager Version:"
+msgstr ""
+
+#: coolkeyDetectedNumberKeys
+msgid "Number of Smart Cards Detected:"
+msgstr ""
+
+#: enrolledDetected
+msgid "Enrolled Smart Card Detected"
+msgstr ""
+
+#: enrolledDetectedMessage
+msgid ""
+"Smart Card Manager has detected an already enrolled card. If you do not wish "
+"to re-enroll, press the \"Close\" button."
+msgstr ""
+
+#: enrolledDetectedMessageGeneric
+msgid ""
+"Smart Card Manager has detected an already enrolled card. Click Proceed to "
+"continue."
+msgstr ""
+
+#: unenrolledDetectedMessage
+msgid ""
+"Smart Card Manager has detected that you have entered a new and un-enrolled "
+"smart card. Before you can use this smart card, you have to enroll it.  "
+"Enrolling your smart card personalizes it so only you can use it for secure "
+"operations."
+msgstr ""
+
+#: enrollAnyway
+msgid "If you would like to re-enroll anyway, click  Enroll My Smart Card Now."
+msgstr ""
+
+#: readyToProceed
+msgid ""
+"When you are ready to begin the process,click  Enroll My Smart Card Now."
+msgstr ""
+
+#: formatingToken
+msgid "Formatting..."
+msgstr ""
+
+#: enrollingToken
+msgid "Enrolling..."
+msgstr ""
+
+#: resettingTokenPIN
+msgid "Password Reset.."
+msgstr ""
+
+#: cancellingOperation
+msgid "Cancelling.."
+msgstr ""
+
+#: blinkingToken
+msgid "Blinking.."
+msgstr ""
+
+#: keyInserted
+msgid "Smart Card Inserted!"
+msgstr ""
+
+#: keyRemoved
+msgid "Smart Card Removed!"
+msgstr ""
+
+#: keyInsertedComputer
+msgid "smart card inserted."
+msgstr ""
+
+#: keyRemovedComputer
+msgid "smart card removed."
+msgstr ""
+
+#: diagnosticsMessage
+msgid ""
+"The information below is diagnostic information that your system generates "
+"as you use your smart card. If you are having smart card problems, you may "
+"be asked by your support engineer to send this information for analysis."
+msgstr ""
+
+#: menuManageKeys
+msgid "Manage Smart Cards..."
+msgstr ""
+
+#: menuExit
+msgid "Quit"
+msgstr ""
+
+#ESC Error Messages from TPS
+#: errorNone
+msgid "Operation Completed Successfully."
+msgstr ""
+
+#: serverError
+msgid "Smart Card Server error."
+msgstr ""
+
+#: errorProblemResetTokenPin
+msgid "The Smart Card Server cannot reset your smart card's password."
+msgstr ""
+
+#: errorTokenEnrollment
+msgid ""
+"The Smart Card Server cannot import the required certificates into your "
+"smart card."
+msgstr ""
+
+#: errorLifeCyclePDU
+msgid ""
+"The Smart Card Server cannot finalize the enrollment of your smart card."
+msgstr ""
+
+#: errorCommCA
+msgid "Error communicating with the Certification Authority."
+msgstr ""
+
+#: errorInternalServer
+msgid "Internal Smart Card Server error."
+msgstr ""
+
+#: errorResetPin
+msgid "Error resetting the smart card's password."
+msgstr ""
+
+#: errorAuthFailure
+msgid ""
+"The Smart Card Server cannot validate your credentials. Please try again "
+"with the correct credentials."
+msgstr ""
+
+#: errorTokenDisabled
+msgid "The Smart Card Server does not know about your smart card."
+msgstr ""
+
+#: errorSecureChannel
+msgid ""
+"The Smart Card Server cannot establish a secure channel with the smart card."
+msgstr ""
+
+#: errorServerMisconfig
+msgid "The Smart Card Server has not been configured correctly."
+msgstr ""
+
+#: errorProblemCommToken
+msgid ""
+"Your smart card can not perform the operation requested by the Smart Card "
+"Server."
+msgstr ""
+
+#: errorExternalAuth
+msgid "Your smart card cannot correctly identify the Smart Card Server."
+msgstr ""
+
+#: errorTokenUpgrade
+msgid "The Smart Card Server cannot upgrade the software on your smart card."
+msgstr ""
+
+#: errorTermSecureConn
+msgid ""
+"The Smart Card Server can not terminate the secure cummunications channel "
+"with the smart card."
+msgstr ""
+
+#: errorInvalidTokenType
+msgid ""
+"The Smart Card Server does not recognize the requested type of card "
+"enrollment."
+msgstr ""
+
+#: errorInvalidTokenTypeParams
+msgid ""
+"The Smart Card Server cannot process the requested type of enrollment due to "
+"a misconfiguration."
+msgstr ""
+
+#: errorCannotPublish
+msgid ""
+"The Smart Card Server cannot publish your card's certificates to the "
+"certificate directory."
+msgstr ""
+
+#: errorCommTokenDB
+msgid "The Smart Card Server cannot connect to its internal database."
+msgstr ""
+
+#: errorTokenSuspended
+msgid "Your smart card has been suspended."
+msgstr ""
+
+#: errorPinResetable
+msgid "You are not allowed to reset the password of this smart card."
+msgstr ""
+
+#: errorConnLost
+msgid ""
+"The Smart Card Manager has lost the connection to the Smart Card Server."
+msgstr ""
+
+#: errorEntryTokenDB
+msgid ""
+"The Smart Card Server cannot add your smart card to its internal database."
+msgstr ""
+
+#: errorNoTokenState
+msgid ""
+"The Smart Card server does not recognize your smart card's current status."
+msgstr ""
+
+#: errorInvalidLostTokenReason
+msgid ""
+"The Smart Card server cannot process your smart card which has been reported "
+"lost."
+msgstr ""
+
+#: errorTokenUnusable
+msgid ""
+"The Smart Card Server cannot process your smart card which has been reported "
+"stolen."
+msgstr ""
+
+#: errorNoInactiveToken
+msgid "The Smart Card Server cannot restore your smart card's security keys."
+msgstr ""
+
+#: errorProcessMultiTokens
+msgid ""
+"The Smart Card Server has detected that you already have one enrolled smart "
+"card. The server only allows one enrolled card per user."
+msgstr ""
+
+#: errorTokenTerminated
+msgid ""
+"The Smart Card Server can not process your smart card which is marked as "
+"terminated."
+msgstr ""
+
+#: errorKeyRecoveryProcessed
+msgid "Smart card key recovery has been processed."
+msgstr ""
+
+#: errorKeyRecoveryFailed
+msgid ""
+"The Smart Card Server can not restore the security keys onto your smart "
+"card."
+msgstr ""
+
+#: errorNoOperateLostToken
+msgid "Cannot process this smart card, which has been reported lost."
+msgstr ""
+
+#: errorKeyArchival
+msgid ""
+"The Smart Card Server can not restore the security keys onto your smart card "
+"due to a server misconfiguration."
+msgstr ""
+
+#: errorConnTKS
+msgid ""
+"The Smart Card server cannot contact its security key server,which is "
+"required for processing."
+msgstr ""
+
+#: errorFailUpdateTokenDB
+msgid "The Smart Card Server cannot reset the status of your smart card."
+msgstr ""
+
+#: errorCertRevocation
+msgid ""
+"The Smart Card Server cannot mark the security keys on your smart card as "
+"revoked."
+msgstr ""
+
+#: errorNotOwnToken
+msgid "The Smart Card Server cannot process a smart card which you do not own."
+msgstr ""
+
+#: errorESCMisconfigured
+msgid "The Smart Card Manager has been misconfigured."
+msgstr ""
+
+#: errorESCNoCommCardReader
+msgid ""
+"The Smart Card Manager cannot initiate communications with the smart card."
+msgstr ""
+
+#: errorESCNoTokenSession
+msgid ""
+"The Smart Card Manager cannot establish a communications session with the "
+"smart card."
+msgstr ""
+
+#: errorESCNoTalkTPS
+msgid ""
+"The Smart Card Manager cannot initiate communications with the Smart Card "
+"Server."
+msgstr ""
+
+#: errorESCNoTalkTokenReader
+msgid ""
+"The Smart Card Manager cannot finalize communications with the smart card."
+msgstr ""
+
+#ESC text in general  Alert messages
+#: errorCoolKeyIsAuth
+msgid "coolkey.GetCoolKeyIsAuthenticated() failed!"
+msgstr ""
+
+#: errorAuthCoolKey
+msgid "coolkey.AuthenticateCoolKey failed!"
+msgstr ""
+
+#: errorJsNotifyInterface
+msgid "Can't find jsNotify interface."
+msgstr ""
+
+#: errorUniversalXPConnect
+msgid "Can't get UniversalXPConnect."
+msgstr ""
+
+#: errorConfigValue
+msgid "Error obtaining issuer info for key."
+msgstr ""
+
+#: errorConfigValue
+msgid "Error Getting Config Value:"
+msgstr ""
+
+#: errorSetConfigValue
+msgid "Error SettingConfig Value:"
+msgstr ""
+
+#: errorBlankTPSURI
+msgid "Blank Tps Uri submitted."
+msgstr ""
+
+#: noTpsConfigUrl
+msgid "You must provide a Url to test!"
+msgstr ""
+
+#: aboutToTestTPSURI
+msgid "About to test Smart Card Server URI:"
+msgstr ""
+
+#: errorSelectKey
+msgid "Please select a Smart card."
+msgstr ""
+
+#: tpsURLContacted
+msgid "Smart Card Server URL has been successfully contacted."
+msgstr ""
+
+#: errorContactTPSURL
+msgid "Error contacting Smart Card Server URL, reconfigure and try again."
+msgstr ""
+
+#: errorBlankEnrollURI
+msgid "Blank Enroll Uri submitted."
+msgstr ""
+
+#: aboutToTestEnrollURI
+msgid "About to test Enroll URI:"
+msgstr ""
+
+#: enrollURLContacted
+msgid "x Enrollment URL has been successfully contacted."
+msgstr ""
+
+#: errorContactEnrollURL
+msgid "Error contacting  Enroll URL, reconfigure and try again."
+msgstr ""
+
+#: tpsConfigSuccess
+msgid "Smart Card Server config information successfully obtained!"
+msgstr ""
+
+#: tpsConfigError
+msgid "Error obtaining Smart Card Server config information!"
+msgstr ""
+
+#: tpsConfigTest
+msgid "About to test the Smart Card Server Phone Home Url :"
+msgstr ""
+
+#: tpsNoConfigUrl
+msgid "Provide a valid Smart Card Server config URL!"
+msgstr ""
+
+#: tpsURIMustHaveValue
+msgid "Smart Card Server URL item must have a value!"
+msgstr ""
+
+#: errorSetConfigValue
+msgid "Error setting config value!:"
+msgstr ""
+
+#: configChangesSubmitted
+msgid "Configuration changes submitted."
+msgstr ""
+
+#: errorSetDataValue
+msgid "Error Setting data values:"
+msgstr ""
+
+#: errorCoolKeyGetStatus
+msgid "coolkey.GetCoolKeyStatus() failed!"
+msgstr ""
+
+#: errorCoolKeyGetPolicy
+msgid "coolkey.GetCoolKeyPolicy() failed!"
+msgstr ""
+
+#: errorCoolKeyRequiresAuth
+msgid "coolkey.GetCoolKeyRequiresAuthentication() failed!"
+msgstr ""
+
+#: errorCoolKeyCertNicknames
+msgid "coolkey.GetCoolKeyCertNicknames() failed!"
+msgstr ""
+
+#: errorCoolKeyCertInfo
+msgid "coolkey.GetCoolKeyCertInfo() failed!"
+msgstr ""
+
+#: errorGetAvailCoolKeys
+msgid "coolkey.GetAvailableCoolKeys() failed!"
+msgstr ""
+
+#: errorEnollCoolKey
+msgid "coolkey.EnrollCoolKey() failed!"
+msgstr ""
+
+#: errorCoolKeyIsEnrolled
+msgid "coolkey.GetCoolKeyIsEnrolled failed!"
+msgstr ""
+
+#: errorResetCoolKeyPIN
+msgid ""
+"coolkey.ResestCoolKeyPASSWORD() failed! Make sure smart card is enrolled."
+msgstr ""
+
+#: errorFormatCoolKey
+msgid "coolkey.FormatCoolKey() failed!"
+msgstr ""
+
+#: errorCancelCoolKey
+msgid "coolkeyCancelCoolKeyOperation() failed!"
+msgstr ""
+
+#: errorBlinkCoolKey
+msgid "coolkey.BlinkCoolKey() failes!"
+msgstr ""
+
+#: noCurrentlySelectedToken
+msgid "No currently selected smart card!"
+msgstr ""
+
+#: errorProvideScreenName
+msgid "You must provide a valid screen name!"
+msgstr ""
+
+#: errorProvideTokenPIN
+msgid "You must provide a valid card password!"
+msgstr ""
+
+#: errorMatchPinValues
+msgid "The Password values you entered don't match!"
+msgstr ""
+
+#: errorValidUserPassword
+msgid "You must provide a valid user password!"
+msgstr ""
+
+#: errorSelectKey
+msgid "Please select a smart card."
+msgstr ""
+
+#: errorEnrolledFirst
+msgid "Smart card must be enrolled first! Enroll card and try again."
+msgstr ""
+
+#: enrollmentFor
+msgid "Enrollment of your"
+msgstr ""
+
+#: errorNeedKeyForSecMode
+msgid "Please insert enrolled smart card before attempting secure mode."
+msgstr ""
+
+#: wasSuccessful
+msgid "was successful."
+msgstr ""
+
+#: pinResetSuccessful
+msgid "Password Reset was successfull!"
+msgstr ""
+
+#: formatOf
+msgid "Format of"
+msgstr ""
+
+#: error
+msgid "Error"
+msgstr ""
+
+#: serverResponse
+msgid "Server Response:"
+msgstr ""
+
+#: enrollmentOfKey
+msgid "Enrollment of smart card"
+msgstr ""
+
+#: formatingOfKey
+msgid "Formatting of smart card"
+msgstr ""
+
+#: pinResetOfKey
+msgid "Password Reset for smart card"
+msgstr ""
+
+#: operationForKey
+msgid "Operation for smart card"
+msgstr ""
+
+#: failed
+msgid "failed."
+msgstr ""
+
+#: cancelled
+msgid "cancelled."
+msgstr ""
+
+#: errorFindESCPlatform
+msgid "Unable to determine Smart Card Manager platform."
+msgstr ""
+
+#: errorIssuerInfo
+msgid "Error obtaining Issuer Info for key."
+msgstr ""
+
+#: escUsage1
+msgid "Usage:"
+msgstr ""
+
+#: escUsage2
+msgid "esc"
+msgstr ""
+
+#: escUsage3
+msgid "esc -secmode SECURITY_URL"
+msgstr ""
+
+#: escUsage4
+msgid "Ex: esc -secmode http://test.host.com"
+msgstr ""
+
+#: escUsage5
+msgid "esc -usage"
+msgstr ""
+
+#Strings for TRAY.j
+#: errorTrayIsInitialized
+msgid "Can't determine if Icon component is already intialized!"
+msgstr ""
+
+#: errorShowAllWindows
+msgid "Error Showing All Windows:"
+msgstr ""
+
+#: errorHideAllWindows
+msgid "Error Hiding all Windows:"
+msgstr ""
+
+#: errorShowWindow
+msgid "Error Showing Window:"
+msgstr ""
+
+#: errorHideWindow
+msgid "Error Hiding Window:"
+msgstr ""
+
+#: errorRemoveWindow
+msgid "Error Removing Window:"
+msgstr ""
+
+#: errorTrayNotification
+msgid "Error Sending Tray notification:"
+msgstr ""
+
+#Strings for GenericAuth.js
+#: value
+msgid "Value"
+msgstr ""
+
+#: mustMatch
+msgid "must match"
+msgstr ""
+
+#: mustHaveValue
+msgid "Must have value set for field:"
+msgstr ""
+
+#: noParentWindow
+msgid "No parent window."
+msgstr ""
+
+#: authDialogNoParent
+msgid "Auth dialog has no parent!"
+msgstr ""
+
+#: authSubmit
+msgid "Submit"
+msgstr ""
+
+#: authSubmitAccessKey
+msgid "S"
+msgstr ""

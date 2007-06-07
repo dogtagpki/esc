@@ -1,0 +1,327 @@
+# extracted from en-US/esc.dtd
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2007-06-07 10:13-0700\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"X-Generator: Translate Toolkit 1.0\n"
+"X-Accelerator-Marker: &\n"
+
+# ***** BEGIN COPYRIGHT BLOCK *****
+# * This Program is free software; you can redistribute it and/or modify it under
+# * the terms of the GNU General Public License as published by the Free Software
+# * Foundation; version 2 of the License.
+# *
+# * This Program is distributed in the hope that it will be useful, but WITHOUT
+# * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+# *
+# * You should have received a copy of the GNU General Public License along with
+# * this Program; if not, write to the Free Software Foundation, Inc., 59 Temple
+# * Place, Suite 330, Boston, MA 02111-1307 USA.
+# *
+# * Copyright (C) 2005 Red Hat, Inc.
+# * All rights reserved.
+# ***** END COPYRIGHT BLOCK *****
+#: escCompany
+msgid "Red Hat"
+msgstr ""
+
+#: smartCardManager
+msgid "smart card manager"
+msgstr ""
+
+#: smartCardManagerU
+#: escTitle
+msgid "Smart Card Manager"
+msgstr ""
+
+#: smartCard
+msgid "smart card"
+msgstr ""
+
+#: smartCardU
+msgid "Smart Card"
+msgstr ""
+
+#: configTitle
+msgid "Phone Home Configuration Information"
+msgstr ""
+
+#: certInfoTitle
+msgid "ESC Key Info"
+msgstr ""
+
+#: advancedInfoTitle
+msgid "Diagnostics Information"
+msgstr ""
+
+#: genericAuthTitle
+msgid "Authentication"
+msgstr ""
+
+#: progressHeader
+#: keyProgress
+msgid "Progress"
+msgstr ""
+
+#: unknownIssuer
+msgid "Unknown Issuer"
+msgstr ""
+
+#: unknown
+msgid "Unknown"
+msgstr ""
+
+#: copyToClipboard
+msgid "Copy To Clipboard"
+msgstr ""
+
+#: cancel
+#: doCancel
+#: escCancel
+msgid "Cancel"
+msgstr ""
+
+#: doEnroll
+msgid "Enroll"
+msgstr ""
+
+#: doResetPin
+msgid "Reset Password"
+msgstr ""
+
+#: doFormat
+msgid "Format"
+msgstr ""
+
+#: keyPassword
+msgid "Smart Card Password"
+msgstr ""
+
+#: pluggedInCards
+msgid "Active Smart Cards"
+msgstr ""
+
+#: keyIssuer
+msgid "Issuer"
+msgstr ""
+
+#: keyIssuedTo
+msgid "Issued To"
+msgstr ""
+
+#: keyStatus
+msgid "Status"
+msgstr ""
+
+#: noKeysPresent
+msgid "No Cards Present"
+msgstr ""
+
+#: enterKeyPin
+msgid "Enter Key Pin"
+msgstr ""
+
+#: reEnterKeyPin
+msgid "Re Enter Key Pin"
+msgstr ""
+
+#: editConfigValues
+msgid "Edit Configuration Values"
+msgstr ""
+
+#: tpsURIHeader
+msgid "TPS Config URI:"
+msgstr ""
+
+#: escEnrollURIHeader
+msgid "ESC ENROLL URI:"
+msgstr ""
+
+#: updateValues
+msgid "Update Values"
+msgstr ""
+
+#: doTest
+msgid "Test URL"
+msgstr ""
+
+#: pleaseEnroll
+msgid "Smart Card Enrollment"
+msgstr ""
+
+#: unenrolledDetected
+msgid "Unenrolled Smart Card Detected"
+msgstr ""
+
+#: noKeyDetected
+msgid "No Smart Card Detected"
+msgstr ""
+
+#: enrollMessage
+msgid "To begin the smart card enrollment process, you will need to choose a password to protect the smart card. You will need to enter this password each time you use your new smart card.  You will also need to enter the security information below needed by Smart Card Manager to complete your enrollment."
+msgstr ""
+
+#: detectedMessage
+msgid "Smart Card Manager has detected that you have entered a new and un-enrolled smart card.  Before you can use this smart card, you have to enroll it.  Enrolling your smart card personalizes it so only you can use it for secure operations."
+msgstr ""
+
+#: readyToProceed
+msgid "When you are ready to begin the process,click  Enroll My Smart Card Now."
+msgstr ""
+
+#: noKey
+msgid "Unable to detect your smart card."
+msgstr ""
+
+#: insertKey
+msgid "To enroll your smart card, please insert your security card or USB key now."
+msgstr ""
+
+#: adminNoKeysMessage
+msgid "In order to administer your security smart cards, you must have one  or more cards connected to the computer. Please do so now."
+msgstr ""
+
+#: detectedKeyDetailsHeader
+msgid "Smart Card Functions"
+msgstr ""
+
+#: keyEnrollmentHeader
+msgid "Create Password"
+msgstr ""
+
+#: passwordQuality
+msgid "Password Quality"
+msgstr ""
+
+#: pleaseEnterPassword
+msgid "Enter new password:"
+msgstr ""
+
+#: pleaseReEnterPassword
+msgid "Re-enter password:"
+msgstr ""
+
+#: closeEnrollLater
+msgid "Close, I'll Enroll Later"
+msgstr ""
+
+#: closeAdminLater
+#: closeNow
+msgid "Close"
+msgstr ""
+
+#: enrollKeyNow
+msgid "Enroll My Smart Card Now"
+msgstr ""
+
+#: enrollKey
+msgid "Enroll Smart Card"
+msgstr ""
+
+#: enrollKeyNowGeneric
+msgid "Continue"
+msgstr ""
+
+#: administerKeys
+msgid "Manage Smart Cards"
+msgstr ""
+
+#: administerMessage
+msgid "This tool helps you manage your smart cards and to examine their contents when you are having problems. To manage your smart cards, you must connect them to the computer."
+msgstr ""
+
+#: blankKeyLabel
+msgid "Blank Key"
+msgstr ""
+
+#: adminDetailsMessage
+msgid "This smart card is not personalized."
+msgstr ""
+
+#: advancedInfo
+msgid "Diagnostics"
+msgstr ""
+
+#: doViewCerts
+msgid "View Certificates"
+msgstr ""
+
+#: getESCPassword
+msgid "Password"
+msgstr ""
+
+#: escOK
+msgid "OK"
+msgstr ""
+
+#: tpsConfigDesc
+msgid "You have inserted a smart card that the Smart Card Manager recognizes, but needs to be formatted."
+msgstr ""
+
+#: tpsConfigDesc1
+msgid "Before you can use this smart card, you need to do two things.  First, you need to specify the location (URL) of the smart card server in the text box below.  The Smart Card Manager will insert this location onto the smart card."
+msgstr ""
+
+#: tpsConfigDesc2
+msgid "Second, you must format it from the main Smart Card Manager window."
+msgstr ""
+
+#: tpsConfigDesc3
+msgid "Enter the location of the smart card server (such as https://smartcardserver.example.com:7888)"
+msgstr ""
+
+#: diagnosticsMessage
+msgid "The information below is diagnostic information that your system generates as you use your smart card. If you are having smart card problems, you may be asked by your support engineer to send this information for analysis."
+msgstr ""
+
+#: dontLaunchBrowser
+msgid "Don't launch the default browser when enrolled card is inserted."
+msgstr ""
+
+#: Close.accesskey
+#: Cancel.accesskey
+msgid "C"
+msgstr ""
+
+#: OK.accesskey
+msgid "O"
+msgstr ""
+
+#: Format.accesskey
+msgid "F"
+msgstr ""
+
+#: Enroll.accesskey
+msgid "E"
+msgstr ""
+
+#: ResetPin.accesskey
+msgid "R"
+msgstr ""
+
+#: Test.accesskey
+#: CopyClip.accesskey
+msgid "T"
+msgstr ""
+
+#: Diagnostics.accesskey
+msgid "D"
+msgstr ""
+
+#: Submit.accesskey
+msgid "S"
+msgstr ""
+
+#: ViewCerts.accesskey
+msgid "V"
+msgstr ""
