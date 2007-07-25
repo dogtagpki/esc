@@ -23,11 +23,11 @@ include $(CORE_DEPTH)/coreconf/rules.mk
 
 
 ifeq ($(OS_ARCH), WINNT)
-DIRS += xulrunner app/xpcom/tray app/xpcom win32
+DIRS += xulrunner app/eginstall app/xpcom/tray app/xpcom
 endif
 
 ifeq ($(OS_ARCH), Darwin)
-DIRS +=  xulrunner app/xpcom/tray app/xpcom mac
+DIRS +=  xulrunner app/xpcom/tray app/xpcom
 endif
 
 ifeq ($(OS_ARCH), Linux)
