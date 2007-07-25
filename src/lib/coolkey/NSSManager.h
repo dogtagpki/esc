@@ -26,6 +26,10 @@
 #define PROMISCUOUS_PARAMETER   "noAppletOK=yes"
 #define NSS_PUBLIC_CERTS	"slotFlags=PublicCerts"
 
+#define NSS_NO_ERROR 0
+#define NSS_ERROR_LOAD_COOLKEY 1
+#define NSS_ERROR_SMART_CARD_THREAD 2
+
 #ifndef NSSMANAGER_H
 #define NSSMANAGER_H
 
@@ -70,10 +74,13 @@ class NSSManager
 
   static HRESULT GetKeyIssuer(const CoolKey *aKey, char *aBuf, int aBufLength);
 
+  static unsigned int GetLastInitError() { return lastError;}
 
  private:
 
    static bool IsCACert(CERTCertificate *cert);
+
+   static unsigned int lastError;
 
 #ifdef LINUX
   PK11SlotInfo *systemCertDB;

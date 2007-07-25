@@ -46,11 +46,13 @@
 
 static PRLogModuleInfo *coolKeyLogNSS = PR_NewLogModule("coolKeyNSS");
 
+unsigned int NSSManager::lastError;
 NSSManager::NSSManager()
 {
     char tBuff[56];
     PR_LOG( coolKeyLogNSS, PR_LOG_DEBUG, ("%s NSSManager::NSSManager:\n",GetTStamp(tBuff,56)));
     mpSCMonitoringThread = NULL;
+    NSSManager::lastError = NSS_NO_ERROR;
 #ifdef LINUX
     systemCertDB = NULL;
 #endif
@@ -111,6 +113,8 @@ HRESULT NSSManager::InitNSS(const char *aAppDir)
     if(!userModule || !userModule->loaded)
     {
         PR_LOG( coolKeyLogNSS, PR_LOG_ALWAYS, ("%s NSSManager::InitNSS problem loading PKCS11 module. No keys will be recognized!\n",GetTStamp(tBuff,56)));
+
+        NSSManager::lastError = NSS_ERROR_LOAD_COOLKEY;
         return E_FAIL;
     }
 
@@ -132,6 +136,7 @@ HRESULT NSSManager::InitNSS(const char *aAppDir)
     mpSCMonitoringThread = new SmartCardMonitoringThread(userModule);
     if (!mpSCMonitoringThread) {
         SECMOD_UnloadUserModule(userModule);
+        NSSManager::lastError =  NSS_ERROR_SMART_CARD_THREAD;
         return E_FAIL;
     }
     mpSCMonitoringThread->Start();

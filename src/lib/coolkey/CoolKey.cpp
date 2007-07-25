@@ -1325,7 +1325,10 @@ HRESULT CoolKeyInitializeLog(char *logFileName, int maxNumLines)
        return E_FAIL;
        
    if(g_Log->IsInitialized())
+   {
+      CoolKeyLogNSSStatus();
       return S_OK;
+   }
    else
       return E_FAIL;
 }
@@ -1346,6 +1349,35 @@ HRESULT CoolKeyLogMsg(int logLevel, const char *fmt, ...)
     va_end(ap);
 
     return S_OK;
+}
+
+COOLKEY_API HRESULT CoolKeyLogNSSStatus()
+{
+
+    char tBuff[56];
+    if (g_NSSManager)
+    {
+        unsigned int error = g_NSSManager->GetLastInitError();
+
+        if(error == NSS_NO_ERROR)
+        {
+            CoolKeyLogMsg( PR_LOG_ALWAYS, "%s NSS system intialized successfully!\n",GetTStamp(tBuff,56));
+            return S_OK;
+        }
+
+        if(error == NSS_ERROR_LOAD_COOLKEY)
+        {
+           CoolKeyLogMsg( PR_LOG_ERROR, "%s Failed to load CoolKey module! Keys will not be recognized!\n",GetTStamp(tBuff,56));
+        }
+ 
+        if(error == NSS_ERROR_SMART_CARD_THREAD) 
+        {
+            CoolKeyLogMsg( PR_LOG_ERROR, "%s Problem initializing the Smart Card thread! Keys will not be recognized!\n",GetTStamp(tBuff,56));
+        }   
+    }
+
+    return S_OK;
+
 }
 
 //Utility function to get Time Stamp

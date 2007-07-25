@@ -180,6 +180,7 @@ COOLKEY_API HRESULT CoolKeyInitializeLog(char *logFileName, int maxNumLines);
 
 COOLKEY_API HRESULT CoolKeyLogMsg(int logLevel, const char *fmt, ...);
 
+COOLKEY_API HRESULT CoolKeyLogNSSStatus();
 
 //Utility time function
 char *GetTStamp(char *aTime,int aSize);
