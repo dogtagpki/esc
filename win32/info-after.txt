@@ -1,0 +1,1 @@
+Now that Smart Card Manager has been successfully installed, the program is currently running and ready to use. Place a supported smart card into the computer to begin using Smart Card Manager.

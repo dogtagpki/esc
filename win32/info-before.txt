@@ -1,0 +1,5 @@
+This installation program will install the following:
+
+1. Smart Card Manager.
+2. Drivers for Smart Cards.
+3. The PKCS #11 module needed for Smart Cards.
