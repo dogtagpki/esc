@@ -22,3 +22,8 @@ include $(CORE_DEPTH)/coreconf/config.mk
 
 include $(CORE_DEPTH)/coreconf/rules.mk
 
+ifeq ($(OS_ARCH), WINNT)
+import::
+	mkdir -p $(SOURCE_XP_DIR)/$(OBJDIR)
+endif
+
