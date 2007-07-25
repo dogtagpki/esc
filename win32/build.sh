@@ -274,12 +274,12 @@ function buildESC {
        return 0
    fi
 
-#   if [ -d esc ];
-#   then
-#       cvs -d $FEDORA_CVS_ROOT update esc
-#   else 
-#       cvs  -d $FEDORA_CVS_ROOT co esc 
-#   fi
+   if [ -d esc ];
+   then
+       cvs -d $FEDORA_CVS_ROOT update esc
+   else 
+       cvs  -d $FEDORA_CVS_ROOT co esc 
+   fi
 
    if [ $? != 0 ];
    then
