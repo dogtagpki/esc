@@ -1,25 +1,25 @@
-# BEGIN COPYRIGHT BLOCK
-# Copyright (C) 2005 Red Hat, Inc.
-# All rights reserved.
-#
-# This library is free software; you can redistribute it and/or
-# modify it under the terms of the GNU Lesser General Public
-# License as published by the Free Software Foundation version
-# 2.1 of the License.
-#
-# This library is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public
-# License along with this library; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-# END COPYRIGHT BLOCK
+ # BEGIN COPYRIGHT BLOCK
+ # Copyright (C) 2005 Red Hat, Inc.
+ # All rights reserved.
+ #
+ # This library is free software; you can redistribute it and/or
+ # modify it under the terms of the GNU Lesser General Public
+ # License as published by the Free Software Foundation version
+ # 2.1 of the License.
+ #
+ # This library is distributed in the hope that it will be useful,
+ # but WITHOUT ANY WARRANTY; without even the implied warranty of
+ # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ # Lesser General Public License for more details.
+ #
+ # You should have received a copy of the GNU Lesser General Public
+ # License along with this library; if not, write to the Free Software
+ # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ # END COPYRIGHT BLOCK
 
 Name: esc 
 Version: 1.0.1
-Release: 1%{?dist} 
+Release: 5%{?dist} 
 Summary: Enterprise Security Client Smart Card Client
 License: GPL
 URL: http://directory.fedora.redhat.com/wiki/CoolKey 
@@ -29,6 +29,10 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 Patch1: firefox-1.5-with-system-nss.patch
 Patch2: firefox-1.1-nss-system-nspr.patch
+Patch3: esc-1.0.1-admin-row-update.patch
+Patch4: esc-1.0.1-ui-fixes-1.patch 
+Patch5: esc-1.0.1-log-fixes.patch
+Patch6: esc-1.0.1-log-fixes-1.patch
 
 BuildRequires: doxygen fontconfig-devel freetype-devel >= 2.1
 BuildRequires: glib2-devel libIDL-devel atk-devel gtk2-devel libjpeg-devel
@@ -61,12 +65,14 @@ AutoReqProv: 0
 %define pixmapdir  %{_datadir}/pixmaps
 %define docdir    %{_defaultdocdir}/%{escname}
 %define escappdir src/app/xpcom
+%define escxuldir src/app/xul/esc
 
 
 Source0: %{escname}.tar.bz2
 Source1: esc
 Source2: esc.desktop
 Source3: xulrunner-1.8.0.4-source.tar.bz2
+Source4: esc.png
 
 
 %description
@@ -77,6 +83,12 @@ cryptographic smartcards.
 
 %setup -q -c -n %{escname}
 
+#Perform esc patching
+
+%patch3 -p1 -b .fix3
+%patch4 -p1 -b .fix4
+%patch5 -p1 -b .fix5
+%patch6 -p1 -b .fix6
 
 
 #Unpack xulrunner where esc expects it to be.
@@ -100,6 +112,8 @@ export USE_64
 # last setup call moved  the current directory
 
 cd ../..
+
+cp %{SOURCE4} %{escxuldir}/%{esc_chromepath}
 
 make BUILD_OPT=1 HAVE_LIB_NOTIFY=1 ESC_VERSION=%{version}-%{release}
 
@@ -172,6 +186,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/%{appdir}/esc.desktop
 %doc %{docdir}/LICENSE
 
+%preun
+
+killall --exact -q escd
+exit 0
+
 %post
 touch --no-create %{_datadir}/icons/hicolor || :
 if [ -x %{_bindir}/gtk-update-icon-cache ]; then
@@ -185,7 +204,14 @@ if [ -x %{_bindir}/gtk-update-icon-cache ]; then
 fi
 
 %changelog
-* Mon Mar 05 2007 Jack Magne <jmagne@redhat.com>- 1.0.0-1
+* Tue Jul 17 2007 Jack Magne <jmagne@redhat.com>- 1.0.1-5
+- Further fixes to the diagnostics logging.
+* Wed Jun 20 2007 Jack Magne <jmagne@redhat.com>- 1.0.1-4
+- Fixes to the diagnostics log files and esc  error messages.
+* Thu Apr 26 2007 Jack Magne <jmagne@redhat.com>- 1.0.1-3
+- Many UI usability fixes.
+* Tue Apr 03 2007 Jack Magne <jmagne@redhat.com>- 1.0.1-2
+* Mon Mar 05 2007 Jack Magne <jmagne@redhat.com>- 1.0.1-1
 - Stability fixes
 * Fri Oct 27 2006 Jack Magne <jmagne@redhat.com>- 1.0.0-19
 - More mac and win fixes.

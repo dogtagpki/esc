@@ -17,6 +17,16 @@
 # All rights reserved.
 # END COPYRIGHT BLOCK
 
+
+
+
+DO_SECMODE="false"
+SECURITY_URL=
+DO_FORCEMODE="false"
+DO_SHOW_VERSION="false"
+ESC_ARGS=
+
+
 ESC_PROFILE_BASE=~/.redhat/esc
 ESC_LOG_FILE=esc.log
 
@@ -31,10 +41,12 @@ ESCD_BIN=./$ESCD_EXEC
 LAST_PROG_PID=0
 SIGUSR1=10
 
-FORCE_START_ESC=$1
+FORCE_START_ESC=
 
 XPTI_DAT=xpti.dat
 COMPREG_DAT=compreg.dat
+LOCK_FILE=lock
+PARENT_LOCK_FILE=.parentlock
 
 function isProgRunning {
 
@@ -51,51 +63,127 @@ function isProgRunning {
 
 function removeFile {
 
-    if [  -w  $1 ]
+    rm -f $1
+}
+
+function cleanupProfile {
+
+    removeFile $ESC_PROFILE_BASE/*default/$XPTI_DAT
+    removeFile $ESC_PROFILE_BASE/*default/$COMPREG_DAT
+    removeFile $ESC_PROFILE_BASE/*default/$LOCK_FILE
+    removeFile $ESC_PROFILE_BASE/*default/$PARENT_LOCK_FILE
+
+}
+
+function processArgs {
+
+    for arg in $1 
+    do
+
+        #echo "theArg: $arg"
+        if [ $arg == "forceStartESC" ]
+        then
+            #echo "Do force mode!"
+            FORCE_START_ESC="true"
+        fi
+
+        if [ $arg == "keyInserted" ]
+        then
+            FORCE_START_ESC="true"
+        fi
+
+        if [ $arg == "-version" ]
+        then
+            #echo "Do show version!"
+            DO_SHOW_VERSION="true"
+        fi
+        if [ $DO_SECMODE == "true" ]
+        then
+            #echo "Sec Mode Url $arg"
+            SECURITY_URL=$arg
+        fi
+        if [ $arg == "-secmode" ]
+        then
+            DO_SECMODE="true"
+            #echo "Do security mode!"
+        fi
+    done
+
+    if [ $DO_SECMODE == "true" ]
     then
-       rm -f $1
+        #echo "Launch ESC in security mode!"
+        ARGS="--secmode $SECURITY_URL"
     fi
 }
 
-
-export NSPR_LOG_MODULES=tray:2,coolKeyLib:2,coolKey:2,coolKeyNSS:2,coolKeySmart:2,coolKeyHandler:2,escDLog:5
-
+processArgs $*
 
 if [ ! -d $ESC_PROFILE_BASE ]
 then
-mkdir -p  $ESC_PROFILE_BASE
+    mkdir -p  $ESC_PROFILE_BASE
 fi
-export NSPR_LOG_FILE=$ESC_PROFILE_BASE/$ESC_LOG_FILE
 
 cd $ESC_PATH
+
+#First check if we just want the version
+
+if [ $DO_SHOW_VERSION == "true" ]
+    then
+    #echo "try to run the version command!"
+    ESC_ARGS="-version"
+    ./$ESC_EXEC $ESC_ARGS
+    exit 0
+fi
+
+# Start up the daemon if it is not running
+
+isProgRunning $ESCD_BIN
+
+if  [ $LAST_PROG_PID  -gt 0 ]
+then
+    false
+    #echo "escd already running."
+else
+    #echo "escd not running start."
+    cleanupProfile
+    ./$ESCD_EXEC --key_Inserted=\"/usr/bin/esc\"  --on_Signal=\"/usr/bin/esc\"
+    exit 0
+fi
+
+# Now check to see if we wer signaled from the daemon
+
+if [ $FORCE_START_ESC ]
+then
+    #echo "force start esc."
+
+    #Check to see if esc is already running
+
+    isProgRunning $ESC_BIN
+    if [  $LAST_PROG_PID  -gt 0 ]
+    then
+        #echo "attempting a force start but already running ... exit."
+        exit 0
+    fi
+    #echo "force start esc not running start esc..."
+    ./$ESC_EXEC
+    exit 0
+fi
 
 isProgRunning $ESC_BIN
 
 if [  $LAST_PROG_PID  -gt 0 ]
 then
-./$ESC_EXEC
-exit 0
-fi
-
-if [ $FORCE_START_ESC ]
-then
-./$ESC_EXEC
-exit 0
-fi
-
-
-
-isProgRunning $ESCD_BIN
-
-
-if  [ $LAST_PROG_PID  -gt 0 ]
-then
-kill -$SIGUSR1 $LAST_PROG_PID
+    #echo "esc already running."
+    ./$ESC_EXEC  
+    exit 0
 else
-removeFile $ESC_PROFILE_BASE/*default/$XPTI_DAT
-removeFile $ESC_PROFILE_BASE/*default/$COMPREG_DAT
-./$ESCD_EXEC --key_Inserted=\"/usr/bin/esc\"  --on_Signal=\"/usr/bin/esc\"
+    #echo "esc not already running start up and bring up window."
+    ./$ESC_EXEC & 
+    sleep 4
 
+    #echo "done sleeping bring up esc window."
+    ./$ESC_EXEC
+    exit 0
 fi
 
 exit 0
