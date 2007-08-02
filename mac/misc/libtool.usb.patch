@@ -1,0 +1,36 @@
+*** libtool.usb	Thu Jul 26 14:13:16 2007
+--- libtool	Thu Jul 26 14:21:36 2007
+***************
+*** 202,208 ****
+  old_archive_from_expsyms_cmds=""
+  
+  # Commands used to build and install a shared archive.
+! archive_cmds="\$CC -dynamiclib \$allow_undefined_flag -o \$lib \$libobjs \$deplibs\$compiler_flags -install_name \$rpath/\$soname \$verstring"
+  archive_expsym_cmds="sed -e \\\"s,#.*,,\\\" -e \\\"s,^[    ]*,,\\\" -e \\\"s,^\\\\(..*\\\\),_&,\\\" < \$export_symbols > \$output_objdir/\${libname}-symbols.expsym~\$CC -dynamiclib \$allow_undefined_flag  -o \$lib \$libobjs \$deplibs\$compiler_flags -install_name \$rpath/\$soname \$verstring~nmedit -s \$output_objdir/\${libname}-symbols.expsym \${lib}"
+  postinstall_cmds=""
+  postuninstall_cmds=""
+--- 202,208 ----
+  old_archive_from_expsyms_cmds=""
+  
+  # Commands used to build and install a shared archive.
+! archive_cmds="\$CC -dynamiclib \$allow_undefined_flag -o \$lib \$libobjs \$deplibs -isysroot /Developer/SDKs/MacOSX10.4u.sdk  -arch ppc -arch i386 \$compiler_flags -install_name \$rpath/\$soname \$verstring"
+  archive_expsym_cmds="sed -e \\\"s,#.*,,\\\" -e \\\"s,^[    ]*,,\\\" -e \\\"s,^\\\\(..*\\\\),_&,\\\" < \$export_symbols > \$output_objdir/\${libname}-symbols.expsym~\$CC -dynamiclib \$allow_undefined_flag  -o \$lib \$libobjs \$deplibs\$compiler_flags -install_name \$rpath/\$soname \$verstring~nmedit -s \$output_objdir/\${libname}-symbols.expsym \${lib}"
+  postinstall_cmds=""
+  postuninstall_cmds=""
+***************
+*** 6923,6929 ****
+  old_archive_from_expsyms_cmds=""
+  
+  # Commands used to build and install a shared archive.
+! archive_cmds="\$CC -dynamiclib -single_module \$allow_undefined_flag -o \$lib \$libobjs \$deplibs \$compiler_flags -install_name \$rpath/\$soname \$verstring"
+  archive_expsym_cmds="sed -e \\\"s,#.*,,\\\" -e \\\"s,^[    ]*,,\\\" -e \\\"s,^\\\\(..*\\\\),_&,\\\" < \$export_symbols > \$output_objdir/\${libname}-symbols.expsym~\$CC -dynamiclib -single_module \$allow_undefined_flag -o \$lib \$libobjs \$deplibs \$compiler_flags -install_name \$rpath/\$soname \$verstring~nmedit -s \$output_objdir/\${libname}-symbols.expsym \${lib}"
+  postinstall_cmds=""
+  postuninstall_cmds=""
+--- 6923,6929 ----
+  old_archive_from_expsyms_cmds=""
+  
+  # Commands used to build and install a shared archive.
+! archive_cmds="\$CC -dynamiclib -single_module \$allow_undefined_flag -o \$lib \$libobjs \$deplibs -isysroot /Developer/SDKs/MacOSX10.4u.sdk  -arch ppc -arch i386  \$compiler_flags -install_name \$rpath/\$soname \$verstring"
+  archive_expsym_cmds="sed -e \\\"s,#.*,,\\\" -e \\\"s,^[    ]*,,\\\" -e \\\"s,^\\\\(..*\\\\),_&,\\\" < \$export_symbols > \$output_objdir/\${libname}-symbols.expsym~\$CC -dynamiclib -single_module \$allow_undefined_flag -o \$lib \$libobjs \$deplibs \$compiler_flags -install_name \$rpath/\$soname \$verstring~nmedit -s \$output_objdir/\${libname}-symbols.expsym \${lib}"
+  postinstall_cmds=""
+  postuninstall_cmds=""

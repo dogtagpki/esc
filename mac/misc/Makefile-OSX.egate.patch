@@ -1,0 +1,20 @@
+--- Makefile-OSX.egate	2007-07-26 14:42:54.000000000 -0700
++++ Makefile-OSX	2007-07-26 14:43:21.000000000 -0700
+@@ -8,11 +8,11 @@
+ 	-rm -f *.o *.so *.dylib
+ 
+ install: libifd_egate.dylib
+-	mkdir -p /usr/libexec/SmartCardServices/drivers/ifd-egate.bundle/Contents/MacOS
+-	cp Info.plist-OSX /usr/libexec/SmartCardServices/drivers/ifd-egate.bundle/Contents/Info.plist
+-	cp libifd_egate.dylib /usr/libexec/SmartCardServices/drivers/ifd-egate.bundle/Contents/MacOS
+-	mkdir -p /usr/local/pcsc/drivers/ifd-egate.bundle/Contents/MacOS
+-	cp Info.plist-OSX /usr/local/pcsc/drivers/ifd-egate.bundle/Contents/Info.plist
+-	cp libifd_egate.dylib /usr/local/pcsc/drivers/ifd-egate.bundle/Contents/MacOS
++	mkdir -p $(DESTDIR)/usr/libexec/SmartCardServices/drivers/ifd-egate.bundle/Contents/MacOS
++	cp Info.plist-OSX $(DESTDIR)/usr/libexec/SmartCardServices/drivers/ifd-egate.bundle/Contents/Info.plist
++	cp libifd_egate.dylib $(DESTDIR)/usr/libexec/SmartCardServices/drivers/ifd-egate.bundle/Contents/MacOS
++	mkdir -p $(DESTDIR)/usr/local/pcsc/drivers/ifd-egate.bundle/Contents/MacOS
++	cp Info.plist-OSX $(DESTDIR)/usr/local/pcsc/drivers/ifd-egate.bundle/Contents/Info.plist
++	cp libifd_egate.dylib $(DESTDIR)/usr/local/pcsc/drivers/ifd-egate.bundle/Contents/MacOS
+ 
+ all: libifd_egate.dylib
