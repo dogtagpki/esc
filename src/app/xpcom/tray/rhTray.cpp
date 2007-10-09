@@ -192,6 +192,7 @@ NS_IMETHODIMP rhTray::Sendnotification(const char *aTitle,const char *aMessage,P
 /* void settooltipmsg (in string aMessage); */
 NS_IMETHODIMP rhTray::Settooltipmsg(const char *aMessage)
 {
+
     char tBuff[56];
     PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTray::Settooltipmsg %s  \n",GetTStamp(tBuff,56),aMessage));
 
@@ -467,7 +468,7 @@ rhTray::WindowProc(
 
                 PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTray::WindowProc: WM_RBUTTONDOWN \n",GetTStamp(tBuff,56)));
 
-                HRESULT res = rhTray::ShowPopupMenu (IDR_MENU1);
+                HRESULT res =  rhTray::ShowPopupMenu (IDR_MENU1);
 
 
                 switch(res)
@@ -592,8 +593,10 @@ HRESULT rhTray::ShowPopupMenu (WORD PopupMenuResource)
         unsigned int menuItemID = 0;
 
         int i = 0;
+
+        char buffer[256];
  
-        if(numItems == numMenuItems)
+        if(numItems == numMenuItems )
         {     
             for (i = 0 ;i < numMenuItems; i++)
             {
@@ -618,15 +621,18 @@ HRESULT rhTray::ShowPopupMenu (WORD PopupMenuResource)
 
                    if( GetMenuItemInfo(hPopup,menuItemID,FALSE,&mii))
                    {
-                       char *tmpBuff = NULL;
+                       buffer[0] = 0;
 
-                       tmpBuff = strdup(itemText);
+                       if(strlen(itemText) < 256)
+                       {
+                           strcpy(buffer,itemText);
+                       }
 
-                       mii.cch=strlen(itemText);
-                       mii.dwTypeData=tmpBuff;
+                       mii.cch=strlen(buffer);
+                       mii.fType = MFT_STRING;
+                       mii.dwTypeData= buffer;
                        SetMenuItemInfo(hPopup,menuItemID,FALSE,&mii);
 
-                       free(tmpBuff);
                    }
                    else
                    {
