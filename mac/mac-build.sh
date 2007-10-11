@@ -42,12 +42,12 @@ IFD_EGATE_URL_BASE=ftp://download.fedora.redhat.com/pub/fedora/linux/core/6/sour
 IFD_EGATE_NAME=ifd-egate-0.05
 IFD_EGATE_REL=15
 
-COOLKEY_PKG_NAME=SmartCardManager1.14.pkg
+COOLKEY_PKG_NAME=SmartCardManager1.15.pkg
 COOLKEY_VOL_NAME=SMARTCARDMANAGER
 COOLKEY_TAG=HEAD
 
 
-ESC_VERSION=1.0.1-4
+ESC_VERSION=1.1.0-0
 
 COOLKEY_DMG_NAME=SmartCardManager-$ESC_VERSION.OSX4.darwin.dmg
 
