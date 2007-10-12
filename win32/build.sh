@@ -57,7 +57,7 @@ ZLIB_BIN_URL=http://www.zlib.net
 #CoolKey values
 
 COOLKEY_NAME=coolkey
-COOLKEY_TAG=COOLKEY_1_1_0
+COOLKEY_TAG=HEAD
 
 #Fedora repo for CoolKey and ESC
 
@@ -76,7 +76,7 @@ BASE_DIR=${PWD}
 #ESC values
 
 ESC_NAME=esc
-ESC_VERSION_NO=1.0.1-5
+ESC_VERSION_NO=1.1.0-0
 
 
 #Cygwin values
