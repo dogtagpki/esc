@@ -51,6 +51,8 @@ const  ESC_IGNORE_KEY_ISSUER_INFO = "esc.ignore.key.issuer.info";
 const  ESC_FACE_TO_FACE_MODE = "esc.face.to.face.mode";
 const  ESC_SECURITY_URL="esc.security.url";
 const  ESC_SECURE_URL="esc.secure.url";
+const  ESC_GLOBAL_PHONE_HOME_URL= "esc.global.phone.home.url";
+const  SPECIAL_ATR="3B769400FF6276010000";
 
 const  CLEAN_TOKEN = "cleanToken";
 const  UNINITIALIZED        = 1;
@@ -280,6 +282,11 @@ function DoPhoneHome(keyType,keyID)
       return true;
   }
 
+  //Check for special key since we have no phone home info.
+
+  
+  home = GetGlobalPhoneHomeUrl(keyType,keyID);
+  
 
   var homeRes = false;
 
@@ -291,8 +298,9 @@ function DoPhoneHome(keyType,keyID)
 
   // Launch the config dialog only if we can't
   // Phone Home and we are not in the special security mode
+  // or if we are not using a special key
 
-  if(!homeRes && !CheckForSecurityMode())
+  if(!homeRes && !CheckForSecurityMode() )
   {
       recordMessage("About to launch CONFIG , non secmode...");
 
@@ -301,6 +309,48 @@ function DoPhoneHome(keyType,keyID)
 
   return homeRes;
 }
+
+//Get global phone home url only for a special key
+
+function GetGlobalPhoneHomeUrl(keyType,keyID)
+{
+
+   var globalIssuerURL=null;
+   var specialATR=SPECIAL_ATR;
+   var phonHomeURL= DoCoolKeyGetATR(keyType,keyID);
+
+   var specialAppletVerMaj=1;
+   var specialAppletVerMin=1;
+
+
+   var appletVerMaj = DoGetCoolKeyGetAppletVer(keyType, keyID , true);
+   var appletVerMin = DoGetCoolKeyGetAppletVer(keyType, keyID, false);
+  
+   if( (appletVerMaj != specialAppletVerMaj) || 
+        ( appletVerMin != specialAppletVerMin))  {
+
+       return null;
+   } 
+
+   var keyATR =  DoCoolKeyGetATR(keyType,keyID);
+
+   if( keyATR != specialATR)  {
+
+       return null;
+
+   }
+
+   globalIssuerURL = DoCoolKeyGetConfigValue(ESC_GLOBAL_PHONE_HOME_URL);
+
+   if(globalIssuerURL==null)  {
+       return null;
+   }
+
+   return globalIssuerURL;
+
+}
+
+ 
 //Test Phone Home url in config UI
 
 function DoPhoneHomeTest()
