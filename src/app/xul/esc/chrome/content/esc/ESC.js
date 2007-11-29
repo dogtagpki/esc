@@ -52,7 +52,7 @@ const  ESC_FACE_TO_FACE_MODE = "esc.face.to.face.mode";
 const  ESC_SECURITY_URL="esc.security.url";
 const  ESC_SECURE_URL="esc.secure.url";
 const  ESC_GLOBAL_PHONE_HOME_URL= "esc.global.phone.home.url";
-const  SPECIAL_ATR="3B769400FF6276010000";
+const  SPECIAL_ATR="3B76940000FF6276010000";
 
 const  CLEAN_TOKEN = "cleanToken";
 const  UNINITIALIZED        = 1;
@@ -258,6 +258,8 @@ function DoPhoneHome(keyType,keyID)
 
   recordMessage("Attempting phone home...");
 
+//alert("about to get IssuerUrl");
+
   var home = DoCoolKeyGetIssuerUrl(keyType,keyID);
 
   recordMessage("Returned IssuerURL " + home);
@@ -284,9 +286,9 @@ function DoPhoneHome(keyType,keyID)
 
   //Check for special key since we have no phone home info.
 
-  
-  home = GetGlobalPhoneHomeUrl(keyType,keyID);
-  
+  if(!home)   {
+      home = GetGlobalPhoneHomeUrl(keyType,keyID);
+  }
 
   var homeRes = false;
 
@@ -325,26 +327,23 @@ function GetGlobalPhoneHomeUrl(keyType,keyID)
 
    var appletVerMaj = DoGetCoolKeyGetAppletVer(keyType, keyID , true);
    var appletVerMin = DoGetCoolKeyGetAppletVer(keyType, keyID, false);
-  
+ 
+ 
    if( (appletVerMaj != specialAppletVerMaj) || 
-        ( appletVerMin != specialAppletVerMin))  {
+        ( appletVerMin > specialAppletVerMin))  {
 
        return null;
    } 
 
    var keyATR =  DoCoolKeyGetATR(keyType,keyID);
 
+
    if( keyATR != specialATR)  {
-
        return null;
-
    }
 
    globalIssuerURL = DoCoolKeyGetConfigValue(ESC_GLOBAL_PHONE_HOME_URL);
 
-   if(globalIssuerURL==null)  {
-       return null;
-   }
 
    return globalIssuerURL;
 
@@ -3386,12 +3385,18 @@ function DoGetCoolKeyIsReallyCoolKey(keyType,keyID)
 function DoCoolKeyGetIssuerUrl(keyType,keyID)
 {
     var url = null;
+    var isMac = 0;
 
+    var agent = navigator.userAgent.toLowerCase();
     //Back door for testing, ignore the value if so configured
+
+    if(agent && agent.indexOf("mac") != -1)  {
+        isMac = 1;
+    }
 
     var ignoreIssuer =  DoCoolKeyGetConfigValue(ESC_IGNORE_KEY_ISSUER_INFO);
 
-    recordMessage("DoCoolKeyGetIssuerUrl ignoreIssuer: " + ignoreIssuer);
+    recordMessage("DoCoolKeyGetIssuerUrl agent " + agent);
 
     if(ignoreIssuer == "yes")
     {
@@ -3403,15 +3408,19 @@ function DoCoolKeyGetIssuerUrl(keyType,keyID)
       netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
       
       var tries = 0;
-      while(tries < 3)
+      while(tries < 3 )
       { 
           url =  netkey.GetCoolKeyIssuerInfo(keyType, keyID);
 
-          if(url.length < 10)   // Check for bogus junk
+          if(!isMac)  {
+              break;
+          }
+
+          if(!url ||  url.length < 10)   // Check for bogus junk
           {
               recordMessage("Bogus url found ....");
               url = null;
-              Sleep(150);
+              Sleep(250);
               recordMessage("Going to try again... ");
           }
           else
@@ -3434,17 +3443,25 @@ function DoCoolKeyGetIssuerUrl(keyType,keyID)
       {
           url =  netkey.GetCoolKeyIssuerInfo(keyType, keyID);
 
-          if(url.length < 10)   // Check for bogus junk
+          if(!isMac)  {
+              break;
+          }
+          if(!url || url.length < 10)   // Check for bogus junk
           {
               recordMessage("Bogus url found from exception....");
               url = null;
-              sleep(150);
+              sleep(250);
               recordMessage("From exception.  Going to try again... ");
           }
           else
               break;
 
           tries ++;
+      }
+      if(url)
+      {
+          var issuer_config_value_exp = ConfigValueWithKeyID(keyID,KEY_ISSUER_URL);
+          var result_exp = DoCoolKeySetConfigValue(issuer_config_value_exp,url);
       }
       recordMessage("From exception returning " + url);
       return url;
