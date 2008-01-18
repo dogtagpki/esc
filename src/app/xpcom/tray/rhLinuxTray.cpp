@@ -49,9 +49,15 @@ static void popup_position(GtkMenu *menu,
   char tBuff[56];
   GtkWidget *icon_box_widget = GTK_WIDGET(user_data);
 
+
   if(icon_box_widget)
   {
+     GdkScreen* gscreen = gdk_screen_get_default(); 
      GdkWindow* window = icon_box_widget->window;
+  
+     if(!window)
+         return;
+
 
      gint width;
      gint height;
@@ -59,20 +65,37 @@ static void popup_position(GtkMenu *menu,
      gint px;
      gint py;
 
+     gint screen_width  = 0;
+     gint screen_height = 0;
+
+     if(gscreen)
+     {
+         screen_width  = gdk_screen_get_width(gscreen);
+         screen_height = gdk_screen_get_height(gscreen);
+     }
+
      gdk_drawable_get_size(window,&width,&height);
 
-     gdk_window_get_position(window,
+     gdk_window_get_origin(window,
                                      &px,
                                      &py);
 
-    PR_LOG( trayLog, PR_LOG_DEBUG, ("%s popup_position width %d height %d  px %d py %d \n",GetTStamp(tBuff,56),width,height,px,py));
+    PR_LOG( trayLog, PR_LOG_DEBUG, ("%s popup_position width %d height %d  px %d py %d *x %d *y %d  screen_w %d screen_h %d  \n",GetTStamp(tBuff,56),width,height,px,py,*x,*y,screen_width, screen_height));
 
+    // Are we close to the bottom of the screen? 
+
+    if( screen_width > 0 && screen_height > 0 
+        && ( screen_height - py) < (height * 3))
+    {
+        height = height* -2 ;
+    }
 
      gint x_coord = px;
      gint y_coord = (py + height);
 
      *x = x_coord;
      *y = y_coord; 
+     *push_in = TRUE;
 
   }
 
