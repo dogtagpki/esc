@@ -817,7 +817,7 @@ NS_IMETHODIMP rhCoolKey::EnrollCoolKey(PRUint32 aKeyType, const char *aKeyID, co
 NS_IMETHODIMP rhCoolKey::ResetCoolKeyPIN(PRUint32 aKeyType, const char *aKeyID, const char *aScreenName, const char *aPIN, const char *aScreenNamePwd)
 {
     char tBuff[56];
-    ::CoolKeyLogMsg( PR_LOG_ALWAYS, "%s Attempting to Reset Key PIN, ID: %s \n",GetTStamp(tBuff,56),aKeyID);
+    ::CoolKeyLogMsg( PR_LOG_ALWAYS, "%s Attempting to Reset Key Password, ID: %s \n",GetTStamp(tBuff,56),aKeyID);
     CoolKeyNode *node = GetCoolKeyInfo(aKeyType, aKeyID);
 
     if (!node)
