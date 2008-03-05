@@ -76,7 +76,7 @@ BASE_DIR=${PWD}
 #ESC values
 
 ESC_NAME=esc
-ESC_VERSION_NO=1.1.0-0
+ESC_VERSION_NO=1.1.0-1
 
 
 #Cygwin values

@@ -21,7 +21,7 @@
 [Setup]
 AppName=Smart Card Manager
 AppMutex=ESCMutex
-AppVerName=Smart Card Manager 1.0.1-6
+AppVerName=Smart Card Manager 1.1.0-1
 AppPublisher=Fedora
 CreateAppDir=true
 Compression=lzma
@@ -42,7 +42,7 @@ LicenseFile=esc-license.txt
 InfoBeforeFile=info-before.txt
 InfoAfterFile=info-after.txt
 PrivilegesRequired=admin
-VersionInfoVersion=1.0.1.4
+VersionInfoVersion=1.1.0.1
 
 
 [Files]
