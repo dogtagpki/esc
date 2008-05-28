@@ -3639,7 +3639,7 @@ function DoCoolKeyGetIssuerUrl(keyType,keyID)
 
           if(!url ||  url.length < 10)   // Check for bogus junk
           {
-              recordMessage("Bogus url found ....");
+              recordMessage("Bogus url found .... " + url);
               url = null;
               Sleep(250);
               recordMessage("Going to try again... ");
@@ -3649,7 +3649,6 @@ function DoCoolKeyGetIssuerUrl(keyType,keyID)
 
           tries ++;
       }
-
 
       if(url)
       {
@@ -3684,8 +3683,23 @@ function DoCoolKeyGetIssuerUrl(keyType,keyID)
           var issuer_config_value_exp = ConfigValueWithKeyID(keyID,KEY_ISSUER_URL);
           var result_exp = DoCoolKeySetConfigValue(issuer_config_value_exp,url);
       }
+
+      if(isMac && !url) {
+          var phoneHomeUrl = GetCachedPhoneHomeURL(keyID);
+          if(phoneHomeUrl)  {
+             url = phoneHomeUrl;
+          }
+
+      }
       recordMessage("From exception returning " + url);
       return url;
+  }
+
+  if(isMac && !url) {
+      var phoneHomeUrl = GetCachedPhoneHomeURL(keyID);
+      if(phoneHomeUrl)  {
+         url = phoneHomeUrl;
+      }
   }
 
   return url;
