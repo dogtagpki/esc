@@ -43,7 +43,7 @@ NSS_SOURCE_URL=https://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/NSS
 
 #Egate driver values
 
-EGATE_DRIVER_URL=http://www.reflexreaders.com/Support/Downloads
+EGATE_DRIVER_URL=http://www.it-secure.com/Downloads
 EGATE_DRIVER_NAME=e-gate_W2k_XP_24.zip
 
 #Zlib values
@@ -110,6 +110,10 @@ function buildNSS  {
 
     cd $BASE_DIR
 
+    if [ -d $NSS_NAME ];
+    then
+        echo "NSS already checked out."
+    else
 
     wget --no-check-certificate $NSS_SOURCE_URL
     if [ ! -f ./$NSS_ARCHIVE.tar.gz ];
@@ -124,6 +128,7 @@ function buildNSS  {
     then
         echo "Can't untar NSS."
         return 1
+    fi
     fi
 
     cd $NSS_NAME/mozilla/security/nss
@@ -154,7 +159,7 @@ function buildCOOLKEY {
 
    if [ -d coolkey ];
    then
-       cvs -d $FEDORA_CVS_ROOT update -r $COOLKEY_TAG coolkey 
+       echo "Echo CoolKey already checked out." 
    else
        cvs  -d $FEDORA_CVS_ROOT co -r $COOLKEY_TAG coolkey 
    fi
@@ -276,7 +281,7 @@ function buildESC {
 
    if [ -d esc ];
    then
-       cvs -d $FEDORA_CVS_ROOT update esc
+       echo "ESC already checked out.." 
    else 
        cvs  -d $FEDORA_CVS_ROOT co esc 
    fi
@@ -296,16 +301,6 @@ function buildESC {
 
    cd dist/src
 
-   if [ ! -d mozilla ];
-   then
-
-       echo "Obtaining XULRUNNER src..."
-       wget $XULRUNNER_SRC_URL
-       tar -xjvf $XULRUNNER_ARCHIVE_NAME
-   else
-       echo "Already have XULRUNNER src..."
-
-   fi
 
    ZLIB_INC_PATH=${BASE_DIR}/zlib/include
    ZLIB_INC_PATH=`cygpath -m $ZLIB_INC_PATH`
@@ -316,7 +311,7 @@ function buildESC {
    cd ../..
    make BUILD_OPT=1 import
 
-   make BUILD_OPT=1 CKY_INCLUDE="-I$ZLIB_INC_PATH  -I$CKY_INCLUDE_PATH" CKY_LIB_LDD=$CKY_INCLUDE_PATH/.libs ESC_VERSION=$ESC_VERSION_NO
+   make BUILD_OPT=1 CKY_INCLUDE="-I$ZLIB_INC_PATH  -I$CKY_INCLUDE_PATH" CKY_LIB_LDD=$CKY_INCLUDE_PATH/.libs USE_XUL_SDK=1 ESC_VERSION=$ESC_VERSION_NO
 
    if [ $? != 0 ];
    then
