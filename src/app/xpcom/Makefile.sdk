@@ -125,6 +125,10 @@ endif
 
 GECKO_DEFINES  = -DXPCOM_GLUE  -DMOZILLA_CLIENT
 
+ifdef ESC_VERSION
+GECKO_DEFINES += -DESC_VERSION=$(ESC_VERSION)
+endif
+
 NSS_INCLUDE =  /usr/include/nss3
 NSPR_INCLUDE =  /usr/include/nspr4
 
