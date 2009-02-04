@@ -39,7 +39,7 @@ function doOperation()
   if(theOperation == "enroll")
      parentWindow.DoEnrollCoolKey();
 
-  window.close(); 
+   window.close(); 
 }
 
 
@@ -100,5 +100,86 @@ function getBundleString(string_id)
     str = gStringBundle.getString(string_id);
 
     return str;
+}
+
+//Evaulate Password Quality
+
+function EvaluatePasswordQuality()
+{
+   var qualityImage = document.getElementById("password-image");
+   var pw = document.getElementById("pintf").value;
+   var pwlength = 0;
+
+   var qualityMeter = document.getElementById("pass-progress-id");
+
+
+   if(pw)
+       pwlength = pw.length;
+
+   if (pwlength>5)
+    pwlength=5;
+
+//use of numbers in the password
+   var numnumeric = pw.replace (/[0-9]/g, "");
+   var numeric=(pw.length - numnumeric.length);
+   if (numeric>3)
+     numeric=3;
+
+//use of symbols in the password
+   var symbols = pw.replace (/\W/g, "");
+   var numsymbols=(pw.length - symbols.length);
+   if (numsymbols>3)
+     numsymbols=3;
+
+//use of uppercase in the password
+   var numupper = pw.replace (/[A-Z]/g, "");
+   var upper=(pw.length - numupper.length);
+   if (upper>3)
+     upper=3;
+
+   var pwstrength=((pwlength*10)-20) + (numeric*10) + (numsymbols*15) + (upper*10);
+
+// make sure we're give a value between 0 and 100
+  if ( pwstrength < 0 ) {
+    pwstrength = 0;
+  }
+  if ( pwstrength > 100 ) {
+    pwstrength = 100;
+  }
+   if(qualityMeter)
+   {
+       qualityMeter.setAttribute("value",  pwstrength);
+
+   }
+   if(qualityImage)
+   {
+        if(pwlength==0)
+        {
+           qualityImage.setAttribute("src","1-none.png");
+           return;
+        }
+        if(pwstrength < 40)
+        {
+            qualityImage.setAttribute("src", "2-vweak.png");
+            return;
+        }
+        if(pwstrength >= 40 && pwstrength < 50)
+        {
+            qualityImage.setAttribute("src","3-weak.png");
+            return;
+        }
+        if(pwstrength >=50 && pwstrength < 60)
+        {
+            qualityImage.setAttribute("src","4-fair.png");
+            return; 
+        }
+        if(pwstrength >= 60 && pwstrength < 80)
+        {
+           qualityImage.setAttribute("src","5-good.png");
+           return;
+         }
+        if(pwstrength >= 80) 
+           qualityImage.setAttribute("src","6-strong.png");
+   } 
 }
 

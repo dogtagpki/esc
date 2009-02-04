@@ -19,11 +19,9 @@
    - Portions created by the Initial Developer are Copyright (C) 2001
    - the Initial Developer. All Rights Reserved.
    -
-   - Portions created by Jack Magne are Copyright (C) 2006  Red Hat, Inc.
    - Contributor(s):
    -   Bob Lord <lord@netscape.com>
    -   Ian McGreer <mcgreer@netscape.com>
-   -   Jack Magne <jmagne@redhat.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -60,9 +58,13 @@
         <treecol id="tokencol" label="&certmgr.tokenname;"
                      persist="hidden width ordinal" flex="1"/>
         <splitter class="tree-splitter"/>
+<!-- disable the purposes column until we get a solution
+     to fill in this information that is compatible with OCSP
+     and does not block the whole interface
         <treecol id="purposecol" label="&certmgr.purpose;"
                      persist="hidden width ordinal" flex="1"/>
         <splitter class="tree-splitter"/>
+-->
         <treecol id="serialnumcol" label="&certmgr.serial;"
                      persist="hidden width ordinal" flex="1"/>
         <splitter class="tree-splitter"/>
@@ -80,20 +82,28 @@
 
     <hbox>
        <button id="mine_viewButton" class="normal" 
-               label="&certmgr.view.label;"
+               label="&certmgr.view2.label;"
+               accesskey="&certmgr.view2.accesskey;"
                disabled="true" oncommand="viewCerts();"/>
+
+<!--
        <button id="mine_backupButton" class="normal" 
-               label="&certmgr.backup.label;"
-               hidden="true" oncommand="backupCerts();"/>
-       <button hidden="true"  id="mine_backupAllButton" class="normal" 
-               label="&certmgr.backupall.label;"
+               label="&certmgr.backup2.label;"
+               accesskey="&certmgr.backup2.accesskey;"
+               disabled="true" oncommand="backupCerts();"/>
+       <button id="mine_backupAllButton" class="normal" 
+               label="&certmgr.backupall2.label;"
+               accesskey="&certmgr.backupall2.accesskey;"
                oncommand="backupAllCerts();"/>
        <button id="mine_restoreButton" class="normal" 
-               hidden="true" label="&certmgr.restore.label;"
+               label="&certmgr.restore2.label;"
+               accesskey="&certmgr.restore2.accesskey;"
                oncommand="restoreCerts();"/>
        <button id="mine_deleteButton" class="normal" 
-               hidden="true" label="&certmgr.delete.label;"
+               label="&certmgr.delete2.label;"
+               accesskey="&certmgr.delete2.accesskey;"
                disabled="true" oncommand="deleteCerts();"/>
+-->
     </hbox>
   </vbox>
 </overlay>

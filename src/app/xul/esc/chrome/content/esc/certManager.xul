@@ -19,12 +19,9 @@
    - Portions created by the Initial Developer are Copyright (C) 2001
    - the Initial Developer. All Rights Reserved.
    -
-   - Portions created by Jack Magne are Copyright (C) 2006  Red Hat, Inc.
-
    - Contributor(s):
    -   Bob Lord <lord@netscape.com>
    -   Ian McGreer <mcgreer@netscape.com>
-   -   Jack Magne<jmagne@redhat.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -46,6 +43,7 @@
 <?xul-overlay href="chrome://pippki/content/OthersOverlay.xul"?>
 <?xul-overlay href="chrome://pippki/content/WebSitesOverlay.xul"?>
 <?xul-overlay href="chrome://pippki/content/CAOverlay.xul"?>
+<?xul-overlay href="chrome://pippki/content/OrphanOverlay.xul"?>
 
 <!DOCTYPE dialog SYSTEM "chrome://pippki/locale/certManager.dtd">
 
@@ -54,30 +52,34 @@
 	xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
         title="&certmgr.title;"
         onload="LoadCerts();"
-        ondialoghelp="return doHelpButton();"
+        buttons="accept"
         style="width: 48em; height: 32em;"
         persist="screenX screenY width height">
 
-  <script type="application/x-javascript" src="chrome://help/content/contextHelp.js"/>
   <script type="application/x-javascript" src="chrome://global/content/strres.js"/>
   <script type="application/x-javascript" src="chrome://pippki/content/pippki.js"/>
   <script type="application/x-javascript" src="chrome://pippki/content/certManager.js"/>
+  <script type="application/x-javascript" src="escCertManager.js"/>
 
   <vbox flex="1">
-    <tabbox flex="1" style="margin:5px">
+    <tabbox id="certmanagertabs" flex="1" style="margin:5px" persist="selectedIndex">
       <tabs id="certMgrTabbox">
-        <tab id="mine_tab"  label="&certmgr.tab.mine;"/>
-        <tab id="others_tab" hidden="true" label="&certmgr.tab.others;"/>
-        <tab id="websites_tab" hidden="true" label="&certmgr.tab.websites;"/>
-        <tab id="ca_tab" hidden="true" label="&certmgr.tab.ca;" selected="true"/>
+        <tab id="mine_tab" label="&certmgr.tab.mine;" selected="true"/>
+        <tab id="others_tab" hidden="true" label="&certmgr.tab.others2;"/>
+        <tab id="websites_tab" hidden="true" label="&certmgr.tab.websites3;"/>
+        <tab id="ca_tab" hidden="true" label="&certmgr.tab.ca;"/>
+        <tab id="orphan_tab" hidden="true" label="&certmgr.tab.orphan2;"/>
+
       </tabs>
       <tabpanels flex="1">
         <vbox id="myCerts" flex="1"/>
         <vbox id="othersCerts" flex="1"/>
         <vbox id="webCerts" flex="1"/>
         <vbox id="CACerts" flex="1"/>
+        <vbox id="OrphanCerts" flex="1"/>
       </tabpanels>
     </tabbox>
+
   </vbox>
 
 </dialog>

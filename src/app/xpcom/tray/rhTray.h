@@ -58,7 +58,7 @@ extern "C" {
 
 
 #ifdef XP_WIN32
-
+#define NS_REINTERPRET_CAST(__type, __expr)           reinterpret_cast< __type >(__expr)
 #define _WIN32_IE  0x0500
 #include <windows.h>
 #include <shellapi.h>

@@ -400,7 +400,7 @@ void rhTray::IconMenuCBProc(GtkWidget *widget, gpointer data)
 
     if(!strcmp((char *)data,"icon.exit"))
     {
-        gtk_main_quit();
+        exit(0);
     }
 }
 

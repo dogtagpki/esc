@@ -48,7 +48,9 @@
 //static  char *test_extended_login = "s=325&msg_type=13&invalid_login=0&blocked=0&error=&required_parameter0=id%3DUSER%5FID%26name%3DUser+ID%26desc%3DUser+ID%26type%3Dstring%26option%3Doption1%2Coption2%2Coption3&required_parameter1=id%3DUSER%5FPWD%26name%3DUser+Password%26desc%3DUser+Password%26type%3Dpassword%26option%3D&required_parameter2=id%3DUSER%5FPIN%26name%3DPIN%26desc%3DOne+time+PIN+received+via+mail%26type%3Dpassword%26option%3D";
 
 #include <string>
-
+#ifndef CKO_NETSCAPE
+#define CKO_NETSCAPE CKO_NSS
+#endif
 #ifndef CKO_MOZILLA_READER
 #define CKO_MOZILLA_READER     (CKO_NETSCAPE+5)
 #define CKA_MOZILLA_IS_COOL_KEY (CKO_NETSCAPE+24)
@@ -2162,11 +2164,6 @@ CKHGetCoolKeyInfo(PK11SlotInfo *aSlot)
     info->mReaderName[label.len] = 0;
     info->mInfoFlags = MapGetFlags(&tokenInfo);
 
-  //Handle the isCOOLKey flag
-    if(isACOOLKey) {
-        info->mInfoFlags |= COOLKEY_INFO_IS_REALLY_A_COOLKEY_MASK;
-    }
-
     info->mCUID = (char *)malloc(35); /* should be a define ! */
     if (!info->mCUID) {
       goto failed;
@@ -2175,6 +2172,22 @@ CKHGetCoolKeyInfo(PK11SlotInfo *aSlot)
   /* shouldn't the be != S_SUCCESS? */
     if (hres == E_FAIL) {
         goto failed;
+    }
+
+    PR_LOG( coolKeyLogHN, PR_LOG_DEBUG, ("%s CKHGetCoolKeyInfo: tokenInfo.label length %d.\n",GetTStamp(tBuff,56),strlen((char *) tokenInfo.label)));
+
+    // Give the CAC card some sort of unique key ID
+
+    if(strlen(info->mCUID) == 0)
+    {
+        strncpy(info->mCUID,(char *)tokenInfo.label,35);
+        info->mCUID[34] = 0;
+        isACOOLKey = 0;
+    }
+
+    //Handle the isCOOLKey flag
+    if(isACOOLKey) {
+        info->mInfoFlags |= COOLKEY_INFO_IS_REALLY_A_COOLKEY_MASK;
     }
 
     SECITEM_FreeItem(&ATR,PR_FALSE);

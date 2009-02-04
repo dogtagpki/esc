@@ -50,6 +50,11 @@ HttpClientNss::~HttpClientNss()
     {
         delete _response;
     }
+
+    if(_engine)
+    {
+        delete _engine;
+    }
 }
 
 /*
@@ -90,10 +95,14 @@ PSHttpResponse *HttpClientNss::httpSendChunked(char *host_port, char *uri, char 
     {
         request.setChunkedEntityData((int)strlen(body),body);
     }
-    HttpEngine engine;
 
-    _engine = &engine;
-    PSHttpResponse *resp =  engine.makeRequest( request, server, timeout /*_timeout*/ , PR_FALSE /* expect chunked*/,PR_TRUE /* process streamed */);
+    _engine = new HttpEngine();
+
+    if(!_engine)
+        return NULL;
+
+
+    PSHttpResponse *resp =  _engine->makeRequest( request, server, timeout /*_timeout*/ , PR_FALSE /* expect chunked*/,PR_TRUE /* process streamed */);
 
     _response = resp;
 

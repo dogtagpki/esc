@@ -23,6 +23,12 @@ include $(CORE_DEPTH)/coreconf/rules.mk
 
 DARWIN_LIB_NAME=librhTray.dylib
 
+MAKEFILE=Makefile.moz
+
+ifdef USE_XUL_SDK
+MAKEFILE=Makefile.sdk
+endif
+
 
 CORE_INC=$(SOURCE_XP_DIR)/public
 MOZ_SRCDIR=$(SOURCE_XP_DIR)/src/mozilla
@@ -41,7 +47,7 @@ endif
 all export install clean deploy args::  
 	echo "***** Dropping into the Mozilla build environment ***** $(MOZ_OBJDIR) $@"
 	echo $(DIST)
-	$(MAKE) -f Makefile.moz $@ \
+	$(MAKE) -f $(MAKEFILE) $@ \
 		OBJDIR=$(OBJDIR) \
 		CORE_DIST=$(DIST) \
 		CORE_INC=$(CORE_INC) \
@@ -50,17 +56,17 @@ all export install clean deploy args::
 
 ifeq ($(OS_ARCH),Darwin)
 		echo "Darwin all"
-		$(MAKE) -f Makefile.moz $@ \
+		$(MAKE) -f $(MAKEFILE) $@ \
 			OBJDIR=$(OBJDIR) \
 			CORE_DIST=$(DIST) \
 			CORE_INC=$(CORE_INC) \
 			MOZ_SRCDIR=$(MOZ_SRCDIR) \
-			MOZ_OBJDIR=$(MOZ_OBJDIR_PPC) 
+			MOZ_OBJDIR=$(MOZ_OBJDIR_PPC)
 endif
 
 libs::
 
-	$(MAKE) -f Makefile.moz libs \
+	$(MAKE) -f $(MAKEFILE) libs \
 		OBJDIR=$(OBJDIR) \
 		CORE_DIST=$(DIST) \
 		CORE_INC=$(CORE_INC) \
@@ -72,22 +78,22 @@ ifeq ($(OS_ARCH),Darwin)
 		mkdir -p $(UNIVERSAL_OFFSET_386)
 		mkdir -p $(UNIVERSAL_OFFSET_PPC)
 		mv -n $(DARWIN_LIB_NAME) i386
-		rm Makefile.in
+		rm -f Makefile.in
 		rm *.o
-		$(MAKE) -f Makefile.moz libs \
+		$(MAKE) -f $(MAKEFILE) libs \
 			OBJDIR=$(OBJDIR) \
 			CORE_DIST=$(DIST) \
 			CORE_INC=$(CORE_INC) \
 			MOZ_SRCDIR=$(MOZ_SRCDIR) \
-			MOZ_OBJDIR=$(MOZ_OBJDIR_PPC)
+			MOZ_OBJDIR=$(MOZ_OBJDIR_PPC) \
+			PPC_BUILD=1 
 		mv $(DARWIN_LIB_NAME) $(UNIVERSAL_OFFSET_PPC) 
-
 endif
 ifeq ($(OS_ARCH),Darwin)
 	echo "Darwin Creating UNI binary."
 	lipo -create $(UNIVERSAL_OFFSET_PPC)/$(DARWIN_LIB_NAME) $(UNIVERSAL_OFFSET_386)/$(DARWIN_LIB_NAME) -output $(DARWIN_LIB_NAME)
 endif
-	$(MAKE) -f Makefile.moz deploy \
+	$(MAKE) -f $(MAKEFILE) deploy \
 		OBJDIR=$(OBJDIR) \
 		CORE_DIST=$(DIST) \
 		CORE_INC=$(CORE_INC) \

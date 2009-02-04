@@ -39,6 +39,7 @@
 #include "nsIObserverService.h"
 #include "nsXPCOMGlue.h"
 #include "prlink.h"
+#include "prthread.h"
 #include "nscore.h"
 #include "content/nsCopySupport.h"
 #include <vector>
@@ -74,7 +75,9 @@ static const nsIID kIFactoryIID = NS_IFACTORY_IID;
 static const nsIID kISupportsIID = NS_ISUPPORTS_IID;
 static const nsIID kIComponentRegistrarIID = NS_ICOMPONENTREGISTRAR_IID;
 
-static NS_DEFINE_CID(kEventQueueServiceCID, NS_EVENTQUEUESERVICE_CID);
+//static NS_DEFINE_CID(kEventQueueServiceCID, NS_EVENTQUEUESERVICE_CID);
+
+#define NS_XPCOMPROXY_CONTRACTID "@mozilla.org/xpcomproxy;1"
 
 
 static const nsCID kCoolKeyCID = COOLKEY_CID; 
@@ -313,20 +316,22 @@ PRBool rhCoolKey::InitInstance()
 
     PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::InitInstance %p \n",GetTStamp(tBuff,56),this));
 
-    char *path = (char *) GRE_GetXPCOMPath();
+    char xpcom_path[4096];
+    xpcom_path[0] = 0;
 
-     PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::GREPath %s \n",GetTStamp(tBuff,56),path));
+    static const GREVersionRange greVersion = 
+    {
+    "1.9", PR_TRUE,
+    "2", PR_TRUE
+    };
 
-    char xpcom_path[512];
+    nsresult rv = GRE_GetGREPathWithProperties(&greVersion, 1, nsnull, 0, xpcom_path, 4096);
+    if (NS_FAILED(rv)) {
+        return PR_FALSE;
+    }
 
-    char *lib_name = XPCOM_LIB_NAME ;
+    char *lib_name =(char *) XPCOM_LIB_NAME ;
 
-#ifdef XP_WIN32
-   
-    sprintf(xpcom_path,"%s",path); 
-#else
-    sprintf(xpcom_path,"%s/%s",path,lib_name);
-#endif
   
     PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::xpcom_path %s \n",GetTStamp(tBuff,56),xpcom_path)); 
 
@@ -419,7 +424,7 @@ rhICoolKey* rhCoolKey::CreateProxyObject()
     PR_ASSERT(manager);
 
 
-    manager->GetProxyForObject(NS_UI_THREAD_EVENTQ, NS_GET_IID(rhICoolKey), this, PROXY_SYNC | PROXY_ALWAYS, (void**)&proxyObject);
+    manager->GetProxyForObject(NULL, NS_GET_IID(rhICoolKey), this, NS_PROXY_SYNC | NS_PROXY_ALWAYS, (void**)&proxyObject);
 
     PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::CreateProxyObject: original: %p proxy %p  \n",GetTStamp(tBuff,56),this,proxyObject));
 
@@ -1444,7 +1449,7 @@ NS_IMETHODIMP rhCoolKey::GetCoolKeyVersion(char **_retval)
     char tBuff[56];
     PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::GetCoolKeyVersion \n",GetTStamp(tBuff,56)));
 
-    char *version = GETSTRING(ESC_VERSION);
+    char *version = (char *) GETSTRING(ESC_VERSION);
     
     char *versionVal =  (char *) nsMemory::Clone(version,sizeof(char) * strlen(version) +  1);
     

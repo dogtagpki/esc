@@ -1,0 +1,270 @@
+#
+# This Program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; version 2 of the License.
+#
+# This Program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this Program; if not, write to the Free Software Foundation, Inc., 59 Temple
+# Place, Suite 330, Boston, MA 02111-1307 USA.
+#
+# Copyright (C) 2005 Red Hat, Inc.
+# All rights reserved.
+# ***** END COPYRIGHT BLOCK *****
+
+CORE_DEPTH      = ../../../..
+
+
+include $(CORE_DEPTH)/coreconf/config.mk
+
+include $(CORE_DEPTH)/coreconf/rules.mk
+
+ifeq ($(OS_ARCH),Linux)
+CXXFLAGS        += $(MOZ_GTK_CFLAGS) $(MOZ_GTK2_CFLAGS) $(NOTIFY_CXX_FLAGS)
+endif
+
+
+# Change this to point at your Gecko SDK directory.
+ifndef GECKO_SDK_PATH
+GECKO_SDK_PATH =/usr/lib/xulrunner-sdk-1.9pre/sdk
+endif
+GECKO_SDK_INCLUDE_PATH=$(GECKO_SDK_PATH)/include
+ifndef GECKO_INCLUDE_PATH
+GECKO_INCLUDE_PATH=/usr/include/xulrunner-sdk-1.9pre
+endif
+ifndef GECKO_BIN_PATH
+GECKO_BIN_PATH=/usr/lib/xulrunner-1.9pre
+endif
+
+ifeq ($(OS_ARCH),Darwin)
+ifndef GECKO_SDK_PATH
+GECKO_SDK_PATH =/Users/jmagne/Desktop/gecko-sdk-mac-universal
+endif
+GECKO_INCLUDE_PATH=$(GECKO_SDK_PATH)/include
+GECKO_BIN_PATH=$(GECKO_SDK_PATH)/bin
+ifndef XUL_FRAMEWORK_PATH
+XUL_FRAMEWORK_PATH=/Library/Frameworks/XUL.framework
+endif
+XUL_FRAMEWORK_BIN_PATH=$(XUL_FRAMEWORK_PATH)/Versions/Current
+
+endif
+
+ifeq ($(OS_ARCH),WINNT)
+ifndef GECKO_SDK_PATH
+GECKO_SDK_PATH =c:/xulrunner-sdk/xulrunner-sdk
+endif
+GECKO_INCLUDE_PATH=$(GECKO_SDK_PATH)/include
+GECKO_SDK_INCLUDE_PATH=$(GECKO_SDK_PATH)/sdk/include
+GECKO_BIN_PATH=$(GECKO_SDK_PATH)/bin
+XUL_FRAMEWORK_BIN_PATH=$(GECKO_BIN_PATH)
+
+endif
+
+#DEPLOY_OBJDIR	= $(CORE_DEPTH)/dist/$(OBJDIR)/esc_build
+
+#Xulrunner constants
+
+XULRUNNER_BIN_PATH      = $(GECKO_BIN_PATH)
+XULRUNNER_EXEC          = xulrunner
+ifeq ($(OS_ARCH), Darwin)
+XULRUNNER_BIN_PATH      = $(GECKO_BIN_PATH) 
+XULRUNNER_EXEC          = xulrunner-bin
+XULRUNNER_FRAME_DEST    = ESC.app/Contents/Frameworks/XUL.framework
+XULRUNNER_FRAME_BASE    = ESC.app/Contents/Frameworks
+ifndef XUL_FRAMEWORK_PATH
+XUL_FRAMEWORK_PATH=/Library/Frameworks/XUL.framework
+endif
+XUL_FRAMEWORK_BIN_PATH=$(XUL_FRAMEWORK_PATH)/Versions/Current
+endif
+
+DEPLOY_OFFSET=/src
+DESTDIR=
+
+ifeq ($(OS_ARCH),Linux)
+DEPLOY_OFFSET=/src
+#DESTDIR=$(MOZ_OBJDIR)/install
+endif
+
+INSTALL_STUFF = 
+
+ifeq ($(OS_ARCH),Linux)
+INSTALL_STUFF +=  icon.png
+endif
+
+ifeq ($(OS_ARCH),WINNT)
+INSTALL_STUFF += esc.ico esc.bmp
+endif
+
+CXX   = c++ 
+CPPFLAGS +=     -fno-rtti   \
+		-fno-exceptions \
+		-fshort-wchar -DXPCOM_GLUE_USE_NSPR=1
+
+ifeq ($(OS_ARCH),WINNT)
+CPPFLAGS = -MD  -DXP_WIN=1 -DXP_WIN32=1 -DXPCOM_GLUE -DXPCOM_GLUE_USE_NSPR -TP -nologo -W3 -Gy -EHsc -DNDEBUG
+CXX   = cl
+LINK  = link
+RC    = rc.exe
+
+endif
+
+ifeq ($(OS_ARCH),Darwin)
+ifdef PPC_BUILD
+CXX = c++-3.3
+CPPFLAGS += -arch ppc
+else
+CPPFLAGS +=  -isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386
+endif
+endif
+
+
+ifeq ($(OS_ARCH),WINNT)
+OS_LIBS+=shell32.lib kernel32.lib user32.lib gdi32.lib winmm.lib wsock32.lib advapi32.lib
+XPCOM_GLUE_LDOPTS += /Force
+MOZ_NO_DEBUG_RTL=1
+RCFILE  =cool.rc
+RESFILE =cool.res
+RCFLAGS =-r -Fo
+endif
+
+
+NOTIFY_DEPTH    = $(CORE_DEPTH)/src/lib/notifytray
+NOTIFY_CXX_FLAGS        = -I$(NOTIFY_DEPTH) $(shell pkg-config --cflags glib-2.0) $(shell pkg-config --cflags gtk+-2.0)
+NOTIFY_LDFLAGS  = $(shell pkg-config --libs libnotify)
+
+
+
+COOLKEY_LIBS+= -L $(CORE_DIST)/lib -ltraynotify  -L/usr/lib  $(NOTIFY_LDFLAGS)
+
+ifeq ($(OS_ARCH),Darwin)
+GECKO_LD_LIBS=-W1,dead_strip $(GECKO_SDK_PATH)/lib/libxpcomglue.a -Wl,-executable_path,$(GECKO_SDK_PATH)/lib -lxpcom   -L$(XUL_FRAMEWORK_BIN_PATH)   -lssl3  -lnssutil3  -lsqlite3  -lnss3 -lsoftokn3 -lsmime3
+endif
+
+ifeq ($(OS_ARCH),WINNT)
+GECKO_LD_LIBS= -IMPLIB:fake-import /LIBPATH:$(GECKO_SDK_PATH)/lib    $(GECKO_SDK_PATH)/lib/xpcomglue.lib xpcomglue_s.lib $(OS_LIBS) $(RESFILE) $(XPCOM_GLUE_LDOPTS)
+
+endif
+
+ 
+# GCC only define which allows us to not have to #include mozilla-config 
+# in every .cpp file.  If your not using GCC remove this line and add 
+# #include "mozilla-config.h" to each of your .cpp files. 
+#GECKO_CONFIG_INCLUDE = -include mozilla-config.h 
+
+GECKO_DEFINES  =   -DMOZILLA_CLIENT -DXPCOM_GLUE
+
+NSS_INCLUDE =  /usr/include/nss3
+NSPR_INCLUDE =  /usr/include/nspr4
+
+ 
+GECKO_INCLUDES = -I $(GECKO_SDK_PATH)/include -I $(GECKO_SDK_INCLUDE_PATH) -I $(GECKO_INCLUDE_PATH) -I$(GECKO_INCLUDE_PATH)/gfx -I $(NSPR_INCLUDE) -I $(NSS_INCLUDE) -I $(GECKO_INCLUDE_PATH)/xpcom
+
+
+COOL_INCLUDES = -I $(CORE_INC)/ckymanager -I $(CORE_INC)/httpchuncked
+COOL_LDFLAGS  =  -L$(CORE_DIST)/lib  -lckymanager -lhttpchunked $(CKY_LIB_LDD)
+
+ifeq ($(OS_ARCH),Darwin)
+CPPFLAGS += -F/Developer/SDKs/MacOSX10.4u.sdk/Library/Frameworks -I/Developer/SDKs/MacOSX10.4u.sdk/Developer/Headers/FlatCarbon -DXP_MACOSX -DXPCOM_GLUE_USE_NSPR 
+COOL_LDFLAGS += -lsystemStubs  -framework Carbon   -bundle -lm
+GECKO_DEFINES = -DMOZILLA_CLIENT -DXPCOM_GLUE_USE_NSPR
+endif
+
+ifeq ($(OS_ARCH),WINNT)
+FILES		=                  \
+		rhTray.cpp         \
+		$(NULL)
+OBJECT		= rhTray.obj
+
+endif
+
+ifeq ($(OS_ARCH),Linux)
+
+FILES		=                  \
+		rhLinuxTray.cpp     \
+		$(NULL)
+OBJECT		= rhLinuxTray.o
+endif
+
+ifeq ($(OS_ARCH),Darwin)
+FILES		=                  \
+		rhMacTray.cpp         \
+		$(NULL)
+OBJECT		= rhMacTray.o
+endif
+
+ 
+GECKO_LDFLAGS= -lnspr4 \
+	-lplds4  -lplc4 -ldl  -lpthread    \
+        $(GECKO_LD_LIBS)
+
+
+TARGET = librhTray.so
+
+ifeq ($(OS_ARCH),Darwin)
+TARGET = librhTray.dylib
+endif
+
+ifeq ($(OS_ARCH),WINNT)
+GECKO_LDFLAGS = nspr4.lib $(GECKO_LD_LIBS)
+TARGET = rhTray.dll
+endif
+
+all::	export libs
+
+libs:: 
+	echo "PPC_BUILD $(PPC_BUILD)"
+	$(GECKO_BIN_PATH)/xpidl -I $(GECKO_SDK_PATH)/idl -I $(NSPR_INCLUDE) -m header rhITray.idl
+
+	$(GECKO_BIN_PATH)/xpidl -I $(GECKO_SDK_PATH)/idl -I $(NSPR_INCLUDE) -m typelib rhITray.idl
+
+	$(GECKO_BIN_PATH)/xpidl -I $(GECKO_SDK_PATH)/idl -I $(NSPR_INCLUDE) -m header rhITrayWindNotify.idl
+
+	$(GECKO_BIN_PATH)/xpidl -I $(GECKO_SDK_PATH)/idl -I $(NSPR_INCLUDE) -m typelib rhITrayWindNotify.idl
+
+ifeq ($(OS_ARCH),Darwin)
+	$(CXX)   $(CPPFLAGS)  -c  -o $(OBJECT)  $(GECKO_CONFIG_INCLUDE) $(GECKO_DEFINES) $(GECKO_INCLUDES) $(COOL_INCLUDES) $(CXXFLAGS) $(FILES)
+	$(CXX)   $(CPPFLAGS)  -o $(TARGET) $(OBJECT)  $(GECKO_DEFINES) $(GECKO_INCLUDES)  $(GECKO_LDFLAGS) $(COOL_LDFLAGS)
+endif
+
+ifeq ($(OS_ARCH),Linux)
+	$(CXX)    $(CPPFLAGS) -c -o $(OBJECT) $(CXXFLAGS) $(GECKO_CONFIG_INCLUDE) $(GECKO_DEFINES) $(GECKO_INCLUDES) $(COOL_INCLUDES) $(CXXFLAGS) $(FILES)
+
+	$(CXX)   $(CPPFLAGS) -shared -o $(TARGET) $(OBJECT)  $(GECKO_DEFINES) $(GECKO_INCLUDES)  $(GECKO_LDFLAGS) $(COOLKEY_LIBS) 
+	chmod +x $(TARGET)
+	strip $(TARGET)
+endif
+
+ifeq ($(OS_ARCH),WINNT)
+	$(CXX)    $(CPPFLAGS) -c -o $(OBJECT) $(CXXFLAGS) $(GECKO_CONFIG_INCLUDE) $(GECKO_DEFINES) $(GECKO_INCLUDES) $(COOL_INCLUDES) $(CXXFLAGS) $(FILES)
+
+	$(RC)  $(RCFLAGS)$(RESFILE) $(RCFILE)
+	$(LINK)  -NOLOGO -DLL -OUT:$(TARGET) $(OBJECT) -SUBSYSTEM:WINDOWS  $(GECKO_DEFINES) $(GECKO_LDFLAGS)
+
+endif
+
+	chmod +x $(TARGET)
+
+export::
+	echo "Export" 
+clean:: 
+	echo "Cleaning up."
+	rm -f *.xpt
+	rm -f *.so
+	rm -f *.o
+	rm -f *.obj
+	rm -f *.dll
+ifeq ($(OS_ARCH),Darwin)
+	rm -rf i386
+	rm -rf ppc
+	rm -rf *.dylib
+endif
+
+deploy: $(DEPLOY_OBJDIR)
+	echo "Deploying"
+	echo $(IMPORT_LIBRARY)
+	$(NSINSTALL) ./$(LIB_PREFIX)rhTray.$(DLL_SUFFIX) $(CORE_DEPTH)$(DEPLOY_OFFSET)/app/xul/esc/components
+	$(NSINSTALL) ./*.xpt $(INSTALL_STUFF) $(CORE_DEPTH)$(DEPLOY_OFFSET)/app/xul/esc/components
+

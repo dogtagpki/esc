@@ -51,8 +51,6 @@ const  ESC_IGNORE_KEY_ISSUER_INFO = "esc.ignore.key.issuer.info";
 const  ESC_FACE_TO_FACE_MODE = "esc.face.to.face.mode";
 const  ESC_SECURITY_URL="esc.security.url";
 const  ESC_SECURE_URL="esc.secure.url";
-const  ESC_GLOBAL_PHONE_HOME_URL= "esc.global.phone.home.url";
-const  SPECIAL_ATR="3B76940000FF6276010000";
 
 const  CLEAN_TOKEN = "cleanToken";
 const  UNINITIALIZED        = 1;
@@ -292,10 +290,6 @@ function DoPhoneHome(keyType,keyID)
 
   //Check for special key since we have no phone home info.
 
-  if(!home)   {
-      home = GetGlobalPhoneHomeUrl(keyType,keyID);
-  }
-
   var homeRes = false;
 
   if(home)
@@ -315,43 +309,6 @@ function DoPhoneHome(keyType,keyID)
   }
 
   return homeRes;
-}
-
-//Get global phone home url only for a special key
-
-function GetGlobalPhoneHomeUrl(keyType,keyID)
-{
-
-   var globalIssuerURL=null;
-   var specialATR=SPECIAL_ATR;
-   var phonHomeURL= DoCoolKeyGetATR(keyType,keyID);
-
-   var specialAppletVerMaj=1;
-   var specialAppletVerMin=1;
-
-
-   var appletVerMaj = DoGetCoolKeyGetAppletVer(keyType, keyID , true);
-   var appletVerMin = DoGetCoolKeyGetAppletVer(keyType, keyID, false);
-
-
-   if( (appletVerMaj != specialAppletVerMaj) ||
-        ( appletVerMin > specialAppletVerMin))  {
-
-       return null;
-   }
-
-   var keyATR =  DoCoolKeyGetATR(keyType,keyID);
-
-
-   if( keyATR != specialATR)  {
-       return null;
-   }
-
-   globalIssuerURL = DoCoolKeyGetConfigValue(ESC_GLOBAL_PHONE_HOME_URL);
-
-
-   return globalIssuerURL;
-
 }
 
 //Test Phone Home url in config UI
@@ -724,7 +681,6 @@ function GetCoolKeyIssuer(keyType,keyID)
 
      issuer = GetCachedIssuer(keyID);
 
-
      // Now try to read off the certs if applicable
 
     if(!issuer && (GetStatusForKeyID(keyType, keyID) == getBundleString("statusEnrolled")))
@@ -733,6 +689,22 @@ function GetCoolKeyIssuer(keyType,keyID)
             netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
             issuer = netkey.GetCoolKeyIssuer(keyType,keyID);
 
+            var issuer_url = ConfigValueWithKeyID(keyID,KEY_ISSUER_URL);
+            var issuer_url_value = null;
+
+            if(issuer_url)
+            {
+                 issuer_url_value = DoCoolKeyGetConfigValue(issuer_url);
+            }
+
+            if(issuer && !issuer_url_value)
+            {
+                 var issuer_config_value = ConfigValueWithKeyID(keyID,KEY_ISSUER);
+                 if(issuer_config_value)
+                 {
+                     DoCoolKeySetConfigValue(issuer_config_value,issuer);
+                 }
+            }
         } catch (e)
         {
             issuer = null;
