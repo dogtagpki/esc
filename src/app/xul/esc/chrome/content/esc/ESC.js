@@ -45,12 +45,16 @@ const  ENROLLED_TOKEN_BROWSER_URL = "EnrolledTokenBrowserURL";
 const  ENROLLED_TOKEN_URL = "EnrolledTokenURL";
 const  TOKEN_TYPE = "TokenType";
 const  RESET_PHONE_HOME  = "ResetPhoneHome";
+
+// Config params
+
 const  ESC_IGNORE_TOKEN_BROWSER_URL = "esc.ignore.token.browser.url";
 const  ESC_TOKEN_BROWSER_URL_ESTABLISHED = "esc.token.browser.established";
 const  ESC_IGNORE_KEY_ISSUER_INFO = "esc.ignore.key.issuer.info";
 const  ESC_FACE_TO_FACE_MODE = "esc.face.to.face.mode";
 const  ESC_SECURITY_URL="esc.security.url";
 const  ESC_SECURE_URL="esc.secure.url";
+const  ESC_HIDE_FORMAT="esc.hide.format";
 
 const  CLEAN_TOKEN = "cleanToken";
 const  UNINITIALIZED        = 1;
@@ -2120,6 +2124,12 @@ function UpdateAdminKeyDetailsArea(keyType,keyID)
 
     isCool = DoGetCoolKeyIsReallyCoolKey(keyType, keyID);
 
+    var hideFormatConfig = DoCoolKeyGetConfigValue(ESC_HIDE_FORMAT);
+    var hideFormat = false;
+
+    if(hideFormatConfig == "yes")
+        hideFormat = true;
+
     var noKey = 0;
 
     if(!keyType && !keyID)
@@ -2245,6 +2255,12 @@ function UpdateAdminKeyDetailsArea(keyType,keyID)
       detailsKeyLabel.setAttribute("value",getBundleString("noKeysPresent"));
       HideItem(detailsImage);
 
+      if(hideFormat) {
+          HideItem(formatbtn);
+          if(adminkeymenu)
+              HideItem(menu_format);
+      }
+
       return;
    }
 
@@ -2267,6 +2283,7 @@ function UpdateAdminKeyDetailsArea(keyType,keyID)
            if(!isLoginKey)
            {
                EnableItem(formatbtn);
+
                if(adminkeymenu)
                    EnableItem(menu_format);
            }
@@ -2290,6 +2307,12 @@ function UpdateAdminKeyDetailsArea(keyType,keyID)
 
        if(!isBusy)
            detailsKeyLabel.setAttribute("value",getBundleString("enrolledKey"));
+
+       if(hideFormat) {
+           HideItem(formatbtn);
+           if(adminkeymenu)
+               HideItem(menu_format);
+       }
 
        return;
    }
@@ -2333,6 +2356,12 @@ function UpdateAdminKeyDetailsArea(keyType,keyID)
              DisableItem(formatbtn);
          }
 
+       if(hideFormat) {
+           HideItem(formatbtn);
+           if(adminkeymenu)
+               HideItem(menu_format);
+       }
+      
        return;
    }
 
@@ -2367,6 +2396,12 @@ function UpdateAdminKeyDetailsArea(keyType,keyID)
 
        }
 
+       if(hideFormat) {
+          HideItem(formatbtn);
+          if(adminkeymenu)
+             HideItem(adminkeymenu);
+       }
+
        return;
    }
 
@@ -2385,6 +2420,12 @@ function UpdateAdminKeyDetailsArea(keyType,keyID)
            DisableItem(menu_enroll);
            DisableItem(menu_format);
            DisableItem(menu_resetpassword);
+       }
+
+       if(hideFormat) {
+           HideItem(formatbtn);
+           if(adminkeymenu)
+               HideItem(menu_format);
        }
    }
 }
