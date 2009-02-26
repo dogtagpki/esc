@@ -62,12 +62,12 @@
   <script type="application/x-javascript" src="escCertManager.js"/>
 
   <vbox flex="1">
-    <tabbox id="certmanagertabs" flex="1" style="margin:5px" persist="selectedIndex">
-      <tabs id="certMgrTabbox">
+    <tabbox id="certmanagertabs" flex="1" style="margin:5px">
+      <tabs id="certMgrTabbox" onselect="CertsTabsSelected();">
         <tab id="mine_tab" label="&certmgr.tab.mine;" selected="true"/>
         <tab id="others_tab" hidden="true" label="&certmgr.tab.others2;"/>
         <tab id="websites_tab" hidden="true" label="&certmgr.tab.websites3;"/>
-        <tab id="ca_tab" hidden="true" label="&certmgr.tab.ca;"/>
+        <tab id="ca_tab" hidden="false" label="&certmgr.tab.ca;"/>
         <tab id="orphan_tab" hidden="true" label="&certmgr.tab.orphan2;"/>
 
       </tabs>

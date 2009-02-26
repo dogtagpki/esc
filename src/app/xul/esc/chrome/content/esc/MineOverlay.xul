@@ -95,15 +95,15 @@
                label="&certmgr.backupall2.label;"
                accesskey="&certmgr.backupall2.accesskey;"
                oncommand="backupAllCerts();"/>
-       <button id="mine_restoreButton" class="normal" 
+-->
+       <button id="mine_restoreButton" class="normal" hidden="true" 
                label="&certmgr.restore2.label;"
                accesskey="&certmgr.restore2.accesskey;"
                oncommand="restoreCerts();"/>
-       <button id="mine_deleteButton" class="normal" 
+       <button id="mine_deleteButton" class="normal"  hidden="true"
                label="&certmgr.delete2.label;"
                accesskey="&certmgr.delete2.accesskey;"
                disabled="true" oncommand="deleteCerts();"/>
--->
     </hbox>
   </vbox>
 </overlay>

@@ -506,6 +506,9 @@ function getBundleString(string_id)
 
 function GetAuthDataFromPopUp(aKeyType,aKeyID,aUiData)
 {
+   if(!gAdminPage)
+      return;
+
    keyUITable[aKeyID] = aUiData;
    keyTypeTable[aKeyID] = aKeyType;
 
@@ -2227,7 +2230,7 @@ function UpdateAdminKeyDetailsArea(keyType,keyID)
 
    if(!keyStatus)
    {
-      DisableItem(viewcertsbtn);
+      EnableItem(viewcertsbtn);
       DisableItem(enrollbtn);
       if(adminkeymenu)
       {
@@ -2293,7 +2296,7 @@ function UpdateAdminKeyDetailsArea(keyType,keyID)
 
    if(keyStatus == getBundleString("statusUninitialized"))
    {
-         DisableItem(viewcertsbtn);
+         EnableItem(viewcertsbtn);
 
          if(isCool)
          {
@@ -2335,7 +2338,7 @@ function UpdateAdminKeyDetailsArea(keyType,keyID)
 
    if(keyStatus == getBundleString("statusNoApplet"))
    {
-       DisableItem(viewcertsbtn);
+       EnableItem(viewcertsbtn);
        DisableItem(enrollbtn);
        DisableItem(resetpinbtn);
 
