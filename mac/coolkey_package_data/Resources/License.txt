@@ -1,211 +1,222 @@
+		    GNU GENERAL PUBLIC LICENSE
+   TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
 
-              END USER LICENSE AGREEMENT 
-              RED HAT(R) DIRECTORY SERVER AND
-              RED HAT(R) CERTIFICATE SYSTEM
+  0. This License applies to any program or other work which contains
+a notice placed by the copyright holder saying it may be distributed
+under the terms of this General Public License.  The "Program", below,
+refers to any such program or work, and a "work based on the Program"
+means either the Program or any derivative work under copyright law:
+that is to say, a work containing the Program or a portion of it,
+either verbatim or with modifications and/or translated into another
+language.  (Hereinafter, translation is included without limitation in
+the term "modification".)  Each licensee is addressed as "you".
 
-This end user license agreement ("EULA") governs the use of
-Red Hat Directory Server (which uses Administration Server
-and Red Hat Management Console) and Red Hat Certificate
-System (which uses Enterprise Security Client and Auto
-Enrollment Proxy) and any related updates to source code,
-appearance, structure and organization (each, a "Program")
-regardless of the delivery mechanism.
+Activities other than copying, distribution and modification are not
+covered by this License; they are outside its scope.  The act of
+running the Program is not restricted, and the output from the Program
+is covered only if its contents constitute a work based on the
+Program (independent of having been made by running the Program).
+Whether that is true depends on what the Program does.
 
-1.  Red Hat Directory Server, Enterprise Security Client and
-Auto Enrollment Proxy
+  1. You may copy and distribute verbatim copies of the Program's
+source code as you receive it, in any medium, provided that you
+conspicuously and appropriately publish on each copy an appropriate
+copyright notice and disclaimer of warranty; keep intact all the
+notices that refer to this License and to the absence of any warranty;
+and give any other recipients of the Program a copy of this License
+along with the Program.
 
-1.1  License Grant.  Red Hat Directory Server ("RHDS"),
-Enterprise Security Client ("ESC") and Auto Enrollment Proxy
-("AEP")are modular applications consisting of hundreds of
-software components and are collective works under U.S.
-Copyright Law.  Subject to the following terms, Red Hat,
-Inc. ("Red Hat") grants to you ('User") a perpetual,
-worldwide license to RHDS, ESC and AEP pursuant to the GNU
-General Public License v.2 ("GPL").  Please note that
-Administration Server and Red Hat Management Console, which
-are binary-only code used to configure and administer RHDS,
-are subject to the license terms in Section 2.  The end user
-license agreement for each component of RHDS, ESC and AEP
-are located in the component's source code.  With the
-exception of certain image files identified in Section 1.3
-below, the license terms for the components permit User to
-copy, modify, and redistribute the component, in both source
-code and binary code forms.  This EULA does not limit User's
-rights under, or grant User rights that supersede, the
-license terms of any particular component.
+You may charge a fee for the physical act of transferring a copy, and
+you may at your option offer warranty protection in exchange for a fee.
 
-1.2  License Exception.  In addition, as a special
-exception, Red Hat gives User the additional right to link
-the code of RHDS with code not covered under the GPL
-("Non-GPL Code") and to distribute linked combinations
-including the two, subject to the limitations in this
-paragraph. Non-GPL Code permitted under this exception must
-only link to the code of RHDS through those well defined
-interfaces identified in that file named EXCEPTION in the
-source code files for RHDS (the "Approved Interfaces"). The
-files of Non-GPL Code may instantiate templates or use
-macros or inline functions from the Approved Interfaces
-without causing the resulting work to be covered by the GPL.
-Only Red Hat may make changes or additions to the list of
-Approved Interfaces. User must comply with the GPL in all
-respects for all of the RHDS code and other code used in
-conjunction with RHDS except the Non-GPL Code covered by
-this exception. If User modifies RHDS, User may extend this
-exception to its version of RHDS, but User is not obligated
-to do so. If User does not wish to provide this exception
-without modification, User must delete this exception
-statement from User's version of RHDS and license RHDS
-solely under the GPL without exception.
+  2. You may modify your copy or copies of the Program or any portion
+of it, thus forming a work based on the Program, and copy and
+distribute such modifications or work under the terms of Section 1
+above, provided that you also meet all of these conditions:
 
-1.3  Intellectual Property Rights.  RHDS, ESC, AEP and each
-of their components, including the source code,
-documentation, appearance, structure and organization are
-owned by Red Hat and others and are protected under
-copyright and other laws.  Title to RHDS, ESC, AEP and any
-component, or to any copy, modification, or merged portion
-shall remain with the aforementioned, subject to the
-applicable license.  The "Red Hat" trademark and the
-"Shadowman" logo are registered trademarks of Red Hat in the
-U.S. and other countries.  This EULA does not permit User to
-distribute RHDS, ESC or AEP using Red Hat's trademarks.
-User should read the information found at
-http://www.redhat.com/about/corporate/trademark/ before
-distributing a copy of these Programs, regardless of whether
-they have been modified.  User may make a commercial
-redistribution of RHDS, ESC or AEP only if (a) a separate
-agreement with Red Hat authorizing such commercial
-redistribution is executed or other written permission is
-granted by Red Hat or (b) User modifies any files identified
-as "REDHAT-LOGOS" to remove and replace all images
-containing the "Red Hat" trademark or the "Shadowman" logo.
-Merely deleting these files may corrupt the Programs.
+    a) You must cause the modified files to carry prominent notices
+    stating that you changed the files and the date of any change.
 
-2.  Red Hat Certificate System, Administration Server, and
-Red Hat Management Console
+    b) You must cause any work that you distribute or publish, that in
+    whole or in part contains or is derived from the Program or any
+    part thereof, to be licensed as a whole at no charge to all third
+    parties under the terms of this License.
 
-2.1  License Grant.  Subject to the provisions of this
-Section 2.1, Red Hat hereby grants User a non-exclusive,
-non-transferable, worldwide, perpetual, fully paid right
-(without the right to sublicense) to use, reproduce and
-distribute Red Hat Certificate System ("RHCS"),
-Administration Server ("Admin Server"), and Red Hat
-Management Console ("Console") in executable,
-machine-readable form.  User must reproduce all copyright
-and other proprietary notices on such copies.  User may only
-reproduce and distribute RHCS, Admin Server or Console to
-another party if the other party agrees in writing to be
-obligated by the terms and conditions of this Section 2.1.
-Except as provided in this Section 2.1, User may not modify,
-copy, transfer or otherwise use RHCS, Admin Server, or
-Console, and all licenses granted hereunder are
-automatically terminated if User does so.
+    c) If the modified program normally reads commands interactively
+    when run, you must cause it, when started running for such
+    interactive use in the most ordinary way, to print or display an
+    announcement including an appropriate copyright notice and a
+    notice that there is no warranty (or else, saying that you provide
+    a warranty) and that users may redistribute the program under
+    these conditions, and telling the user how to view a copy of this
+    License.  (Exception: if the Program itself is interactive but
+    does not normally print such an announcement, your work based on
+    the Program is not required to print an announcement.)
 
-2.2  Change in Licensing.  It is Red Hat's intent to change
-the terms of the license granted under this Section 2 to
-those of an open source license.  If such change is
-generally announced to the public, User will have the option
-to elect to have RHCS, Admin Server and Console be governed
-by the terms of such open source license.  If User does not
-make such election, the terms of this Agreement will
-continue to govern User's use of the RHCS, Admin Server and
-Console.
+These requirements apply to the modified work as a whole.  If
+identifiable sections of that work are not derived from the Program,
+and can be reasonably considered independent and separate works in
+themselves, then this License, and its terms, do not apply to those
+sections when you distribute them as separate works.  But when you
+distribute the same sections as part of a whole which is a work based
+on the Program, the distribution of the whole must be on the terms of
+this License, whose permissions for other licensees extend to the
+entire whole, and thus to each and every part regardless of who wrote it.
 
-3.  Limited Warranty.  Except as specifically stated in this
-Section 3, a separate agreement with Red Hat, or a license
-for a particular component, to the maximum extent permitted
-under applicable law, the Programs and the components are
-provided and licensed "as is" without warranty of any kind,
-expressed or implied, including the implied warranties of
-merchantability, non-infringement or fitness for a
-particular purpose.  Red Hat warrants that the media on
-which the  Programs and the components are furnished will be
-free from defects in materials and manufacture under normal
-use for a period of thirty (30) days from the date of
-delivery to User.  Red Hat does not warrant that the
-functions contained in the Programs will meet User's
-requirements or that the operation of the Programs will be
-entirely error free, appear precisely as described in the
-accompanying documentation, or comply with regulatory
-requirements. This warranty extends only to the party that
-purchases services pertaining to the Programs from Red Hat
-or a Red Hat authorized distributor.
+Thus, it is not the intent of this section to claim rights or contest
+your rights to work written entirely by you; rather, the intent is to
+exercise the right to control the distribution of derivative or
+collective works based on the Program.
 
-4.  Limitation of Remedies and Liability. To the maximum
-extent permitted by applicable law, User's exclusive remedy
-under this EULA is to return any defective media within
-thirty (30) days of delivery along with a copy of User's
-payment receipt and Red Hat, at its option, will replace it
-or refund the money paid by User for the media.  To the
-maximum extent permitted under applicable law, neither Red
-Hat, any Red Hat authorized distributor, nor the licensor of
-any component provided to User under the EULA will be liable
-to User for any incidental or consequential damages,
-including lost profits or lost savings arising out of the
-use or inability to use the Programs or any component, even
-if Red Hat, such authorized distributor or licensor has been
-advised of the possibility of such damages.  In no event
-shall Red Hat's liability, an authorized distributor's
-liability or the liability of the licensor of a component
-provided to User under this EULA exceed the amount that User
-paid to Red Hat under this EULA during the twelve (12)
-months preceding the action.
+In addition, mere aggregation of another work not based on the Program
+with the Program (or with a work based on the Program) on a volume of
+a storage or distribution medium does not bring the other work under
+the scope of this License.
 
-5.  Export Control.  As required by the laws of the United
-States and other countries, User represents and warrants
-that it: (a) understands that the Programs and their
-components may be subject to export controls under the U.S.
-Commerce Department's Export Administration Regulations
-("EAR"); (b) is not located in a prohibited destination
-country under the EAR or U.S. sanctions regulations
-(currently Cuba, Iran, Iraq,  North Korea, Sudan and Syria,
-subject to change as posted by the United States
-government); (c) will not export, re-export, or transfer the
-Programs to any prohibited destination or  persons or
-entities on the U.S. Bureau of Industry and Security Denied
-Parties List or Entity List, or the U.S. Office of Foreign
-Assets Control list of Specially Designated Nationals and
-Blocked Persons, or any similar lists maintained by other
-countries, without the necessary export license(s) or
-authorization(s); (d) will not use or transfer the Programs
-for use in connection with any nuclear, chemical or
-biological weapons, missile technology, or military end-uses
-where prohibited by an applicable arms embargo, unless
-authorized by the relevant government agency by regulation
-or specific license; (e) understands and agrees that if it
-is in the United States and exports or transfers the
-Programs to eligible end users, it will, to the extent
-required by EAR Section 740.17(e), submit semi-annual
-reports to the Commerce Department's Bureau of Industry and
-Security , which include the name and address (including
-country) of each transferee; and (f) understands that
-countries including the United States may restrict the
-import, use, or export of encryption products (which may
-include the Programs and the components) and agrees that it
-shall be solely responsible for compliance with any such
-import, use, or export restrictions.
+  3. You may copy and distribute the Program (or a work based on it,
+under Section 2) in object code or executable form under the terms of
+Sections 1 and 2 above provided that you also do one of the following:
 
-6.  Third Party Programs. Red Hat may distribute third party
-software programs with the Programs that are not part of the
-Programs.  These third party programs are not required to
-run the Programs, are provided as a convenience to User, and
-are subject to their own license terms.  The license terms
-either accompany the third party software programs or can be
-viewed at
-http://www.redhat.com/licenses/thirdparty/eula.html.  If
-User does not agree to abide by the applicable license terms
-for the third party software programs, then User may not
-install them.  If User wishes to install the third party
-software programs on more than one system or transfer the
-third party software programs to another party, then User
-must contact the licensor of the applicable third party
-software programs.
+    a) Accompany it with the complete corresponding machine-readable
+    source code, which must be distributed under the terms of Sections
+    1 and 2 above on a medium customarily used for software interchange; or,
 
-7.  General.  If any provision of this agreement is held to
-be unenforceable, that shall not affect the enforceability
-of the remaining provisions.  This agreement shall be
-governed by the laws of the State of New York and of the
-United States, without regard to any conflict of laws
-provisions.  The rights and obligations of the parties to
-this EULA shall not be governed by the United Nations
-Convention on the International Sale of Goods.
+    b) Accompany it with a written offer, valid for at least three
+    years, to give any third party, for a charge no more than your
+    cost of physically performing source distribution, a complete
+    machine-readable copy of the corresponding source code, to be
+    distributed under the terms of Sections 1 and 2 above on a medium
+    customarily used for software interchange; or,
 
+    c) Accompany it with the information you received as to the offer
+    to distribute corresponding source code.  (This alternative is
+    allowed only for noncommercial distribution and only if you
+    received the program in object code or executable form with such
+    an offer, in accord with Subsection b above.)
+
+The source code for a work means the preferred form of the work for
+making modifications to it.  For an executable work, complete source
+code means all the source code for all modules it contains, plus any
+associated interface definition files, plus the scripts used to
+control compilation and installation of the executable.  However, as a
+special exception, the source code distributed need not include
+anything that is normally distributed (in either source or binary
+form) with the major components (compiler, kernel, and so on) of the
+operating system on which the executable runs, unless that component
+itself accompanies the executable.
+
+If distribution of executable or object code is made by offering
+access to copy from a designated place, then offering equivalent
+access to copy the source code from the same place counts as
+distribution of the source code, even though third parties are not
+compelled to copy the source along with the object code.
+
+  4. You may not copy, modify, sublicense, or distribute the Program
+except as expressly provided under this License.  Any attempt
+otherwise to copy, modify, sublicense or distribute the Program is
+void, and will automatically terminate your rights under this License.
+However, parties who have received copies, or rights, from you under
+this License will not have their licenses terminated so long as such
+parties remain in full compliance.
+
+  5. You are not required to accept this License, since you have not
+signed it.  However, nothing else grants you permission to modify or
+distribute the Program or its derivative works.  These actions are
+prohibited by law if you do not accept this License.  Therefore, by
+modifying or distributing the Program (or any work based on the
+Program), you indicate your acceptance of this License to do so, and
+all its terms and conditions for copying, distributing or modifying
+the Program or works based on it.
+
+  6. Each time you redistribute the Program (or any work based on the
+Program), the recipient automatically receives a license from the
+original licensor to copy, distribute or modify the Program subject to
+these terms and conditions.  You may not impose any further
+restrictions on the recipients' exercise of the rights granted herein.
+You are not responsible for enforcing compliance by third parties to
+this License.
+
+  7. If, as a consequence of a court judgment or allegation of patent
+infringement or for any other reason (not limited to patent issues),
+conditions are imposed on you (whether by court order, agreement or
+otherwise) that contradict the conditions of this License, they do not
+excuse you from the conditions of this License.  If you cannot
+distribute so as to satisfy simultaneously your obligations under this
+License and any other pertinent obligations, then as a consequence you
+may not distribute the Program at all.  For example, if a patent
+license would not permit royalty-free redistribution of the Program by
+all those who receive copies directly or indirectly through you, then
+the only way you could satisfy both it and this License would be to
+refrain entirely from distribution of the Program.
+
+If any portion of this section is held invalid or unenforceable under
+any particular circumstance, the balance of the section is intended to
+apply and the section as a whole is intended to apply in other
+circumstances.
+
+It is not the purpose of this section to induce you to infringe any
+patents or other property right claims or to contest validity of any
+such claims; this section has the sole purpose of protecting the
+integrity of the free software distribution system, which is
+implemented by public license practices.  Many people have made
+generous contributions to the wide range of software distributed
+through that system in reliance on consistent application of that
+system; it is up to the author/donor to decide if he or she is willing
+to distribute software through any other system and a licensee cannot
+impose that choice.
+
+This section is intended to make thoroughly clear what is believed to
+be a consequence of the rest of this License.
+
+  8. If the distribution and/or use of the Program is restricted in
+certain countries either by patents or by copyrighted interfaces, the
+original copyright holder who places the Program under this License
+may add an explicit geographical distribution limitation excluding
+those countries, so that distribution is permitted only in or among
+countries not thus excluded.  In such case, this License incorporates
+the limitation as if written in the body of this License.
+
+  9. The Free Software Foundation may publish revised and/or new versions
+of the General Public License from time to time.  Such new versions will
+be similar in spirit to the present version, but may differ in detail to
+address new problems or concerns.
+
+Each version is given a distinguishing version number.  If the Program
+specifies a version number of this License which applies to it and "any
+later version", you have the option of following the terms and conditions
+either of that version or of any later version published by the Free
+Software Foundation.  If the Program does not specify a version number of
+this License, you may choose any version ever published by the Free Software
+Foundation.
+
+  10. If you wish to incorporate parts of the Program into other free
+programs whose distribution conditions are different, write to the author
+to ask for permission.  For software which is copyrighted by the Free
+Software Foundation, write to the Free Software Foundation; we sometimes
+make exceptions for this.  Our decision will be guided by the two goals
+of preserving the free status of all derivatives of our free software and
+of promoting the sharing and reuse of software generally.
+
+			    NO WARRANTY
+
+  11. BECAUSE THE PROGRAM IS LICENSED FREE OF CHARGE, THERE IS NO WARRANTY
+FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW.  EXCEPT WHEN
+OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES
+PROVIDE THE PROGRAM "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED
+OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE ENTIRE RISK AS
+TO THE QUALITY AND PERFORMANCE OF THE PROGRAM IS WITH YOU.  SHOULD THE
+PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING,
+REPAIR OR CORRECTION.
+
+  12. IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING
+WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MAY MODIFY AND/OR
+REDISTRIBUTE THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES,
+INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING
+OUT OF THE USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED
+TO LOSS OF DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY
+YOU OR THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER
+PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGES.
+
+		     END OF TERMS AND CONDITIONS
