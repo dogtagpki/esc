@@ -48,16 +48,6 @@
            var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"].getService(Components.interfaces.nsIWindowMediator);
            var win = wm.getMostRecentWindow(null);
 
-           var doSecMode = false;
-           var secModeURL=null;
-
-           secModeURL = cmdLine.handleFlagWithParam("secmode",false);
-           if (secModeURL) {
-               doSecMode = true;
-               cmdLine.preventDefault = true;
-           }
-
-
            var showUsage = cmdLine.handleFlag("usage",false);
 
            recordMessage("ShowUsage flag: " + showUsage);
@@ -78,17 +68,7 @@
 
                recordMessage("Base window . " + locName);
 
-               if(doSecMode)
-               {
-
-                  var uri = cmdLine.resolveURI(secModeURL);
-                  recordMessage("Attempting security mode. url: " + secModeURL);
-                  win.launchESCSecMode(secModeURL);
-               }
-               else
-               {
-                   win.launchSETTINGS();
-               }
+               win.SelectESCPageCMDLine();
 
                recordMessage("Done command line handling...");
                return;

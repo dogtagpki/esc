@@ -25,7 +25,22 @@ pref("capability.principal.codebase.p0.id", "file://");
 
 pref("esc.tps.message.timeout","90");
 
+#Do we populate CAPI certs on windows?
 
 pref("esc.windows.do.capi","yes");
 
+#Do we disable the password prompt ?
+ 
 pref("esc.disable.password.prompt","yes");
+
+#Sample Security Officer Enrollment UI
+
+#pref("esc.security.url","http://test.host.com:7888/cgi-bin/so/enroll.cgi");
+
+#Sample Security Officer Workstation UI
+
+#pref("esc.security.url","https://test.host.com:7889/cgi-bin/sow/welcome.cgi");
+
+#Hide the format button or not.
+
+pref("esc.hide.format","no");

@@ -1909,6 +1909,20 @@ function IsPrimaryESCPage()
     return result;
 }
 
+function SelectESCPageCMDLine()
+{
+    var securityURL =   DoCoolKeyGetConfigValue(ESC_SECURITY_URL);
+
+    if(securityURL)
+    {
+        launchESCSecMode();
+        return;
+    }
+
+    launchSETTINGS();
+
+}
+
 function SelectESCPage(keyType,keyID,phoneHomeFailed)
 {
 
@@ -3800,15 +3814,24 @@ function ShowVersion()
 //Is the security mode up?
 function CheckForSecurityMode()
 {
-   var securityWnd = IsPageWindowPresent(SECURITY_WINDOW);
-   var faceToFaceMode = 0;
+    var securityWnd = IsPageWindowPresent(SECURITY_WINDOW);
+    var faceToFaceMode = 0;
 
-   recordMessage("CheckForSecurityMode: " + securityWnd);
+    recordMessage("CheckForSecurityMode: " + securityWnd);
 
-   if(securityWnd)
-       faceToFaceMode = 1;
+    if(securityWnd) {
+        faceToFaceMode = 1;
+        return faceToFaceMode;
+    }
 
-   return faceToFaceMode;
+    var securityURL =   DoCoolKeyGetConfigValue(ESC_SECURITY_URL);
+
+    if(securityURL)
+    {
+        faceToFaceMode = 1;
+    }
+
+    return faceToFaceMode;
 }
 
 //Launch Phone Home bootstrap dialog as last resort
@@ -3904,11 +3927,9 @@ function launchESC()
 
 //Launch security mode window
 
-function launchESCSecMode(aUrl)
+function launchESCSecMode()
 {
     recordMessage("In launchESCSecMode");
-
-    DoCoolKeySetConfigValue(ESC_SECURITY_URL,aUrl);
 
     var secWnd = IsPageWindowPresent(SECURITY_WINDOW);
     if(!secWnd)
@@ -3951,6 +3972,15 @@ function NotifyESCOfTrayEvent(aEvent,aEventData,aKeyData,aData1,aData2)
 
    var enrollWnd = IsPageWindowPresent(ENROLL_WINDOW);
    var adminWnd  = IsPageWindowPresent(ADMIN_WINDOW);
+
+   var securityURL =   DoCoolKeyGetConfigValue(ESC_SECURITY_URL);
+
+   if(securityURL)
+   {
+       launchESCSecMode();
+       return;
+
+   }
 
    if(!adminWnd)
    {
