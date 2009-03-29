@@ -29,9 +29,6 @@ pref("esc.tps.message.timeout","90");
 
 pref("esc.windows.do.capi","yes");
 
-#Do we disable the password prompt ?
- 
-pref("esc.disable.password.prompt","yes");
 
 #Sample Security Officer Enrollment UI
 
@@ -39,8 +36,14 @@ pref("esc.disable.password.prompt","yes");
 
 #Sample Security Officer Workstation UI
 
-#pref("esc.security.url","https://test.host.com:7889/cgi-bin/sow/welcome.cgi");
+#pref("esc.security.url","https://dhcp-170.sjc.redhat.com:7889/cgi-bin/sow/welcome.cgi");
 
 #Hide the format button or not.
 
 pref("esc.hide.format","no");
+
+
+#Use this if you absolutely want a global phone home url for all tokens
+#Not recommended!
+
+#pref("esc.global.phone.home.url","http:/test.host.com:7888/cgi-bin/home/index.cgi");
