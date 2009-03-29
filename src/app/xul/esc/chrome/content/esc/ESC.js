@@ -54,6 +54,7 @@ const  ESC_IGNORE_KEY_ISSUER_INFO = "esc.ignore.key.issuer.info";
 const  ESC_FACE_TO_FACE_MODE = "esc.face.to.face.mode";
 const  ESC_SECURITY_URL="esc.security.url";
 const  ESC_SECURE_URL="esc.secure.url";
+const  ESC_GLOBAL_PHONE_HOME_URL= "esc.global.phone.home.url";
 const  ESC_HIDE_FORMAT="esc.hide.format";
 
 const  CLEAN_TOKEN = "cleanToken";
@@ -292,7 +293,12 @@ function DoPhoneHome(keyType,keyID)
       return true;
   }
 
-  //Check for special key since we have no phone home info.
+  //Check for optional global phone home url.
+
+
+  if(!home)   {
+      home = GetGlobalPhoneHomeUrl(keyType,keyID);
+  }
 
   var homeRes = false;
 
@@ -313,6 +319,19 @@ function DoPhoneHome(keyType,keyID)
   }
 
   return homeRes;
+}
+
+//Get global phone home url if pref is set 
+
+function GetGlobalPhoneHomeUrl(keyType,keyID)
+{
+
+   var globalIssuerURL=null;
+
+   globalIssuerURL = DoCoolKeyGetConfigValue(ESC_GLOBAL_PHONE_HOME_URL);
+
+   return globalIssuerURL;
+
 }
 
 //Test Phone Home url in config UI
@@ -644,7 +663,7 @@ function GetCoolKeyPolicy(keyType, keyID)
       netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
     return netkey.GetCoolKeyPolicy(keyType, keyID);
   } catch (e) {
-    ReportException(getBundleString("errorCoolKeyGetPolicy"), e);
+    //ReportException(getBundleString("errorCoolKeyGetPolicy"), e);
     return "";
   }
 }
