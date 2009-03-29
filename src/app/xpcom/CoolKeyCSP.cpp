@@ -537,16 +537,19 @@ NS_IMETHODIMP CoolKeyCSPKeyListener::RhNotifyKeyStateChange(PRUint32 aKeyType,co
    PR_LOG( coolKeyCSPLog, PR_LOG_DEBUG, ("CoolKeyCSPListener::RhNotifyStateChange state %d \n",aKeyState));
    AutoCoolKey key(aKeyType, aKeyID);
 
+   int enrolled = CoolKeyIsEnrolled(&key);
 
   switch (aKeyState)
   {
-    //case eCKState_KeyInserted:
+    case eCKState_KeyInserted:
     case eCKState_EnrollmentComplete:
 
-      bOK = PropCerts(&key);
+      if( enrolled) {
+        bOK = PropCerts(&key);
+      }
       break;
 
-    //case eCKState_KeyRemoved:
+    case eCKState_KeyRemoved:
     case eCKState_FormatComplete:
       bOK = RemoveCerts(&key);
 
