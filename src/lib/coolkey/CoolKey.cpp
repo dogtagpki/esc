@@ -266,15 +266,18 @@ COOLKEY_API HRESULT CoolKeySetCallbacks(CoolKeyDispatch dispatch,
 	CoolKeyReference reference, CoolKeyRelease release,
         CoolKeyGetConfigValue getconfigvalue,CoolKeySetConfigValue setconfigvalue)
 {
+    char tBuff[56];
     g_Dispatch = dispatch;
     g_Reference = reference;
     g_Release = release;
     g_GetConfigValue = getconfigvalue;
     g_SetConfigValue = setconfigvalue;
 
-    char * suppressPINPrompt =(char*) CoolKeyGetConfig("esc.disable.password.prompt");
+    char * suppressPINPrompt =(char*) CoolKeyGetConfig("esc.security.url");
 
-    if(suppressPINPrompt && !strcmp(suppressPINPrompt,"yes"))
+    PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s CoolKeySetCallbacks: prompt %s \n", GetTStamp(tBuff,56), suppressPINPrompt));
+
+    if(!suppressPINPrompt)
     {
         PK11_SetPasswordFunc( CoolKeyVerifyPassword);
     }
