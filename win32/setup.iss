@@ -4,28 +4,27 @@
 [Setup]
 AppName=Smart Card Manager
 AppMutex=ESCMutex
-AppVerName=Smart Card Manager 1.1.0-2
-AppPublisher=Fedora.
+AppVerName=Smart Card Manager 1.1.0-3
+AppPublisher=Red Hat, Inc.
 CreateAppDir=true
 Compression=lzma
 SolidCompression=true
 MinVersion=0,5.0.2195
 ShowLanguageDialog=yes
-OutputBaseFilename=SmartCardManagerSetup-1.1.0-2.win32.i386
-DefaultDirName={pf}\Fedora\ESC
+OutputBaseFilename=SmartCardManagerSetup-1.1.0-3.win32.i386
+DefaultDirName={pf}\Red Hat\ESC
 DisableProgramGroupPage=false
-DefaultGroupName=Fedora
+DefaultGroupName=Red Hat
 SetupIconFile=BUILD\ESC\components\esc.ico
 UninstallDisplayIcon={app}\components\esc.ico
-;WizardImageFile=BUILD\ESC\chrome\content\esc\esc-image-large.bmp
-WizardImageFile=esc-image-large.bmp
+WizardImageFile=BUILD\ESC\chrome\content\esc\esc-image-large.bmp
 WizardSmallImageFile=BUILD\ESC\components\esc.bmp
 AllowNoIcons=yes
 LicenseFile=esc-license.txt
 InfoBeforeFile=info-before.txt
 InfoAfterFile=info-after.txt
 PrivilegesRequired=admin
-VersionInfoVersion=1.1.0.2
+VersionInfoVersion=1.1.0.3
 
 
 [Files]
@@ -42,11 +41,9 @@ Source: BUILD\egate\egaterdr.inf; DestDir: {win}\egate2.4; Flags: uninsneverunin
 Source: BUILD\egate\egaterdr.sys; DestDir: {win}\egate2.4; Flags: uninsneveruninstall
 Source: BUILD\egate\egdrvins1.dll; DestDir: {win}\egate2.4; Flags: uninsneveruninstall
 Source: BUILD\egate\eginstall.exe; DestDir: {win}\egate2.4; Flags: ignoreversion
-Source: BUILD\pk11install.exe; DestDir: {app}\PKCS11
-
-;Files related to CSP, comment out if not available
 Source: BUILD\clkcsp.dll; DestDir: {sys}; Flags: regserver restartreplace
 Source: BUILD\cspres.dll; DestDir: {sys}; Flags: restartreplace
+Source: BUILD\pk11install.exe; DestDir: {app}\PKCS11
 Source: BUILD\clkcsp.sig; DestDir: {sys}
 
 Source: BUILD\atl71.dll; DestDir: {sys}; Flags: uninsneveruninstall onlyifdoesntexist
@@ -447,10 +444,7 @@ UseAbsolutePaths=false
 LogFile=inst.log
 LogFileAppend=false
 [Registry]
-
-;The following lines register the CSP. Comment out if not available
 Root: HKLM; Subkey: Software\Microsoft\Cryptography\Defaults\Provider\CoolKey PKCS #11 CSP; ValueType: string; ValueName: PKCS11Module; ValueData: coolkeypk11.dll; Flags: uninsdeletekey
-
 Root: HKLM; Subkey: Software\Microsoft\Cryptography\Calais\SmartCards\Axalto Developer; ValueType: binary; ValueName: ATRMask; ValueData: ff ff ff ff ff ff ff ff 00 00; Flags: uninsdeletekey
 Root: HKLM; Subkey: Software\Microsoft\Cryptography\Calais\SmartCards\Axalto Developer; ValueType: string; ValueName: Crypto Provider; ValueData: CoolKey PKCS #11 CSP
 Root: HKLM; Subkey: Software\Microsoft\Cryptography\Calais\SmartCards\Axalto Developer; ValueType: binary; ValueName: ATR; ValueData: 3b 75 94 00 00 62 02 02 00 00
