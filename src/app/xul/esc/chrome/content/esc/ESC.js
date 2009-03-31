@@ -2302,9 +2302,9 @@ function UpdateAdminKeyDetailsArea(keyType,keyID)
        var isLoginKey = IsKeyLoginKey(keyType,keyID);
        EnableItem(viewcertsbtn);
 
-       DisableItem(enrollbtn);
-       if(adminkeymenu)
-           DisableItem(menu_enroll);
+      EnableItem(enrollbtn);
+      if(adminkeymenu)
+          EnableItem(menu_enroll);
 
        if(isCool)
        {
