@@ -459,7 +459,7 @@ Root: HKLM; Subkey: Software\Microsoft\Cryptography\Calais\SmartCards\Gemalto 64
 ; Now register the Safenet 330J
 Root: HKLM; Subkey: Software\Microsoft\Cryptography\Calais\SmartCards\Safenet 330J; ValueType: binary; ValueName: ATRMask; ValueData: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 00 00; Flags: uninsdeletekey
 
-Root: HKLM; Subkey: Software\Microsoft\Cryptography\Calais\SmartCards\Safenet 330J; ValueType: string; ValueName: Crypt Provider; ValueData: CoolKey PKCS #11 CSP
+Root: HKLM; Subkey: Software\Microsoft\Cryptography\Calais\SmartCards\Safenet 330J; ValueType: string; ValueName: Crypto Provider; ValueData: CoolKey PKCS #11 CSP
 
 Root: HKLM; Subkey: Software\Microsoft\Cryptography\Calais\SmartCards\Safenet 330J; ValueType: binary; ValueName: ATR; ValueData: 3b ec 00 ff 81 31 fe 45 a0 00 00 00 56 33 33 30 4a 33 06 00 00
 
