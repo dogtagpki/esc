@@ -4,14 +4,14 @@
 [Setup]
 AppName=Smart Card Manager
 AppMutex=ESCMutex
-AppVerName=Smart Card Manager 1.1.0-3
+AppVerName=Smart Card Manager 1.1.0-4
 AppPublisher=Red Hat, Inc.
 CreateAppDir=true
 Compression=lzma
 SolidCompression=true
 MinVersion=0,5.0.2195
 ShowLanguageDialog=yes
-OutputBaseFilename=SmartCardManagerSetup-1.1.0-3.win32.i386
+OutputBaseFilename=SmartCardManagerSetup-1.1.0-4.win32.i386
 DefaultDirName={pf}\Red Hat\ESC
 DisableProgramGroupPage=false
 DefaultGroupName=Red Hat
@@ -24,7 +24,7 @@ LicenseFile=esc-license.txt
 InfoBeforeFile=info-before.txt
 InfoAfterFile=info-after.txt
 PrivilegesRequired=admin
-VersionInfoVersion=1.1.0.3
+VersionInfoVersion=1.1.0.4
 
 
 [Files]
@@ -450,12 +450,18 @@ Root: HKLM; Subkey: Software\Microsoft\Cryptography\Calais\SmartCards\Axalto Dev
 Root: HKLM; Subkey: Software\Microsoft\Cryptography\Calais\SmartCards\Axalto Developer; ValueType: binary; ValueName: ATR; ValueData: 3b 75 94 00 00 62 02 02 00 00
 
 ; Now register the Gemalto 64K V2
-Root: HKLM; Subkey: Software\Microsoft\Cryptography\Calais\SmartCards\Gemalto 64K V2; ValueType: binary; ValueName: ATRMask: ValueData: ff ff ff ff ff ff ff ff ff ff; Flags: uninsdeletekey
+Root: HKLM; Subkey: Software\Microsoft\Cryptography\Calais\SmartCards\Gemalto 64K V2; ValueType: binary; ValueName: ATRMask; ValueData: ff ff 00 ff 00 ff ff ff 00 00; Flags: uninsdeletekey
 
-Root: HKLM; Subkey: Software\Microsoft\Cryptography\Calais\SmartCards\Gemalto 64 V2: ValueType: string; ValueName: Crypto Provider; ValueData: CoolKey PKCS #11 CSP
+Root: HKLM; Subkey: Software\Microsoft\Cryptography\Calais\SmartCards\Gemalto 64K V2; ValueType: string; ValueName: Crypto Provider; ValueData: CoolKey PKCS #11 CSP
 
-Root: HKLM; Subkey: Software\Microsoft\Cryptography\Calais\SmartCards\Gemalto 64 V2: ValueType: binary; ValueName: ATR; ValueData: 3b 95 95 40 ff ae 01 03 00 00
+Root: HKLM; Subkey: Software\Microsoft\Cryptography\Calais\SmartCards\Gemalto 64K V2; ValueType: binary; ValueName: ATR; ValueData: 3b 95 00 40 00 ae 01 03 00 00
 
+; Now register the Safenet 330J
+Root: HKLM; Subkey: Software\Microsoft\Cryptography\Calais\SmartCards\Safenet 330J; ValueType: binary; ValueName: ATRMask; ValueData: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 00 00; Flags: uninsdeletekey
+
+Root: HKLM; Subkey: Software\Microsoft\Cryptography\Calais\SmartCards\Safenet 330J; ValueType: string; ValueName: Crypt Provider; ValueData: CoolKey PKCS #11 CSP
+
+Root: HKLM; Subkey: Software\Microsoft\Cryptography\Calais\SmartCards\Safenet 330J; ValueType: binary; ValueName: ATR; ValueData: 3b ec 00 ff 81 31 fe 45 a0 00 00 00 56 33 33 30 4a 33 06 00 00
 
 Root: HKLM; Subkey: Software\
 ; Turn off the "pick a cert" dialog box
