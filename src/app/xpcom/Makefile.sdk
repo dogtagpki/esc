@@ -178,8 +178,8 @@ endif
 
 install::
 ifdef DESTDIR
-         cp -rf $(DEPLOY_OBJDIR)/esc/* $(DESTDIR)
-         cp -f  $(CORE_DIST)/bin/escd $(DESTDIR)
+	cp -rf $(DEPLOY_OBJDIR)/esc/* $(DESTDIR)
+	cp -f  $(CORE_DIST)/bin/escd $(DESTDIR)
 endif
 
 
@@ -204,8 +204,8 @@ ifeq ($(OS_ARCH),Linux)
 	$(CXX)   $(CPPFLAGS) -c -o $(OBJECT) $(GECKO_CONFIG_INCLUDE) $(GECKO_DEFINES) $(GECKO_INCLUDES) $(COOL_INCLUDES) $(CXXFLAGS) $(FILES)
 
 	$(CXX)   $(CPPFLAGS) -shared -o $(TARGET) $(OBJECT)  $(GECKO_DEFINES) $(GECKO_INCLUDES)  $(GECKO_LDFLAGS) $(COOL_LDFLAGS)
-        chmod +x $(TARGET)
-        strip $(TARGET)
+	chmod +x $(TARGET)
+	strip $(TARGET)
 endif
 
 ifeq ($(OS_ARCH),WINNT)

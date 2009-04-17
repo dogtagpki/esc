@@ -23,6 +23,7 @@
 #include "notifytray.h"
 #include "intl/nsIStringBundle.h"
 #include <gdk/gdkx.h>
+#include <stdlib.h>
 
 NS_IMPL_ISUPPORTS1(rhTray, rhITray)
 

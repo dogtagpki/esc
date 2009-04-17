@@ -27,11 +27,11 @@ DIRS += app/eginstall app/xpcom/tray app/xpcom
 endif
 
 ifeq ($(OS_ARCH), Darwin)
-DIRS +=  xulrunner app/xpcom/tray app/xpcom
+DIRS +=  app/xpcom/tray app/xpcom
 endif
 
 ifeq ($(OS_ARCH), Linux)
-DIRS += xulrunner lib/notifytray app/daemon app/xpcom/tray app/xpcom  
+DIRS +=  lib/notifytray app/daemon app/xpcom/tray app/xpcom  
 endif
 
 
