@@ -24,7 +24,7 @@
     id="esc-window"
     title="&genericAuthTitle;"
     width="400"
-    height="225"
+    height="240"
     onload="UiLoad();"
     onunload="UiUnload();"
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">

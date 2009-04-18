@@ -23,20 +23,20 @@ include $(CORE_DEPTH)/coreconf/config.mk
 include $(CORE_DEPTH)/coreconf/rules.mk
 
 ifeq ($(OS_ARCH),Linux)
-CXXFLAGS        += $(MOZ_GTK_CFLAGS) $(MOZ_GTK2_CFLAGS) $(NOTIFY_CXX_FLAGS)
+CXXFLAGS        += $(MOZ_GTK_CFLAGS) $(MOZ_GTK2_CFLAGS) $(NOTIFY_CXX_FLAGS) -fPIC
 endif
 
 
 # Change this to point at your Gecko SDK directory.
 ifndef GECKO_SDK_PATH
-GECKO_SDK_PATH =/usr/lib/xulrunner-sdk-1.9pre/sdk
+GECKO_SDK_PATH =/usr/lib/xulrunner-sdk-1.9/sdk
 endif
 GECKO_SDK_INCLUDE_PATH=$(GECKO_SDK_PATH)/include
 ifndef GECKO_INCLUDE_PATH
-GECKO_INCLUDE_PATH=/usr/include/xulrunner-sdk-1.9pre
+GECKO_INCLUDE_PATH=/usr/include/xulrunner-sdk-1.9
 endif
 ifndef GECKO_BIN_PATH
-GECKO_BIN_PATH=/usr/lib/xulrunner-1.9pre
+GECKO_BIN_PATH=/usr/lib/xulrunner-1.9
 endif
 
 ifeq ($(OS_ARCH),Darwin)
@@ -146,6 +146,10 @@ endif
 ifeq ($(OS_ARCH),WINNT)
 GECKO_LD_LIBS= -IMPLIB:fake-import /LIBPATH:$(GECKO_SDK_PATH)/lib    $(GECKO_SDK_PATH)/lib/xpcomglue.lib xpcomglue_s.lib $(OS_LIBS) $(RESFILE) $(XPCOM_GLUE_LDOPTS)
 
+endif
+
+ifeq ($(OS_ARCH),Linux)
+GECKO_LD_LIBS= -L$(GECKO_SDK_PATH)/lib $(GECKO_SDK_PATH)/lib/libxpcomglue_s.a
 endif
 
  

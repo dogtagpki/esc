@@ -104,12 +104,16 @@ void SmartCardMonitoringThread::Execute()
     char tBuff[56];
     PK11SlotInfo *slot;
 
+    #ifdef LINUX
+    sleep(3);
+    #endif
+
     PR_LOG( coolKeyLogSC, PR_LOG_DEBUG, 
          ("%s SmartCardMonitoringThread::Execute.\n",GetTStamp(tBuff,56)));
   //
   // populate token names for already inserted tokens.
   //
-    PK11SlotList *sl =
+   /* PK11SlotList *sl =
 	PK11_FindSlotsByNames(mModule->dllName, NULL, NULL, PR_TRUE);
     PK11SlotListElement *sle;
  
@@ -122,6 +126,8 @@ void SmartCardMonitoringThread::Execute()
         }
         PK11_FreeSlotList(sl);
     }
+
+   */
 
   // loop starts..
     do {
