@@ -37,6 +37,8 @@ NSS_NAME=nss-3.11.4
 NSS_ARCHIVE=$NSS_NAME-with-nspr-4.6.4
 NSS_SOURCE_URL=https://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/NSS_3_11_4_RTM/src/$NSS_ARCHIVE.tar.gz
 
+NSS_LIB_PATH=$NSS_NAME/mozilla/dist/WIN*/lib
+
 #Inno installer values
 
 #INNO_PATH="C:/Program Files/Inno Setup 5/ISCC.exe"
@@ -461,6 +463,15 @@ function createINSTALLER {
     #Move over extra files we don't keep in the open source world
 
     cp esc-image-large.bmp BUILD/ESC/chrome/content/esc
+
+
+     #Transport the nss files needed for pk11install.exe
+
+    cp $NSS_LIB_PATH/softokn3.dll BUILD
+    cp $NSS_LIB_PATH/libplc4.dll BUILD
+    cp $NSS_LIB_PATH/libnspr4.dll BUILD
+    cp $NSS_LIB_PATH/libplds4.dll BUILD
+
 
     # Build the INNO executable installer
 
