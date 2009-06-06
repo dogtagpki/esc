@@ -4,14 +4,14 @@
 [Setup]
 AppName=Smart Card Manager
 AppMutex=ESCMutex
-AppVerName=Smart Card Manager 1.1.0-4
+AppVerName=Smart Card Manager 1.1.0-6
 AppPublisher=Fedora
 CreateAppDir=true
 Compression=lzma
 SolidCompression=true
 MinVersion=0,5.0.2195
 ShowLanguageDialog=yes
-OutputBaseFilename=SmartCardManagerSetup-1.1.0-4.win32.i386
+OutputBaseFilename=SmartCardManagerSetup-1.1.0-6.win32.i386
 DefaultDirName={pf}\Fedora\ESC
 DisableProgramGroupPage=false
 DefaultGroupName=Fedora
@@ -25,23 +25,10 @@ LicenseFile=esc-license.txt
 InfoBeforeFile=info-before.txt
 InfoAfterFile=info-after.txt
 PrivilegesRequired=admin
-VersionInfoVersion=1.1.0.4
+VersionInfoVersion=1.1.0.6
 
 
 [Files]
-Source: BUILD\egate\slbmgpg.dll; DestDir: {win}\egate2.4; Flags: uninsneveruninstall
-Source: BUILD\egate\egate.cat; DestDir: {win}\egate2.4; Flags: uninsneveruninstall
-Source: BUILD\egate\egate.inf; DestDir: {win}\egate2.4; Flags: uninsneveruninstall
-Source: BUILD\egate\egate.sys; DestDir: {win}\egate2.4; Flags: uninsneveruninstall
-Source: BUILD\egate\egate_License.txt; DestDir: {win}\egate2.4; Flags: uninsneveruninstall
-Source: BUILD\egate\egatebus.cat; DestDir: {win}\egate2.4; Flags: uninsneveruninstall
-Source: BUILD\egate\egatebus.inf; DestDir: {win}\egate2.4; Flags: uninsneveruninstall
-Source: BUILD\egate\egatebus.sys; DestDir: {win}\egate2.4; Flags: uninsneveruninstall
-Source: BUILD\egate\egaterdr.cat; DestDir: {win}\egate2.4; Flags: uninsneveruninstall
-Source: BUILD\egate\egaterdr.inf; DestDir: {win}\egate2.4; Flags: uninsneveruninstall
-Source: BUILD\egate\egaterdr.sys; DestDir: {win}\egate2.4; Flags: uninsneveruninstall
-Source: BUILD\egate\egdrvins1.dll; DestDir: {win}\egate2.4; Flags: uninsneveruninstall
-Source: BUILD\egate\eginstall.exe; DestDir: {win}\egate2.4; Flags: ignoreversion
 Source: BUILD\clkcsp.dll; DestDir: {sys}; Flags: regserver restartreplace
 Source: BUILD\cspres.dll; DestDir: {sys}; Flags: restartreplace
 Source: BUILD\pk11install.exe; DestDir: {app}\PKCS11
@@ -426,7 +413,6 @@ Source: BUILD\ESC\xulrunner\modules\utils.js; DestDir: {app}\modules
 
 [Run]
 
-Filename: {win}\egate2.4\eginstall.exe; Parameters: -f -l eginstall.txt; WorkingDir: {win}\egate2.4; Flags: waituntilterminated; StatusMsg: Installing smart card drivers....
 Filename: {app}\PKCS11\pk11install.exe; Parameters: "-v ""name='CoolKey Module' library=coolkeypk11.dll NSS=""slotParams={{0x1=[slotFlags=PublicCerts]}"""""; WorkingDir: {sys}; StatusMsg: Configuring System for smart cards...
 Filename: {app}\xulrunner\xulrunner.exe; Parameters: """--register-global"""
 Filename: {app}\esc.exe; WorkingDir: {app}; StatusMsg: {code:GetEscStatusMsg}; Flags: nowait
