@@ -159,7 +159,7 @@ void SmartCardMonitoringThread::Execute()
 
     /* if we think we have a token, but it's not the right one, or it's 
      * not there, then send a removal event */
-        if (info && (!isPresent || (info->mSeries != PK11_GetSlotSeries(slot))) ) {
+        if (info && !isPresent) {
 
             PR_LOG( coolKeyLogSC, PR_LOG_DEBUG, 
              ("%s SmartCardMonitoringThread::Execute Token Removed : \n",GetTStamp(tBuff,56)));
