@@ -61,7 +61,6 @@ Source: BUILD\ESC\esc.exe; DestDir: {app}
 Source: BUILD\ESC\application.ini; DestDir: {app}
 Source: BUILD\ESC\chrome\chrome.manifest; DestDir: {app}\chrome
 Source: BUILD\ESC\chrome\content\esc\TRAY.js; DestDir: {app}\chrome\content\esc
-Source: BUILD\ESC\chrome\content\esc\CertInfo.js; DestDir: {app}\chrome\content\esc
 ;Source: BUILD\ESC\chrome\content\esc\certinfo.xul; DestDir: {app}\chrome\content\esc
 Source: BUILD\ESC\chrome\content\esc\config.xul; DestDir: {app}\chrome\content\esc
 Source: BUILD\ESC\chrome\content\esc\contents.rdf; DestDir: {app}\chrome\content\esc

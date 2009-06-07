@@ -522,7 +522,10 @@ function getBundleString(string_id)
     if(!string_id || !gStringBundle)
        return null;
 
-    str = gStringBundle.getString(string_id);
+    try {
+        str = gStringBundle.getString(string_id);
+    } catch(e) {
+    }
 
     return str;
 }
