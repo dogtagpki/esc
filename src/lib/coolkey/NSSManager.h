@@ -70,6 +70,8 @@ class NSSManager
 
   static HRESULT  GetKeyCertNicknames( const CoolKey *aKey,  vector<string> & aStrings  ); 
 
+  static HRESULT GetKeyUID(const CoolKey *aKey, char *aBuf, int aBufLength);
+
   static HRESULT GetKeyIssuedTo(const CoolKey *aKey, char *aBuf, int aBufLength);
 
   static HRESULT GetKeyIssuer(const CoolKey *aKey, char *aBuf, int aBufLength);

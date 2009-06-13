@@ -66,6 +66,8 @@ interface rhICoolKey: nsISupports
 
     string GetCoolKeyCertInfo(in unsigned long aKeyType, in string aKeyID, in string aCertNickname);
 
+    string GetCoolKeyUID(in unsigned long aKeyType, in string aKeyID);
+
     string GetCoolKeyIssuedTo(in unsigned long aKeyType, in string aKeyID);
    
     string GetCoolKeyIssuer(in unsigned long aKeyType, in string aKeyID);

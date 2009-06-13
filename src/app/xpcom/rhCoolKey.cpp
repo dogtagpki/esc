@@ -1262,6 +1262,38 @@ NS_IMETHODIMP rhCoolKey::GetCoolKeyPolicy(PRUint32 aKeyType, const char *aKeyID,
 }
 
 /* string GetCoolKeyIssuedTo (in unsigned long aKeyType, in string aKeyID); */
+NS_IMETHODIMP rhCoolKey::GetCoolKeyUID(PRUint32 aKeyType, const char *aKeyID, char **uid)
+{
+    char tBuff[56];
+    if (!aKeyID) {
+        return NS_ERROR_FAILURE;
+    }
+
+    AutoCoolKey key(aKeyType, ( char *)aKeyID);
+
+    char buff[512];
+    int bufLength = 512;
+    buff[0] = 0;
+   
+    CoolKeyGetUID(&key, (char *) buff, bufLength);
+
+    if(!buff[0])
+    {
+        return NS_OK;
+    }
+
+    PR_LOG(coolKeyLog,PR_LOG_DEBUG,("%s rhCoolKey::RhGetCoolKeyGetUID  %s \n",GetTStamp(tBuff,56),(char *) buff));
+
+    char *temp =  (char *) nsMemory::Clone(buff,sizeof(char) * strlen(buff) + 1);
+
+    *uid = temp;
+
+    return NS_OK;
+
+}
+
+
+/* string GetCoolKeyIssuedTo (in unsigned long aKeyType, in string aKeyID); */
 NS_IMETHODIMP rhCoolKey::GetCoolKeyIssuedTo(PRUint32 aKeyType, const char *aKeyID, char **issuedTo)
 {
     char tBuff[56];

@@ -997,6 +997,16 @@ CoolKeyGetPolicy(const CoolKey *aKey, char *aBuf, int aBufLen)
   
     return NSSManager::GetKeyPolicy(aKey, aBuf, aBufLen);
 }
+
+HRESULT
+CoolKeyGetUID(const CoolKey *aKey, char *aBuf, int aBufLength)
+{
+    if (!aKey || !aKey->mKeyID || !aBuf || aBufLength < 1)
+        return E_FAIL;
+
+    return NSSManager::GetKeyUID(aKey,aBuf,aBufLength);
+}
+
 HRESULT
 CoolKeyGetIssuedTo(const CoolKey *aKey, char *aBuf, int aBufLength)
 {

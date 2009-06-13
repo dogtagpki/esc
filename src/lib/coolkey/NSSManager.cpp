@@ -369,7 +369,7 @@ HRESULT NSSManager::GetKeyIssuer(const CoolKey *aKey, char *aBuf, int aBufLength
 
     aBuf[0]=0;
 
-    PR_LOG( coolKeyLogNSS, PR_LOG_DEBUG, ("%s NSSManager::GetKeyIssuedTo \n",GetTStamp(tBuff,56)));
+    PR_LOG( coolKeyLogNSS, PR_LOG_DEBUG, ("%s NSSManager::GetKeyIssuer \n",GetTStamp(tBuff,56)));
 
     if(!aKey )
         return E_FAIL;
@@ -409,7 +409,7 @@ HRESULT NSSManager::GetKeyIssuer(const CoolKey *aKey, char *aBuf, int aBufLength
                         continue;
                     }
                     orgID    = CERT_GetOrgName(&cert->subject);
-                    PR_LOG( coolKeyLogNSS, PR_LOG_DEBUG, ("%s NSSManager::GetKeyIssuedTo ourSlot %p curSlot  %p org %s \n",GetTStamp(tBuff,56),slot,cert->slot,orgID));
+                    PR_LOG( coolKeyLogNSS, PR_LOG_DEBUG, ("%s NSSManager::GetKeyIssuer ourSlot %p curSlot  %p org %s \n",GetTStamp(tBuff,56),slot,cert->slot,orgID));
 
                 }
 
@@ -436,6 +436,85 @@ HRESULT NSSManager::GetKeyIssuer(const CoolKey *aKey, char *aBuf, int aBufLength
 
     return S_OK;
 }
+
+HRESULT NSSManager::GetKeyUID(const CoolKey *aKey, char *aBuf, int aBufLength)
+{
+    char tBuff[56];
+    if(!aBuf)
+        return E_FAIL;
+
+    aBuf[0]=0;
+
+    PR_LOG( coolKeyLogNSS, PR_LOG_DEBUG, ("%s NSSManager::GetKeyUID \n",GetTStamp(tBuff,56)));
+
+    if(!aKey )
+        return E_FAIL;
+
+    PK11SlotInfo *slot = GetSlotForKeyID(aKey);
+
+    if (!slot)
+        return E_FAIL;
+
+    CERTCertList *certs = PK11_ListCerts(PK11CertListAll,NULL);
+
+    if (!certs)
+    {
+        PR_LOG( coolKeyLogNSS, PR_LOG_DEBUG, ("%sNSSManager::GetKeyUID no certs found! \n",GetTStamp(tBuff,56)));
+        PK11_FreeSlot(slot);
+        return E_FAIL;
+    }
+
+    CERTCertListNode *node= NULL;
+
+    char *certID = NULL;
+
+    for( node = CERT_LIST_HEAD(certs);
+             ! CERT_LIST_END(node, certs);
+             node = CERT_LIST_NEXT(node))     
+    {     
+        if(node->cert) 
+        {
+            CERTCertificate *cert = node->cert;
+
+            if(cert)
+            {
+                if(cert->slot == slot)
+                {
+                    if(IsCACert(cert))
+                    {
+                        continue;
+                    }
+
+                    certID = CERT_GetCertUid(&cert->subject);
+
+                    PR_LOG( coolKeyLogNSS, PR_LOG_DEBUG, ("%s NSSManager::GetKeyUID ourSlot %p curSlot  %p certID %s  \n",GetTStamp(tBuff,56),slot,cert->slot,certID));
+           
+                }
+
+                if(certID)
+                    break;
+            }
+        }
+
+    }
+
+    if(certID && ((int)strlen(certID)  <  aBufLength))
+    {
+        strcpy(aBuf,certID);
+    }
+
+    if(certs)
+      CERT_DestroyCertList(certs);
+
+    if(slot)
+      PK11_FreeSlot(slot);
+
+    if(certID)
+        PORT_Free(certID);
+
+    return S_OK;
+}
+
 
 HRESULT NSSManager::GetKeyIssuedTo(const CoolKey *aKey, char *aBuf, int aBufLength)
 {
@@ -486,6 +565,10 @@ HRESULT NSSManager::GetKeyIssuedTo(const CoolKey *aKey, char *aBuf, int aBufLeng
                     }
 
                     certID = CERT_GetCommonName(&cert->subject);
+
+                    if(!certID) {
+                        certID = CERT_GetCertUid(&cert->subject);
+                    }
 
                     PR_LOG( coolKeyLogNSS, PR_LOG_DEBUG, ("%s NSSManager::GetKeyIssuedTo ourSlot %p curSlot  %p certID %s  \n",GetTStamp(tBuff,56),slot,cert->slot,certID));
 
