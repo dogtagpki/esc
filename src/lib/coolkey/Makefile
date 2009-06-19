@@ -35,6 +35,9 @@ else
 	echo "Build Linux or Windows."
 	make -f common.mk
 
+export::
+	make -f common.mk export
+
 endif
 
 ifeq ($(OS_ARCH),Darwin)

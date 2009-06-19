@@ -26,6 +26,7 @@
 // platforms (coreconf will do the appropriate processing.
 #define COOLKEY_API
 
+#include "ssl.h"
 #include <string.h>
 #include <stdlib.h>
 #include <vector>
@@ -100,7 +101,7 @@ typedef HRESULT (*CoolKeyRelease)(CoolKeyListener *listener);
 
 typedef HRESULT (*CoolKeySetConfigValue)(const char *name,const char *value);
 typedef const char * (*CoolKeyGetConfigValue)(const char *name);
-
+typedef SECStatus (*CoolKeyBadCertHandler)(void *arg, PRFileDesc *fd);
 
 
 extern "C" {
@@ -112,7 +113,8 @@ COOLKEY_API HRESULT CoolKeyRegisterListener(CoolKeyListener* aListener);
 COOLKEY_API HRESULT CoolKeyUnregisterListener(CoolKeyListener* aListener);
 COOLKEY_API HRESULT CoolKeySetCallbacks(CoolKeyDispatch dispatch,
                         CoolKeyReference reference, CoolKeyRelease release,
-                        CoolKeyGetConfigValue getconfigvalue,CoolKeySetConfigValue setconfigvalue);
+                        CoolKeyGetConfigValue getconfigvalue,CoolKeySetConfigValue setconfigvalue,
+                        CoolKeyBadCertHandler badcerthandler=NULL);
 
 COOLKEY_API bool    CoolKeyRequiresAuthentication(const CoolKey *aKey);
 COOLKEY_API bool    CoolKeyHasApplet(const CoolKey *aKey);
@@ -259,6 +261,9 @@ const char *CoolKeyGetKeyID(const char *tokenName, int *aKeyType);
 
 const char *CoolKeyGetConfig(const char *aName);
 HRESULT     CoolKeySetConfig(const char *aName,const char *aValue);
+CoolKeyBadCertHandler CoolKeyGetBadCertHandler();
+
+
 
 }
 

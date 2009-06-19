@@ -22,9 +22,17 @@
 #include "response.h"
 #include "request.h"
 
+struct BadCertData {
+ PRErrorCode error;
+ PRInt32 port;
+};
+
+typedef struct BadCertData BadCertData;
+
+
 class __EXPORT Engine {
     public:
-        Engine() {};
+        Engine() { _certData = NULL; _sock=NULL;};
         ~Engine() {};
 
         PRFileDesc *_doConnect(PRNetAddr *addr, PRBool SSLOn = PR_FALSE,
@@ -37,7 +45,8 @@ class __EXPORT Engine {
         static PRIntervalTime globaltimeout;
 
         PRFileDesc *_sock;
-
+        BadCertData *_certData;
+        BadCertData *getBadCertData() { return _certData;}
         PRFileDesc *getSocket() { return _sock;}
 
         bool connectionClosed ;

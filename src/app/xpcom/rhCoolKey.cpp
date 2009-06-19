@@ -30,7 +30,7 @@
 #else
 #include "nsServiceManagerUtils.h"
 #endif
-
+#include "pipnss/nsICertOverrideService.h"
 #include "nsIPrefBranch.h"
 #include "nsIPrefService.h"
 #include "nsCOMPtr.h"
@@ -69,6 +69,7 @@
 #endif
 
 #define PSM_COMPONENT_CONTRACTID "@mozilla.org/psm;1"
+#define NS_CERTOVERRIDE_CONTRACTID "@mozilla.org/security/certoverride;1"
 
 static const nsIID kIModuleIID = NS_IMODULE_IID;
 static const nsIID kIFactoryIID = NS_IFACTORY_IID;
@@ -89,6 +90,7 @@ std::list<CoolKeyNode*>rhCoolKey::gASCAvailableKeys;
 
 std::list< nsCOMPtr <rhIKeyNotify>  > rhCoolKey::gNotifyListeners;
 
+PRLock* rhCoolKey::certCBLock=NULL;
 
 PRBool rhCoolKey::gAutoEnrollBlankTokens = PR_FALSE; 
 
@@ -190,6 +192,13 @@ rhCoolKey::rhCoolKey()
         mCSPListener = nsnull;
     #endif
 
+    certCBLock = PR_NewLock();
+
+    if(!certCBLock) {
+       PR_LOG( coolKeyLog, PR_LOG_ERROR, ("%s Failed to create lock exiting! \n",GetTStamp(tBuff,56)));
+        exit(1);
+    }
+
     PRBool res = InitInstance();
 
     if(res == PR_FALSE)
@@ -207,6 +216,10 @@ rhCoolKey::~rhCoolKey()
 
     char tBuff[56];
     PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s rhCoolKey::~rhCoolKey: %p \n",GetTStamp(tBuff,56),this));
+
+    if(certCBLock) {
+        PR_DestroyLock(certCBLock);
+    }
 }
 
 void rhCoolKey::ShutDownInstance()
@@ -254,6 +267,212 @@ HRESULT rhCoolKey::Release( rhICoolKey *listener )
 {
     return S_OK;
 }
+
+struct BadCertData {
+     PRErrorCode error; 
+     PRInt32 port;
+};  
+
+typedef struct BadCertData BadCertData;
+
+SECStatus rhCoolKey::badCertHandler(void *arg, PRFileDesc *fd)
+{
+    SECStatus    secStatus = SECFailure;
+    PRErrorCode    err;
+    char *host = NULL;
+    PRInt32 port = 0;
+    CERTCertificate *serverCert = NULL;
+    PRUint32 errorBits = 0;
+    char tBuff[56];
+    
+    PR_Lock(certCBLock);
+
+    if (!arg || !fd) {
+        PR_Unlock(certCBLock);
+        return secStatus;
+    }
+
+    // Retrieve callback data from NssHttpClient
+    // Caller cleans up this data
+    BadCertData *data = (BadCertData *) arg;
+    data->error = err = PORT_GetError();
+
+
+    /* If any of the cases in the switch are met, then we will proceed   */
+
+    switch (err) {
+    case SEC_ERROR_INVALID_AVA:
+    case SEC_ERROR_INVALID_TIME:
+    case SEC_ERROR_BAD_SIGNATURE:
+    case SEC_ERROR_EXPIRED_CERTIFICATE:
+    case SEC_ERROR_UNKNOWN_ISSUER:
+    case SEC_ERROR_UNTRUSTED_CERT:
+    case SEC_ERROR_CERT_VALID:
+    case SEC_ERROR_EXPIRED_ISSUER_CERTIFICATE:
+    case SEC_ERROR_CRL_EXPIRED:
+    case SEC_ERROR_CRL_BAD_SIGNATURE:
+    case SEC_ERROR_EXTENSION_VALUE_INVALID:
+    case SEC_ERROR_CA_CERT_INVALID:
+    case SEC_ERROR_CERT_USAGES_INVALID:
+    case SEC_ERROR_UNKNOWN_CRITICAL_EXTENSION:
+    case SEC_ERROR_EXTENSION_NOT_FOUND: // Added by Rob 5/21/2002
+        secStatus = SECSuccess;
+    break;
+    default:
+        secStatus = SECFailure;
+    break;
+    }
+
+    if(secStatus == SECSuccess)  {
+        PR_Unlock(certCBLock);
+        return secStatus;
+    }
+
+    // Collect errors to compare with override service output
+    switch(err) {
+    case SEC_ERROR_UNTRUSTED_ISSUER:
+        errorBits |= nsICertOverrideService::ERROR_UNTRUSTED;
+    break;
+    case SSL_ERROR_BAD_CERT_DOMAIN:
+        errorBits |= nsICertOverrideService::ERROR_MISMATCH;
+    break;
+    case SEC_ERROR_EXPIRED_CERTIFICATE:
+        errorBits |= nsICertOverrideService::ERROR_TIME;
+    default:
+    break;
+    };
+
+    // Now proceed to see if we have an exception.
+    // Get the server certificate that was rejected.
+    serverCert = SSL_PeerCertificate(fd);
+
+    if(!serverCert) {
+        PR_Unlock(certCBLock);
+        return secStatus;
+    }
+
+    port = data->port;
+    host = SSL_RevealURL(fd);
+
+    if(!host || port <= 0) {
+        PR_Unlock(certCBLock);
+        return secStatus;
+    }
+
+    PR_LOG(coolKeyLog, PR_LOG_DEBUG,
+                          ("%s rhCoolKey::badCertHandler enter: error: %d  url: %s port: %d \n",
+                          GetTStamp(tBuff,56),err,host,port)
+    );
+
+    PRBool isTemporaryOverride = PR_FALSE;
+    PRUint32 overrideBits = 0;
+    PRBool overrideResult = PR_FALSE;
+
+    // Use the nsICertOverrideService to see if we have
+    // previously trusted this certificate.
+    nsCOMPtr<nsICertOverrideService> overrideService =
+       do_GetService(NS_CERTOVERRIDE_CONTRACTID);
+
+    const nsEmbedCString nsHost(host);
+    nsEmbedCString hashAlg,fingerPrint;
+
+    nsresult nsrv;
+    unsigned char* fingerprint=NULL;
+    if(overrideService) {
+        nsrv = overrideService->GetValidityOverride((const nsACString &)nsHost,
+            port,(nsACString &)hashAlg,
+            (nsACString&)fingerPrint,&overrideBits,
+            &isTemporaryOverride,&overrideResult
+        );
+        if(nsrv == NS_OK) { 
+           PR_LOG(coolKeyLog, PR_LOG_DEBUG,
+               ("%s rhCoolKey::badCertHandler res %d print %s len %d bits %u temp %d alg: %s  \n",
+               GetTStamp(tBuff,56),overrideResult,fingerPrint.get(),
+               fingerPrint.Length(),overrideBits, isTemporaryOverride,hashAlg.get())
+           );
+       }
+
+       PRBool certMatches = PR_FALSE;
+
+       if( (nsrv == NS_OK) && overrideResult) {
+            SECItem oid;
+            oid.data = nsnull;
+            oid.len = 0;
+            SECStatus srv = SEC_StringToOID(nsnull, &oid,
+                    hashAlg.get(), hashAlg.Length());
+
+            if (srv != SECSuccess)  {
+               PR_Free(host);
+               host=NULL;
+               CERT_DestroyCertificate(serverCert);
+               serverCert=NULL;
+               PR_Unlock(certCBLock);
+               return secStatus;
+            }
+
+            SECOidTag oid_tag = SECOID_FindOIDTag(&oid);
+
+            unsigned int hash_len = HASH_ResultLenByOidTag(oid_tag);
+            fingerprint = new unsigned char[hash_len];
+
+            if(!fingerprint)  {
+                CERT_DestroyCertificate(serverCert);
+                serverCert=NULL;
+                PR_Unlock(certCBLock);
+                return secStatus;
+            }
+
+            SECItem computedPrint;
+            memset(fingerprint, 0, sizeof fingerprint);
+            PK11_HashBuf(oid_tag, fingerprint,
+            serverCert->derCert.data, serverCert->derCert.len);
+            CERT_DestroyCertificate(serverCert);
+            serverCert=NULL;
+
+            computedPrint.data=fingerprint;
+            computedPrint.len=hash_len;
+
+            char *formattedPrint = CERT_Hexify(&computedPrint,1);
+            char *inputPrint = (char *)fingerPrint.get();
+
+            //Compare fingerprints.
+
+            if(formattedPrint && inputPrint)  {
+                if(!PL_strcmp(formattedPrint, inputPrint))
+                    certMatches = PR_TRUE;
+            }
+            PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s certMatches: %d  \n",
+                GetTStamp(tBuff,56),certMatches)
+            );
+
+            if(formattedPrint)  {
+                PORT_Free(formattedPrint);
+                formattedPrint = NULL;
+            }
+      } else {
+          PR_LOG( coolKeyLog, PR_LOG_DEBUG, ("%s override test failed. \n",
+              GetTStamp(tBuff,56))
+          );
+      }
+
+      if( certMatches ) {
+         if(overrideBits | errorBits)
+             secStatus = SECSuccess;   
+      }
+    }
+
+    PR_Free(host);
+    host = NULL;
+    if(fingerprint)  {
+        delete [] fingerprint;
+        fingerprint = NULL;
+    }
+
+    PR_Unlock(certCBLock);
+
+    return secStatus;
+}
+
 
 HRESULT rhCoolKey::doSetCoolKeyConfigValue(const char *aName, const char *aValue) 
 {
@@ -340,7 +559,7 @@ PRBool rhCoolKey::InitInstance()
     nssComponent
     = do_GetService(PSM_COMPONENT_CONTRACTID); 
 
-    CoolKeySetCallbacks(Dispatch,Reference, Release,doGetCoolKeyConfigValue ,doSetCoolKeyConfigValue);
+    CoolKeySetCallbacks(Dispatch,Reference, Release,doGetCoolKeyConfigValue ,doSetCoolKeyConfigValue,badCertHandler);
 
     mProxy = CreateProxyObject();
 

@@ -19,7 +19,6 @@ CORE_DEPTH	= ../../..
 
 XULRUNNER_BASE=$(CORE_DEPTH)/dist/$(OBJDIR)//xulrunner_build
 
-
 SYS_INC		= /usr/include
 MODULE		= ckymanager
 LIBRARY_NAME	= $(MODULE)
@@ -41,7 +40,7 @@ CPPSRCS		= \
 		SmartCardMonitoringThread.cpp \
 		$(NULL)
 
-EXPORTS 	= \
+EXPORTS		= \
 		CoolKey.h \
 		$(NULL)
 

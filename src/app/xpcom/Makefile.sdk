@@ -109,7 +109,7 @@ ifeq ($(OS_ARCH),Linux)
 CPPFLAGS += -fno-rtti \
                 -fno-exceptions \
                 -fshort-wchar -fPIC
-GECKO_LD_LIBS=-L$(GECKO_SDK_PATH)/lib    $(GECKO_SDK_PATH)/lib/libxpcomglue.a -lnss3 -lcrmf -lssl3 -lsmime3 -lplds4 -lplc4 -lnspr4 -lpthread -ldl
+GECKO_LD_LIBS=-L$(GECKO_SDK_PATH)/lib    $(GECKO_SDK_PATH)/lib/libxpcomglue.a -lnssutil3 -lnss3 -lcrmf -lssl3 -lsmime3 -lplds4 -lplc4 -lnspr4 -lpthread -ldl
 endif
 
 ifeq ($(OS_ARCH),WINNT)
@@ -145,7 +145,7 @@ ifeq ($(OS_ARCH), WINNT)
 GECKO_INCLUDES		+= -I $(GECKO_SDK_PATH)/sdk/include
 OBJECT			= rhCoolKey.obj
 OBJECTCSP		= CoolKeyCSP.obj 
-COOL_LDFLAGS		=   -IMPLIB:fake-import /LIBPATH:$(CORE_DIST)/lib ckymanager.lib httpchunked.lib $(GECKO_LD_LIBS) nss3.lib ssl3.lib smime3.lib softokn3.lib  /LIBPATH:$(CKY_LIB_LDD) libckyapplet.lib  crypt32.lib kernel32.lib user32.lib gdi32.lib winmm.lib wsock32.lib advapi32.lib /NODEFAULTLIB:libc.lib
+COOL_LDFLAGS		=   -IMPLIB:fake-import /LIBPATH:$(CORE_DIST)/lib ckymanager.lib httpchunked.lib $(GECKO_LD_LIBS) nssutil3.lib nss3.lib ssl3.lib smime3.lib softokn3.lib  /LIBPATH:$(CKY_LIB_LDD) libckyapplet.lib  crypt32.lib kernel32.lib user32.lib gdi32.lib winmm.lib wsock32.lib advapi32.lib /NODEFAULTLIB:libc.lib
 endif
 
 ifeq ($(OS_ARCH),Darwin)

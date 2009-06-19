@@ -22,6 +22,15 @@
 #include "nsIGenericFactory.h"
 #include "nsEmbedString.h"
 #include <list>
+#include "nspr.h"
+#include "prio.h"
+#include "ssl.h"
+#include "pk11func.h"
+#include "cert.h"
+#include "sslerr.h"
+#include "secerr.h"
+#include "sechash.h"
+
 #include "CoolKey.h"
 #include "nsCOMPtr.h"
 #include "nsIObserver.h"
@@ -92,6 +101,7 @@ private:
 
     static HRESULT doSetCoolKeyConfigValue(const char *aName, const char *aValue); 
     static const char *doGetCoolKeyConfigValue(const char *aName );
+    static SECStatus badCertHandler(void *arg, PRFileDesc *fd);
 
 protected:
   /* additional members */
@@ -106,6 +116,8 @@ protected:
     static std::list<CoolKeyNode*> gASCAvailableKeys;
 
     static std::list< nsCOMPtr <rhIKeyNotify> > gNotifyListeners;
+
+    static PRLock* certCBLock;
 
     rhICoolKey* mProxy;
 

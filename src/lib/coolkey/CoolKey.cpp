@@ -259,12 +259,14 @@ static CoolKeyReference g_Reference = NULL;
 static CoolKeyRelease g_Release = NULL;
 static CoolKeyGetConfigValue g_GetConfigValue = NULL;
 static CoolKeySetConfigValue g_SetConfigValue = NULL;
+static CoolKeyBadCertHandler g_BadCertHandler = NULL;
 
 char* CoolKeyVerifyPassword(PK11SlotInfo *,PRBool,void *);
 
 COOLKEY_API HRESULT CoolKeySetCallbacks(CoolKeyDispatch dispatch,
 	CoolKeyReference reference, CoolKeyRelease release,
-        CoolKeyGetConfigValue getconfigvalue,CoolKeySetConfigValue setconfigvalue)
+        CoolKeyGetConfigValue getconfigvalue,CoolKeySetConfigValue setconfigvalue,
+        CoolKeyBadCertHandler badcerthandler)
 {
     char tBuff[56];
     g_Dispatch = dispatch;
@@ -272,6 +274,7 @@ COOLKEY_API HRESULT CoolKeySetCallbacks(CoolKeyDispatch dispatch,
     g_Release = release;
     g_GetConfigValue = getconfigvalue;
     g_SetConfigValue = setconfigvalue;
+    g_BadCertHandler = badcerthandler;
 
     char * suppressPINPrompt =(char*) CoolKeyGetConfig("esc.security.url");
 
@@ -1298,6 +1301,13 @@ CoolKeyGetKeyID(const char *tokenName, int *aKeyType)
 
     *aKeyType = eCKType_CoolKey;
     return aCUID;
+}
+
+CoolKeyBadCertHandler CoolKeyGetBadCertHandler()
+{
+    if(g_BadCertHandler)
+        return g_BadCertHandler;
+    return NULL;
 }
 
 const char *CoolKeyGetConfig(const char *aValue)

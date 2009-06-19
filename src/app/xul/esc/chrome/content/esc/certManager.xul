@@ -65,7 +65,7 @@
       <tabs id="certMgrTabbox" onselect="CertsTabsSelected();">
         <tab id="mine_tab" label="&certmgr.tab.mine;" selected="true"/>
         <tab id="others_tab" hidden="true" label="&certmgr.tab.others2;"/>
-        <tab id="websites_tab" hidden="true" label="&certmgr.tab.websites3;"/>
+        <tab id="websites_tab" hidden="false" label="&certmgr.tab.websites3;"/>
         <tab id="ca_tab" hidden="false" label="&certmgr.tab.ca;"/>
         <tab id="orphan_tab" hidden="true" label="&certmgr.tab.orphan2;"/>
 

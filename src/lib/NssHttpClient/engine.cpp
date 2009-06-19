@@ -16,6 +16,8 @@
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
+#define FORCE_PR_LOG 1
+
 #include <nspr.h>
 #include "sslproto.h"
 #include <prerror.h>
@@ -27,7 +29,7 @@
 #include "certt.h"
 #include "sslerr.h"
 #include "secerr.h"
-
+#include "CoolKey.h"
 #include "engine.h"
 #include "http.h"
 
@@ -38,6 +40,9 @@ char* password = NULL;
 int ciphers[32];
 int cipherCount = 0;
 int _doVerifyServerCert = 1;
+
+PRLogModuleInfo *httpEngineLog = PR_NewLogModule("coolKeyHttpEngine");
+
 
 PRIntervalTime Engine::globaltimeout = PR_TicksPerSecond()*30;
 
@@ -56,13 +61,26 @@ SECStatus myBadCertHandler( void *arg, PRFileDesc *socket ) {
     SECStatus    secStatus = SECFailure;
     PRErrorCode    err;
 
+    char tBuff[56];
+
+    PR_LOG(httpEngineLog, PR_LOG_DEBUG,
+                          ("%s myBadCertHandler enter. \n",GetTStamp(tBuff,56)));
+
     /* log invalid cert here */
 
     if ( !arg ) {
         return secStatus;
     }
 
-    *(PRErrorCode *)arg = err = PORT_GetError();
+    err = PORT_GetError();
+
+    BadCertData *data = (BadCertData *) arg;
+    if(data) {
+        data->error = err;
+    }
+
+    PR_LOG(httpEngineLog, PR_LOG_DEBUG,
+                          ("%s myBadCertHandler err: %d .  \n",GetTStamp(tBuff,56),err));
 
     /* If any of the cases in the switch are met, then we will proceed   */
     /* with the processing of the request anyway. Otherwise, the default */    
@@ -90,6 +108,10 @@ SECStatus myBadCertHandler( void *arg, PRFileDesc *socket ) {
         secStatus = SECFailure;
     break;
     }
+
+    PR_LOG(httpEngineLog, PR_LOG_DEBUG,
+                          ("%s myBadCertHandler status: %d .  \n",GetTStamp(tBuff,56),secStatus));
+
 
     return secStatus;
 }
@@ -416,7 +438,6 @@ void nodelay(PRFileDesc* fd) {
     return;
 }
 
-
 void Engine::CloseConnection()
 {
     connectionClosed = true;
@@ -426,7 +447,14 @@ void Engine::CloseConnection()
         PR_Close(_sock);
         _sock = NULL;
     }
+
+    if(_certData)
+    {
+        delete _certData;
+        _certData = NULL;
+    }
 }
+
 /**
  * Returns a file descriptor for I/O if the HTTP connection is successful
  * @param addr PRnetAddr structure which points to the server to connect to
@@ -442,21 +470,19 @@ PRFileDesc * Engine::_doConnect(PRNetAddr *addr, PRBool SSLOn,
     PRFileDesc *tcpsock = NULL;
     PRFileDesc *sock = NULL;
     connectionClosed = false;
+    _certData = new BadCertData();
 
     tcpsock = PR_OpenTCPSocket(addr->raw.family);
-   
 
     if (!tcpsock) {
-
         return NULL;
     }
 
     nodelay(tcpsock);
 
     if (PR_TRUE == SSLOn) {
+
         sock=SSL_ImportFD(NULL, tcpsock);
-
-
         if (!sock) {
             //xxx log
             if( tcpsock != NULL ) {
@@ -516,9 +542,23 @@ PRFileDesc * Engine::_doConnect(PRNetAddr *addr, PRBool SSLOn,
 
         PRErrorCode errCode = 0;
 
-        rv = SSL_BadCertHook( sock,
+        if(_certData) {
+            _certData->error = errCode;
+            _certData->port  = PR_ntohs(PR_NetAddrInetPort(addr));
+        }
+
+        CoolKeyBadCertHandler overriddenHandler =  CoolKeyGetBadCertHandler();
+
+        if(overriddenHandler)  {
+            rv = SSL_BadCertHook( sock,
+                              (SSLBadCertHandler)overriddenHandler,
+                               (void *)_certData);
+        } else {
+            rv = SSL_BadCertHook( sock,
                               (SSLBadCertHandler)myBadCertHandler,
-                              &errCode );
+                              (void *)_certData);
+        }
+
         rv = SSL_SetURL( sock, serverName );
 
         if (rv != SECSuccess ) {
@@ -535,8 +575,6 @@ PRFileDesc * Engine::_doConnect(PRNetAddr *addr, PRBool SSLOn,
     } else {
         sock = tcpsock;
     }
-
-  
 
     if ( PR_Connect(sock, addr, timeout) == PR_FAILURE ) {
 
@@ -563,10 +601,16 @@ PSHttpResponse * HttpEngine::makeRequest( PSHttpRequest &request,
                                           const PSHttpServer& server,
                                           int timeout, PRBool expectChunked ,PRBool processStreamed) {
     PRNetAddr addr;
-    PRFileDesc *sock = NULL;
     PSHttpResponse *resp = NULL;
 
     PRBool response_code = 0;
+
+    char tBuff[56];
+
+    PR_LOG(httpEngineLog, PR_LOG_DEBUG,
+                          ("%s HttpEngine::makeRequest  enter. \n",GetTStamp(tBuff,56)));
+
+
 
     server.getAddr(&addr);
 
@@ -575,8 +619,17 @@ PSHttpResponse * HttpEngine::makeRequest( PSHttpRequest &request,
     char *serverName = (char *)server.getAddr();
     _sock = _doConnect( &addr, request.isSSL(), 0, 0,nickName, 0, serverName );
 
+    PR_LOG(httpEngineLog, PR_LOG_DEBUG,
+                          ("%s HttpEngine::makeRequest  past doConnect sock: %p. \n",
+                          GetTStamp(tBuff,56),_sock));
+
     if ( _sock != NULL) {
         PRBool status = request.send( _sock );
+
+        PR_LOG(httpEngineLog, PR_LOG_DEBUG,
+                          ("%s HttpEngine::makeRequest  past request.send status: %d. \n",
+                          GetTStamp(tBuff,56),status));
+
         if ( status ) {
             resp = new PSHttpResponse( _sock, &request, timeout, expectChunked ,this);
             response_code = resp->processResponse(processStreamed);

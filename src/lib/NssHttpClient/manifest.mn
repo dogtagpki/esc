@@ -24,7 +24,7 @@ SYS_INC		= /usr/include
 MODULE		= httpchunked
 LIBRARY_NAME	= $(MODULE)
 SHARED_NAME	= $(MODULE)
-REQUIRES	= nss nspr 
+REQUIRES	= nss nspr ckymanager
 ifndef MOZ_OFFSET
 MOZ_OFFSET	= mozilla-1.7.13
 endif
