@@ -64,8 +64,53 @@ Send a http message with a persistant transfer chunked encoded message type
 
 PSHttpResponse *HttpClientNss::httpSendChunked(char *host_port, char *uri, char *method, char *body,PSChunkedResponseCallback cb,void *uw,PRBool doSSL,int messageTimeout )
 {
-    
-    PSHttpServer server(host_port, PR_AF_INET);
+    char *pPort = NULL;
+    char *pPortActual = NULL;
+
+    char hostName[512];
+
+    /*
+     * Isolate the host name, account for IPV6 numeric addresses.
+     *
+     */
+
+    if(host_port)
+        strncpy(hostName,host_port,512);
+
+    pPort = hostName;
+    while(1)  {
+        pPort = strchr(pPort, ':');
+        if (pPort) {
+            pPortActual = pPort;
+            pPort++;
+        } else
+            break;
+    }
+
+    if(pPortActual)
+        *pPortActual = '\0';
+
+    /*
+    *  Rifle through the values for the host
+    */
+
+    PRAddrInfo *ai;
+    void *iter;
+    PRNetAddr addr;
+    int family = PR_AF_INET;
+
+    ai = PR_GetAddrInfoByName(hostName, PR_AF_UNSPEC, PR_AI_ADDRCONFIG);
+    if (ai) {
+        printf("%s\n", PR_GetCanonNameFromAddrInfo(ai));
+        iter = NULL;
+        while ((iter = PR_EnumerateAddrInfo(iter, ai, 0, &addr)) != NULL) {
+            family = PR_NetAddrFamily(&addr);
+            break;
+        }
+        PR_FreeAddrInfo(ai);
+    }
+
+    PSHttpServer server(host_port, family);
  
     PSHttpRequest request( &server, uri, HTTP11, 0 );
     _request = &request;
