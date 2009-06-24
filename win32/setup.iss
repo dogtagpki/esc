@@ -4,28 +4,27 @@
 [Setup]
 AppName=Smart Card Manager
 AppMutex=ESCMutex
-AppVerName=Smart Card Manager 1.1.0-7
-AppPublisher=Fedora
+AppVerName=Smart Card Manager 1.1.0-8
+AppPublisher=Red Hat, Inc.
 CreateAppDir=true
 Compression=lzma
 SolidCompression=true
 MinVersion=0,5.0.2195
 ShowLanguageDialog=yes
-OutputBaseFilename=SmartCardManagerSetup-1.1.0-7.win32.i386
-DefaultDirName={pf}\Fedora\ESC
+OutputBaseFilename=SmartCardManagerSetup-1.1.0-8.win32.i386
+DefaultDirName={pf}\Red Hat\ESC
 DisableProgramGroupPage=false
-DefaultGroupName=Fedora
+DefaultGroupName=Red Hat
 SetupIconFile=BUILD\ESC\components\esc.ico
 UninstallDisplayIcon={app}\components\esc.ico
-;WizardImageFile=BUILD\ESC\chrome\content\esc\esc-image-large.bmp
-WizardImageFile=esc-image-large.bmp
+WizardImageFile=BUILD\ESC\chrome\content\esc\esc-image-large.bmp
 WizardSmallImageFile=BUILD\ESC\components\esc.bmp
 AllowNoIcons=yes
 LicenseFile=esc-license.txt
 InfoBeforeFile=info-before.txt
 InfoAfterFile=info-after.txt
 PrivilegesRequired=admin
-VersionInfoVersion=1.1.0.7
+VersionInfoVersion=1.1.0.8
 
 
 [Files]
@@ -438,12 +437,13 @@ Root: HKLM; Subkey: Software\Microsoft\Cryptography\Calais\SmartCards\Gemalto 64
 
 Root: HKLM; Subkey: Software\Microsoft\Cryptography\Calais\SmartCards\Gemalto 64K V2; ValueType: binary; ValueName: ATR; ValueData: 3b 95 00 40 00 ae 01 03 00 00
 
-; Now register the Safenet 330J
+; Now register the Safenet 330J 
 Root: HKLM; Subkey: Software\Microsoft\Cryptography\Calais\SmartCards\Safenet 330J; ValueType: binary; ValueName: ATRMask; ValueData: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 00 00; Flags: uninsdeletekey
 
 Root: HKLM; Subkey: Software\Microsoft\Cryptography\Calais\SmartCards\Safenet 330J; ValueType: string; ValueName: Crypto Provider; ValueData: CoolKey PKCS #11 CSP
 
 Root: HKLM; Subkey: Software\Microsoft\Cryptography\Calais\SmartCards\Safenet 330J; ValueType: binary; ValueName: ATR; ValueData: 3b ec 00 ff 81 31 fe 45 a0 00 00 00 56 33 33 30 4a 33 06 00 00
+
 
 Root: HKLM; Subkey: Software\
 ; Turn off the "pick a cert" dialog box
