@@ -1,0 +1,4 @@
+This installation program will install the following:
+
+1. The PKCS #11 module needed for Smart Cards.
+2. The CAPI driver for Smart Cards.
