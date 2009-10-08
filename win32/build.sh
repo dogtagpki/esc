@@ -26,6 +26,8 @@
 
 ### CSP_PATH   -  Path to the directory containing the CSP if desired
 
+### USE_64     -  Are we trying to build the 64 bit version 
+
 NUM_ARGS=0
 ARG_COMMAND=
 
@@ -53,8 +55,13 @@ EGATE_DRIVER_NAME=e-gate_W2k_XP_24.zip
 ZLIB_NAME=zlib
 ZLIB_DLL=zlib1
 
+
+ZLIB_DLL_64=zlibwapi
 ZLIB_ARCHIVE=zlib123-dll
 ZLIB_BIN_URL=http://www.zlib.net
+
+ZLIB_ARCHIVE_64=zlib123dllx64
+ZLIB_BIN_URL_64=http://winimage.com/zLibDll
 
 #CoolKey values
 
@@ -103,7 +110,7 @@ function buildNSS  {
 
     echo "BUILDING NSS..."
 
-    if [ $NUM_ARGS -ne 0 ] && [ $THE_ARG != -doNSS ];
+    if [ $NUM_ARGS -ne 0 ] && [ $THE_ARG != -doNSS ] || [ $USE_64 == 1 ];
     then
         echo "Do not build NSS." 
         return 0
@@ -181,7 +188,14 @@ function buildCOOLKEY {
    ZLIB_INC_PATH=${BASE_DIR}/zlib/include
    ZLIB_LIB_PATH=${BASE_DIR}/zlib/lib
 
-   ZLIB_LIB_FLAGS=${BASE_DIR}/zlib/$ZLIB_DLL.dll
+
+   if [ $USE_64 == 1 ];
+   then
+     ZLIB_LIB_PATH=${BASE_DIR}/zlib/dll_x64
+     ZLIB_LIB_FLAGS=${BASE_DIR}/zlib/dll_x64/$ZLIB_DLL_64.dll
+   else
+     ZLIB_LIB_FLAGS=${BASE_DIR}/zlib/$ZLIB_DLL.dll
+   fi
 
    ZLIB_INC_PATH=`cygpath -m $ZLIB_INC_PATH`
    ZLIB_LIB_PATH=`cygpath -m $ZLIB_LIB_PATH`
@@ -198,7 +212,14 @@ function buildCOOLKEY {
    export ZLIB_LIB=$ZLIB_LIB_PATH
    export ZLIB_INCLUDE=$ZLIB_INC_PATH
 
-   ./configure  NSS_CFLAGS="$NSS_CFLAGS" NSS_LIBS="$NSS_LIBS"  --enable-pk11install 
+   if [ $USE_64 == 1 ];
+   then
+       PK11=
+   else
+       PK11=--enable-pk11install
+   fi
+
+   ./configure  NSS_CFLAGS="$NSS_CFLAGS" NSS_LIBS="$NSS_LIBS"  $PK11 
 
    if [ $? != 0 ];
    then
@@ -223,12 +244,21 @@ function buildCOOLKEY {
 
    cp -f coolkey/src/coolkey/.libs/libcoolkeypk11.dll BUILD/coolkeypk11.dll
    cp -f coolkey/src/libckyapplet/.libs/libckyapplet-1.dll BUILD
-   cp -f zlib/$ZLIB_DLL.dll BUILD
+
+   if [ $USE_64 == 1 ];
+   then
+      cp -f zlib/dll_x64/zlibwapi.dll BUILD
+   else
+      cp -f zlib/$ZLIB_DLL.dll BUILD
+   fi
 
 
    # Grab pk11install
 
-   cp -f coolkey/src/install/pk11install.exe BUILD
+   if [ $USE_64 != 1 ];
+   then
+      cp -f coolkey/src/install/pk11install.exe BUILD
+   fi
 
    export PATH=${ORIG_PATH}
    return 0
@@ -249,6 +279,29 @@ function obtainZLIB {
   mkdir -p $ZLIB_NAME
 
   cd $ZLIB_NAME
+
+  if [  $USE_64 == 1 ]
+  then
+   wget $ZLIB_BIN_URL_64/$ZLIB_ARCHIVE_64.zip
+
+   if [ $? != 0 ];
+   then
+     echo "Can't obtain zlib 64 bit bundle...."
+     return 1
+   fi
+
+   unzip $ZLIB_ARCHIVE_64.zip
+
+   if [ $? != 0 ];
+   then
+     echo "Can't obtain zlib 64 bit bundle...."
+   fi 
+
+   rm -f README.txt
+
+   cp dll_x64/zlibwapi.lib dll_x64/zdll.lib 
+
+  fi
 
   wget $ZLIB_BIN_URL/$ZLIB_ARCHIVE.zip
   if [ $? != 0 ];
@@ -275,7 +328,7 @@ function buildESC {
    echo "BUILDING ESC"
    cd $BASE_DIR
 
-   if [ $NUM_ARGS -ne 0 ] && [ $THE_ARG != -doEsc ];
+   if [ $NUM_ARGS -ne 0 ] && [ $THE_ARG != -doEsc ] || [ $USE_64 == 1 ];
    then
        echo "Do not build ESC."
        return 0
@@ -442,10 +495,11 @@ function createINSTALLER {
     then
         echo "NO MSVC path specified!"
         echo "Set environ var: MSVC_PATH ."
+        return 1
     fi
 
 
-    cp $MSVC_PATH/*.dll BUILD
+    cp $MSVC_PATH/* BUILD
 
     if [ $? != 0 ];
     then
@@ -456,30 +510,37 @@ function createINSTALLER {
     then
         echo "No Path to the INNO installer specified!"
         echo "Set environ var: INNO_PATH ."
-        return 0
+        return 1 
     fi
 
 
     #Move over extra files we don't keep in the open source world
 
-    cp esc-image-large.bmp BUILD/ESC/chrome/content/esc
+    if [ $USE_64 == 1 ];
+    then
+       INNO_SCRIPT=coolkey-64.iss
+    else
+        cp esc-image-large.bmp BUILD/ESC/chrome/content/esc
 
 
-     #Transport the nss files needed for pk11install.exe
+        #Transport the nss files needed for pk11install.exe
 
-    cp $NSS_LIB_PATH/softokn3.dll BUILD
-    cp $NSS_LIB_PATH/libplc4.dll BUILD
-    cp $NSS_LIB_PATH/libnspr4.dll BUILD
-    cp $NSS_LIB_PATH/libplds4.dll BUILD
+        cp $NSS_LIB_PATH/softokn3.dll BUILD
+        cp $NSS_LIB_PATH/libplc4.dll BUILD
+        cp $NSS_LIB_PATH/libnspr4.dll BUILD
+        cp $NSS_LIB_PATH/libplds4.dll BUILD
+
+        INNO_SCRIPT=setup.iss
+    fi
 
 
     # Build the INNO executable installer
 
-    "$INNO_PATH" setup.iss
+    "$INNO_PATH" $INNO_SCRIPT 
 
     if [ $? != 0 ];
     then
-        echo "Can't build final ESC installer...."
+        echo "Can't build final ESC/Coolkey installer...."
         return 1
     fi
 
@@ -548,7 +609,7 @@ then
     exit 1
 fi
 
-obtainEGATE
+#obtainEGATE
 
 if [ $? != 0 ];
 then
@@ -569,7 +630,7 @@ then
     exit 1
 fi
 
-buildCOOLKEY
+#buildCOOLKEY
 
 if [ $? != 0 ];
 then
