@@ -630,7 +630,7 @@ then
     exit 1
 fi
 
-#buildCOOLKEY
+buildCOOLKEY
 
 if [ $? != 0 ];
 then
