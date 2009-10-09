@@ -66,7 +66,7 @@ ZLIB_BIN_URL_64=http://winimage.com/zLibDll
 #CoolKey values
 
 COOLKEY_NAME=coolkey
-COOLKEY_TAG=HEAD
+COOLKEY_TAG=PKI_8_0_RTM_BRANCH
 
 #Fedora repo for CoolKey and ESC
 
