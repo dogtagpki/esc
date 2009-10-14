@@ -34,6 +34,7 @@ Source: BUILD\cspres.dll; DestDir: {sys}; Flags: restartreplace
 Source: BUILD\clkcsp.sig; DestDir: {sys}
 Source: BUILD\vcredist_x64.exe; DestDir: "{tmp}"
 Source: BUILD\coolkeypk11.dll; DestDir: {sys}; Flags: restartreplace
+Source: BUILD\zlibwapi.dll; DestDir: {sys}; Flags: restartreplace
 Source: BUILD\libckyapplet-1.dll; DestDir: {sys}; Flags: restartreplace
 
 
