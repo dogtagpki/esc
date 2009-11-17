@@ -15,6 +15,7 @@
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
+
 #ifdef DARWIN 
 #define COOLKEY_PKCS11_LIBRARY   "/Library/Application Support/CoolKey/PKCS11/libcoolkeypk11.dylib"
 #else
@@ -84,9 +85,7 @@ class NSSManager
 
    static unsigned int lastError;
 
-#ifdef LINUX
   PK11SlotInfo *systemCertDB;
-#endif
   SmartCardMonitoringThread *mpSCMonitoringThread;
 };
 

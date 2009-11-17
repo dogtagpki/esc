@@ -334,6 +334,10 @@ tr [COOLKeyPresent="yes"]{
    border: black solid 4px;
 }
 
+.BorderedBrowser {
+    border: black solid 4px;
+}
+
 .SelectedRow {
 
     color: white;

@@ -53,9 +53,7 @@ NSSManager::NSSManager()
     PR_LOG( coolKeyLogNSS, PR_LOG_DEBUG, ("%s NSSManager::NSSManager:\n",GetTStamp(tBuff,56)));
     mpSCMonitoringThread = NULL;
     NSSManager::lastError = NSS_NO_ERROR;
-#ifdef LINUX
     systemCertDB = NULL;
-#endif
 }
 
 NSSManager::~NSSManager()
@@ -118,20 +116,43 @@ HRESULT NSSManager::InitNSS(const char *aAppDir)
         return E_FAIL;
     }
 
-#ifdef LINUX
-
     // Load our Linux only database
 
+    char modspec_alt[512];
+    // Load our alternate db, if provided. 
 
-    const char *modspec = "configdir='/etc/pki/nssdb' tokenDescripton='SystemDB' flags='readOnly'";
-    PK11SlotInfo *systemCertDB = SECMOD_OpenUserDB(modspec);
+    const char *alt_db = CoolKeyGetConfig("esc.global.alt.nss.db");
 
-    if(!systemCertDB)
+#ifdef LINUX
+
+    if(!alt_db)
     {
-        PR_LOG( coolKeyLogNSS, PR_LOG_ALWAYS, ("%s NSSManager::InitNSS problem loading Linux  System Cert Database!\n",GetTStamp(tBuff,56)));
+        alt_db = "/etc/pki/nssdb";
     }
+    PR_LOG( coolKeyLogNSS, PR_LOG_ALWAYS, ("%s NSSManager alt_db %s \n",GetTStamp(tBuff,56),alt_db));
 
 #endif
+
+    if(alt_db) 
+    {
+       if(strlen(alt_db) < 400 ) 
+       {
+           sprintf(modspec_alt, "configdir='%s' tokenDescription='SystemDB' flags='readOnly'",alt_db); 
+
+           PR_LOG( coolKeyLogNSS, PR_LOG_ALWAYS, ("%s NSSManager modspec_alt %s \n",GetTStamp(tBuff,56),modspec_alt));
+           systemCertDB = SECMOD_OpenUserDB(modspec_alt);
+
+           PR_LOG( coolKeyLogNSS, PR_LOG_ALWAYS, ("%s NSSManager systemCertDB %p \n",GetTStamp(tBuff,56),systemCertDB));
+
+           if(!systemCertDB)
+           {
+               PR_LOG( coolKeyLogNSS, PR_LOG_ALWAYS, ("%s NSSManager::InitNSS problem loading Alternate Cert Database!\n",GetTStamp(tBuff,56)));
+
+           }
+
+       }
+
+    } 
 
     mpSCMonitoringThread = new SmartCardMonitoringThread(userModule);
     if (!mpSCMonitoringThread) {
@@ -157,16 +178,11 @@ void NSSManager::Shutdown()
   // Logout all tokens.
     PK11_LogoutAll();
 
-#ifdef LINUX
     if(systemCertDB)
     {
-        SECMOD_CloseUserDB(systemCertDB);
-
         PK11_FreeSlot(systemCertDB);
         systemCertDB = NULL;
     }
-
-#endif
 }
 
 bool 

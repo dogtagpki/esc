@@ -560,7 +560,12 @@ void eCKMessage_LOGIN_RESPONSE::encode(string &aOutputVal)
 
     string lPassword = getStringValue(pKey);
 
-    aOutputVal += sKey + delim1 + lScreenName + delim + pKey + delim1 + lPassword;
+    string ScreenName_encoded, Password_encoded;
+
+    URLEncode_str(lScreenName, ScreenName_encoded);
+    URLEncode_str(lPassword, Password_encoded);
+
+    aOutputVal += sKey + delim1 + ScreenName_encoded + delim + pKey + delim1 + Password_encoded;
 
     eCKMessage::encode(aOutputVal);
 }

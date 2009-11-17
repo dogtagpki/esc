@@ -33,7 +33,7 @@
 static PRLogModuleInfo *coolKeyLogSC = PR_NewLogModule("coolKeySmart");
 
 SmartCardMonitoringThread::SmartCardMonitoringThread(SECMODModule *aModule)
-  : mModule(aModule), mThread(NULL)
+  : mModule(aModule), mThread(NULL), mGoingAway(0)
 {
     char tBuff[56];
     PR_LOG( coolKeyLogSC, PR_LOG_DEBUG, 
@@ -67,6 +67,7 @@ void SmartCardMonitoringThread::Stop()
     PR_LOG( coolKeyLogSC, PR_LOG_DEBUG, 
           ("%s SmartCardMonitoringThread::Stop : \n",GetTStamp(tBuff,56)));
 
+    mGoingAway = 1;
     Interrupt();
 }
 
@@ -104,9 +105,9 @@ void SmartCardMonitoringThread::Execute()
     char tBuff[56];
     PK11SlotInfo *slot;
 
-    #ifdef LINUX
-    sleep(3);
-    #endif
+    //Give the rest of the systems time to come up properly
+
+    PR_Sleep(PR_SecondsToInterval(3));
 
     PR_LOG( coolKeyLogSC, PR_LOG_DEBUG, 
          ("%s SmartCardMonitoringThread::Execute.\n",GetTStamp(tBuff,56)));
@@ -116,6 +117,7 @@ void SmartCardMonitoringThread::Execute()
    /* PK11SlotList *sl =
 	PK11_FindSlotsByNames(mModule->dllName, NULL, NULL, PR_TRUE);
     PK11SlotListElement *sle;
+
  
     if (sl) {
 
@@ -142,6 +144,11 @@ void SmartCardMonitoringThread::Execute()
 
             PR_LOG( coolKeyLogSC, PR_LOG_ERROR, 
               ("%s SmartCard thread event detected, but the slot is NULL.\n",GetTStamp(tBuff,56)));
+            if(!mGoingAway) {
+                PR_Sleep(PR_SecondsToInterval(2));
+                continue;
+            }
+
             break;
         }
 
