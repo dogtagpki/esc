@@ -85,7 +85,9 @@ BASE_DIR=${PWD}
 #ESC values
 
 ESC_NAME=esc
-ESC_VERSION_NO=1.1.0-8
+ESC_VERSION_NO=1.1.0-9
+ESC_TAG=PKI_8_0_RTM_BRANCH
+
 
 
 #Cygwin values
@@ -110,7 +112,7 @@ function buildNSS  {
 
     echo "BUILDING NSS..."
 
-    if [ $NUM_ARGS -ne 0 ] && [ $THE_ARG != -doNSS ] || [ $USE_64 == 1 ];
+    if [ $NUM_ARGS -ne 0 ] && [ $THE_ARG != -doNSS ] || [ X$USE_64 == X1 ];
     then
         echo "Do not build NSS." 
         return 0
@@ -189,7 +191,7 @@ function buildCOOLKEY {
    ZLIB_LIB_PATH=${BASE_DIR}/zlib/lib
 
 
-   if [ $USE_64 == 1 ];
+   if [ X$USE_64 == X1 ];
    then
      ZLIB_LIB_PATH=${BASE_DIR}/zlib/dll_x64
      ZLIB_LIB_FLAGS=${BASE_DIR}/zlib/dll_x64/$ZLIB_DLL_64.dll
@@ -212,7 +214,7 @@ function buildCOOLKEY {
    export ZLIB_LIB=$ZLIB_LIB_PATH
    export ZLIB_INCLUDE=$ZLIB_INC_PATH
 
-   if [ $USE_64 == 1 ];
+   if [ X$USE_64 == X1 ];
    then
        PK11=
    else
@@ -245,7 +247,7 @@ function buildCOOLKEY {
    cp -f coolkey/src/coolkey/.libs/libcoolkeypk11.dll BUILD/coolkeypk11.dll
    cp -f coolkey/src/libckyapplet/.libs/libckyapplet-1.dll BUILD
 
-   if [ $USE_64 == 1 ];
+   if [ X$USE_64 == X1 ];
    then
       cp -f zlib/dll_x64/zlibwapi.dll BUILD
    else
@@ -255,7 +257,7 @@ function buildCOOLKEY {
 
    # Grab pk11install
 
-   if [ $USE_64 != 1 ];
+   if [ X$USE_64 != X1 ];
    then
       cp -f coolkey/src/install/pk11install.exe BUILD
    fi
@@ -280,7 +282,7 @@ function obtainZLIB {
 
   cd $ZLIB_NAME
 
-  if [  $USE_64 == 1 ]
+  if [  X$USE_64 == X1 ]
   then
    wget $ZLIB_BIN_URL_64/$ZLIB_ARCHIVE_64.zip
 
@@ -328,7 +330,7 @@ function buildESC {
    echo "BUILDING ESC"
    cd $BASE_DIR
 
-   if [ $NUM_ARGS -ne 0 ] && [ $THE_ARG != -doEsc ] || [ $USE_64 == 1 ];
+   if [ $NUM_ARGS -ne 0 ] && [ $THE_ARG != -doEsc ] || [ X$USE_64 == X1 ];
    then
        echo "Do not build ESC."
        return 0
@@ -338,7 +340,7 @@ function buildESC {
    then
        echo "ESC already checked out.." 
    else 
-       cvs  -d $FEDORA_CVS_ROOT co esc 
+       cvs  -d $FEDORA_CVS_ROOT -r $ESC_TAG co esc 
    fi
 
    if [ $? != 0 ];
@@ -364,9 +366,13 @@ function buildESC {
    CKY_INCLUDE_PATH=`cygpath -m $CKY_INCLUDE_PATH`
 
    cd ../..
+
+   echo 'CKY_INCLUDE="-I$ZLIB_INC_PATH  -I$CKY_INCLUDE_PATH" CKY_LIB_LDD=$CKY_INCLUDE_PATH/.libs USE_XUL_SDK=1 ESC_VERSION=$ESC_VERSION_NO"' 
+
    make BUILD_OPT=1 import
 
    make BUILD_OPT=1 CKY_INCLUDE="-I$ZLIB_INC_PATH  -I$CKY_INCLUDE_PATH" CKY_LIB_LDD=$CKY_INCLUDE_PATH/.libs USE_XUL_SDK=1 ESC_VERSION=$ESC_VERSION_NO
+
 
    if [ $? != 0 ];
    then
@@ -516,7 +522,7 @@ function createINSTALLER {
 
     #Move over extra files we don't keep in the open source world
 
-    if [ $USE_64 == 1 ];
+    if [ X$USE_64 == X1 ];
     then
        INNO_SCRIPT=coolkey-64.iss
     else
