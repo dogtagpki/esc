@@ -147,7 +147,7 @@
       </hbox>
   </vbox>
 
-  <iframe id="esc-ui"  flex="1" class="BorderedIFrame" hidden="true"/>
+  <browser id="esc-ui" class="BorderedBrowser" height="725" flex="1" hidden="true" src="" />
   </groupbox>
   <hbox id = "enrollment_button_box">
         <spacer flex = "4"/>

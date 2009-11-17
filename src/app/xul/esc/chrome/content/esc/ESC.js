@@ -29,7 +29,6 @@ var gAdminPage = 0;
 var gFactoryMode = 0;
 var gHiddenPage = 0;
 var gExternalUI = 0;
-
 loadStringBundle();
 
 //ESC constants
@@ -1279,7 +1278,8 @@ function DoShowFullEnrollmentUI()
    }
    else
    {
-       UpdateEnrollmentArea(keyType,keyID,keyInserted,showFullUI);
+       MyAlert(getBundleString("errorPhoneHomeInfo"));
+       window.close();
    }
 }
 
@@ -3260,10 +3260,74 @@ function refresh()
   window.resizeBy(0,1);
   window.resizeBy(0,-1);
 }
+// nsIWebProgressListener to oversee the loading of the external UI
+var uiListener = null;
+var esc_enroll_uri = null;
+
+const STATE_START = Components.interfaces.nsIWebProgressListener.STATE_START;
+const STATE_STOP = Components.interfaces.nsIWebProgressListener.STATE_STOP;
+const STATE_IS_DOCUMENT = Components.interfaces.nsIWebProgressListener.STATE_IS_DOCUMENT;
+uiListener =
+{
+    QueryInterface: function(aIID)
+    {
+        if (aIID.equals(Components.interfaces.nsIWebProgressListener) ||
+         aIID.equals(Components.interfaces.nsISupportsWeakReference) ||
+         aIID.equals(Components.interfaces.nsISupports))
+         return this;
+         throw Components.results.NS_NOINTERFACE;
+    },
+
+    onStateChange: function(aWebProgress, aRequest, aFlag, aStatus)
+    {
+        if(aFlag & STATE_START && aFlag & STATE_IS_DOCUMENT)
+        {
+        }
+        if(aFlag & STATE_STOP && aFlag & STATE_IS_DOCUMENT)
+        {
+
+            var url = aWebProgress.DOMWindow.document.URL;
+
+            if(url != esc_enroll_uri)
+            {
+                MyAlert(getBundleString("errorEnrollmentUI"));
+
+                if(uiListener)
+                    aWebProgress.removeProgressListener(uiListener);
+
+                var enrollWnd = IsPageWindowPresent(ENROLL_WINDOW);
+
+                if(enrollWnd)
+                {
+                    enrollWnd.close();
+                }
+            }
+            else
+            {
+                if(uiListener)
+                    aWebProgress.removeProgressListener(uiListener);
+            }
+        }
+    },
+
+    onLocationChange: function(aProgress, aRequest, aURI)
+    {
+    },
+    onProgressChange: function(aWebProgress, aRequest, curSelf, maxSelf, curTot, maxTot)
+    {
+    },
+    onStatusChange: function(aWebProgress, aRequest, aStatus, aMessage)
+    {
+    },
+    onSecurityChange: function(aWebProgress, aRequest, aState)
+    {
+    }
+}
 
 function loadExternalESCUI()
 {
-   var esc_enroll_uri = null;
+
+    esc_enroll_uri = null;
 
     var keyType= null;
     var keyID = null;
@@ -3285,7 +3349,6 @@ function loadExternalESCUI()
     }
 
     var esc_enrolled_token_url = null;
-    var esc_enroll_uri = null;
 
     if(keyID)
     {
@@ -3323,8 +3386,9 @@ function loadExternalESCUI()
 
         if(ui_id)
         {
+            UpdateEnrollmentArea(keyType,keyID,inserted,showFullUI,showExternalUI);
+            ui_id.addProgressListener(uiListener,Components.interfaces.nsIWebProgress.NOTIFY_STATE_DOCUMENT);
             ui_id.setAttribute("src",esc_enroll_uri);
-            UpdateEnrollmentArea(keyType,keyID,inserted,showFullUI,showExternalUI)
         }
 
     }
