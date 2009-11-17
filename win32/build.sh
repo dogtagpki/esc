@@ -340,7 +340,7 @@ function buildESC {
    then
        echo "ESC already checked out.." 
    else 
-       cvs  -d $FEDORA_CVS_ROOT -r $ESC_TAG co esc 
+       cvs  -d $FEDORA_CVS_ROOT co -r $ESC_TAG  esc 
    fi
 
    if [ $? != 0 ];
