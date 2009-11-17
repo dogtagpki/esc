@@ -45,7 +45,8 @@ class SmartCardMonitoringThread
   void Remove(CoolKeyInfo *info);
 
   static void LaunchExecute(void *arg);
-  
+
+  int mGoingAway;  
   SECMODModule *mModule;
   PRThread* mThread;
   char* mCurrentActivation;
