@@ -98,11 +98,19 @@ CYGWIN_BIN_PATH=/cygdrive/c/cygwin/bin
 
 #Value for the location of Moz Tools needed to compile
 
-MOZ_TOOLS_BIN_PATH=/cygdrive/c/moztools/bin:/cygdrive/d/moztools/bin
+#MOZ_TOOLS_BIN_PATH=/cygdrive/c/moztools/bin:/cygdrive/d/moztools/bin
+MOZ_TOOLS_BIN_PATH=/cygdrive/c/mozilla-build/moztools/bin
 
 export PATH=${MOZ_TOOLS_BIN_PATH}:${ORIG_PATH}
 
-CORE_OBJ_DIR=`uname``uname -r`_OPT.OBJ
+if test "${OS_RELEASE+set}" != set ; then
+
+   CORE_OBJ_DIR=`uname``uname -r`_OPT.OBJ
+else
+   CORE_OBJ_DIR="WINNT$OS_RELEASE"_OPT.OBJ
+   
+fi
+
 
 export PATH=${ORIG_PATH}
 
@@ -143,7 +151,7 @@ function buildNSS  {
     fi
 
     cd $NSS_NAME/mozilla/security/nss
-    make BUILD_OPT=1 nss_build_all
+    make BUILD_OPT=1 OS_RELEASE=$OS_RELEASE nss_build_all
     if [ $? != 0 ];
     then
         echo "Can't make nss."
