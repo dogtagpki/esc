@@ -377,7 +377,7 @@ function buildESC {
 
    echo 'CKY_INCLUDE="-I$ZLIB_INC_PATH  -I$CKY_INCLUDE_PATH" CKY_LIB_LDD=$CKY_INCLUDE_PATH/.libs USE_XUL_SDK=1 ESC_VERSION=$ESC_VERSION_NO"' 
 
-   make BUILD_OPT=1 import
+   make BUILD_OPT=1 OS_RELEASE=$OS_RELEASE import
 
    make OS_RELEASE=$OS_RELEASE BUILD_OPT=1 CKY_INCLUDE="-I$ZLIB_INC_PATH  -I$CKY_INCLUDE_PATH" CKY_LIB_LDD=$CKY_INCLUDE_PATH/.libs USE_XUL_SDK=1 ESC_VERSION=$ESC_VERSION_NO
 
@@ -392,7 +392,7 @@ function buildESC {
    #take care of eginstall
 
    cd src/app/eginstall
-   make BUILD_OPT=1 install
+   make BUILD_OPT=1 OS_RELEASE=$OS_RELEASE install
    cd ../../..
 
    cp dist/WIN*/coolkey_drivers/egate/eginstall.exe ../BUILD/egate
