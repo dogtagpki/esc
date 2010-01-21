@@ -2332,6 +2332,7 @@ function UpdateAdminKeyDetailsArea(keyType,keyID)
        }
        else
        {
+           DisableItem(enrollbtn);
            DisableItem(resetpinbtn);
            DisableItem(formatbtn);
            if(adminkeymenu)
