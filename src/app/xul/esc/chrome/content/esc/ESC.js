@@ -29,6 +29,8 @@ var gAdminPage = 0;
 var gFactoryMode = 0;
 var gHiddenPage = 0;
 var gExternalUI = 0;
+var gErrorAlready = 0;
+
 loadStringBundle();
 
 //ESC constants
@@ -1792,8 +1794,62 @@ function InitializeEnrollment()
   UpdateCoolKeyAvailabilityForEnrollment();
 }
 
+function AdminKeyPressHandler(evt)
+{
+  var newitem = null;
+  var olditem = null;
+  var offset  = 0;
+  var selectedIndex = 0;
+
+  var list = document.getElementById("AdminBindingList");
+  if(!list)
+    return;
+
+  var numRows = list.getRowCount();
+  if(numRows == 0)
+  {
+      return;
+  }
+  selectedIndex = list.selectedIndex;
+
+  if(selectedIndex == -1)
+  {
+    olditem = list.getItemAtIndex(0);    
+    if(olditem) {
+      list.selectItem(olditem);
+      olditem.click();
+    }
+  }
+  selectedIndex = list.selectedIndex;
+  olditem = list.getItemAtIndex(selectedIndex);
+
+  if(evt.keyCode == KeyEvent.DOM_VK_UP) {
+   offset = -1;
+  } 
+  if(evt.keyCode == KeyEvent.DOM_VK_DOWN) {
+    offset = 1;
+  }
+
+  if(offset == 0)
+    return;
+
+  if(olditem)  {
+      list.moveByOffset( offset , 1, 0);
+      newitem = list.getItemAtIndex(list.selectedIndex);
+      olditem.blur();
+      if(newitem)
+        newitem.click();
+  }
+}
+
 function InitializeAdminBindingList()
 {
+
+ var list = document.getElementById("AdminBindingList");
+
+ if(list) {
+   list.addEventListener("keypress", AdminKeyPressHandler, false);
+ }
 
  gAdminPage = 1;
 
@@ -1802,6 +1858,7 @@ function InitializeAdminBindingList()
  DoSetEnrolledBrowserLaunchState(); 
  DoHandleEnrolledBrowserLaunch();
 
+ 
  window.setTimeout('ShowWindow()',250);
 
 }
@@ -2540,6 +2597,8 @@ function CreateAdminListRow(adminListBox,keyType,keyID,keyStatus,reqAuth,isAuthe
   listrow.setAttribute("flex","1");
   listrow.setAttribute("id",KeyToRowID(keyType,keyID));
 
+  var listBoxSize = adminListBox.getRowCount();
+
   var imageCell = InsertListCell(listrow);
 
   if(!imageCell)
@@ -2763,6 +2822,7 @@ function DoEnrollCoolKey()
   var tokencode = null;
   
   var failed = 0;
+  gErrorAlready = 0;
 
   if (type == "userKey")
   {
@@ -2793,12 +2853,13 @@ function DoEnrollCoolKey()
   {
      UpdateAdminListRow(keyType,keyID);
      UpdateAdminKeyDetailsArea(keyType,keyID);
-     if(!failed)
+     if(!failed && !gErrorAlready)
      {
           AdminToggleStatusProgress(1,keyType,keyID);
           UpdateAdminKeyAreaDetailsLabel(getBundleString("enrollingToken"));
      }
   }
+  gErrorAlready = 0;
 }
 
 function DoCollectPassword(operation)
@@ -2823,6 +2884,7 @@ function DoResetSelectedCoolKeyPIN()
   var screennamepwd = null;
 
   var failed = 0;
+  gErrorAlready = 0;
 
   if (GetCoolKeyIsEnrolled(keyType, keyID))
   {
@@ -2844,12 +2906,13 @@ function DoResetSelectedCoolKeyPIN()
      UpdateAdminListRow(keyType,keyID);
      UpdateAdminKeyDetailsArea(keyType,keyID);
 
-      if(!failed)
+      if(!failed && !gErrorAlready)
       {
           AdminToggleStatusProgress(1,keyType,keyID);
           UpdateAdminKeyAreaDetailsLabel(getBundleString("resettingTokenPIN"));
       }
   }
+  gErrorAlready = 0;
 }
 
 function DoFormatCoolKey(type)
@@ -2866,6 +2929,7 @@ function DoFormatCoolKey(type)
   var failed = 0;
   var globalType = GetCachedTokenType(keyID);
 
+  gErrorAlready = 0;
   if(!type)
       lType = gKeyEnrollmentType;
   else
@@ -2891,12 +2955,13 @@ function DoFormatCoolKey(type)
   {
       UpdateAdminListRow(keyType,keyID);
       UpdateAdminKeyDetailsArea(keyType,keyID);
-      if(!failed)
+      if(!failed && !gErrorAlready)
       {
           AdminToggleStatusProgress(1,keyType,keyID);
           UpdateAdminKeyAreaDetailsLabel(getBundleString("formatingToken"));
       }
   }
+  gErrorAlready = 0;
 }
 function DoCancelOperation()
 {
@@ -3157,6 +3222,7 @@ function OnCoolKeyStateError(keyType, keyID, keyState, errorCode)
      AdminToggleStatusProgress(0,keyType,keyID);
    }
 
+  gErrorAlready = 1;
   if(!CheckForSecurityMode())
       MyAlert(typeStr);
   ClearProgressBar(KeyToProgressBarID(keyType, keyID));
@@ -3327,7 +3393,6 @@ uiListener =
 
 function loadExternalESCUI()
 {
-
     esc_enroll_uri = null;
 
     var keyType= null;
@@ -3390,6 +3455,7 @@ function loadExternalESCUI()
             UpdateEnrollmentArea(keyType,keyID,inserted,showFullUI,showExternalUI);
             ui_id.addProgressListener(uiListener,Components.interfaces.nsIWebProgress.NOTIFY_STATE_DOCUMENT);
             ui_id.setAttribute("src",esc_enroll_uri);
+
         }
 
     }
