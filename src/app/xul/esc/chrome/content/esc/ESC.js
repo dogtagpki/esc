@@ -3387,7 +3387,7 @@ function loadExternalESCUI()
         if(ui_id)
         {
             UpdateEnrollmentArea(keyType,keyID,inserted,showFullUI,showExternalUI);
-            ui_id.addProgressListener(uiListener,Components.interfaces.nsIWebProgress.NOTIFY_STATE_DOCUMENT);
+            //ui_id.addProgressListener(uiListener,Components.interfaces.nsIWebProgress.NOTIFY_STATE_DOCUMENT);
             ui_id.setAttribute("src",esc_enroll_uri);
         }
 
