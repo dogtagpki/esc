@@ -4,17 +4,17 @@
 [Setup]
 AppName=Smart Card Manager
 AppMutex=ESCMutex
-AppVerName=Smart Card Manager 1.1.0-8
-AppPublisher=Fedora
+AppVerName=Smart Card Manager 1.1.0-10
+AppPublisher=Red Hat, Inc.
 CreateAppDir=true
 Compression=lzma
 SolidCompression=true
 MinVersion=0,5.0.2195
 ShowLanguageDialog=yes
-OutputBaseFilename=SmartCardManagerSetup-1.1.0-8.win32.i386
-DefaultDirName={pf}\Fedora\ESC
+OutputBaseFilename=SmartCardManagerSetup-1.1.0-10.win32.i386
+DefaultDirName={pf}\Red Hat\ESC
 DisableProgramGroupPage=false
-DefaultGroupName=Fedora
+DefaultGroupName=Red Hat
 SetupIconFile=BUILD\ESC\components\esc.ico
 UninstallDisplayIcon={app}\components\esc.ico
 WizardImageFile=BUILD\ESC\chrome\content\esc\esc-image-large.bmp
@@ -24,7 +24,7 @@ LicenseFile=esc-license.txt
 InfoBeforeFile=info-before.txt
 InfoAfterFile=info-after.txt
 PrivilegesRequired=admin
-VersionInfoVersion=1.1.0.8
+VersionInfoVersion=1.1.0.10
 
 
 [Files]
