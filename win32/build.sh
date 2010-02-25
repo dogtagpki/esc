@@ -70,7 +70,7 @@ COOLKEY_TAG=PKI_8_0_RTM_BRANCH
 
 #Fedora repo for CoolKey and ESC
 
-FEDORA_CVS_ROOT=:pserver:anonymous@cvs.fedora.redhat.com:/cvs/dirsec
+FEDORA_CVS_ROOT=:pserver:anonymous@cvs.fedoraproject.org:/cvs/dirsec
 
 #Xulrunner values
 
