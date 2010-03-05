@@ -42,6 +42,22 @@ function doOperation()
    window.close(); 
 }
 
+//
+// unregister our notify event
+//
+function cleanup()
+{
+    TrayRemoveWindow(null);
+    try {
+      netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+      netkey.rhCoolKeyUnSetNotifyCallback(gNotify);
+    } catch(e) {
+     MyAlert(getBundleString("errorUniversalXPConnect")  + e);
+    }
+
+}
+
+
 
 function GetLocalPINValue()
 {
