@@ -1810,11 +1810,12 @@ function AdminKeyPressHandler(evt)
   {
       return;
   }
+  list.selectItem(gCurrentSelectedRow);
   selectedIndex = list.selectedIndex;
 
   if(selectedIndex == -1)
   {
-    olditem = list.getItemAtIndex(0);    
+    olditem = list.getItemAtIndex(0);
     if(olditem) {
       list.selectItem(olditem);
       olditem.click();
@@ -1825,7 +1826,7 @@ function AdminKeyPressHandler(evt)
 
   if(evt.keyCode == KeyEvent.DOM_VK_UP) {
    offset = -1;
-  } 
+  }
   if(evt.keyCode == KeyEvent.DOM_VK_DOWN) {
     offset = 1;
   }
@@ -1837,7 +1838,7 @@ function AdminKeyPressHandler(evt)
       list.moveByOffset( offset , 1, 0);
       newitem = list.getItemAtIndex(list.selectedIndex);
       olditem.blur();
-      if(newitem)
+      if(newitem) 
         newitem.click();
   }
 }
@@ -2396,6 +2397,7 @@ function UpdateAdminKeyDetailsArea(keyType,keyID)
            {
                DisableItem(menu_format);
                DisableItem(menu_resetpassword);
+               DisableItem(menu_enroll);
            }
        }
 
