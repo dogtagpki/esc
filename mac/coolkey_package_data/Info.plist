@@ -19,7 +19,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleGetInfoString</key>
-	<string>Smart Card Manager 1.14</string>
+	<string>Smart Card Manager 1.19</string>
 	<key>CFBundleName</key>
 	<string>Smart Card Manager</string>
 	<key>CFBundleIdentifier</key>

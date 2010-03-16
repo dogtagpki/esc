@@ -17,10 +17,27 @@
 <!DOCTYPE window SYSTEM "chrome://esc/locale/esc.dtd">
 <window
     id="esc-window"
-    title="&escTitle;"
+    title=""
     onload="hiddenWindowStartup();"
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 <stringbundle id="esc_strings" src="chrome://esc/locale/esc.properties"/>
 <script src="TRAY.js"/>
- <script src="ESC.js"/>
+<script src="ESC.js"/>
+
+ <toolbox hidden="true">
+    <menubar>
+      <menuseparator/>
+      <menu id="menu_FilePopup" label="&macmenu.go;">
+        <menupopup id="go_menu">
+          <menuitem id="menu_go" label="&administerKeys;" oncommand="NotifyESCOfTrayEvent();"/>
+          <menuitem id="menu_mac_services" label="&macmenu.services;"/>
+          <menuitem id="menu_mac_hide_app" label="&macmenu.hide;" key="key_hideThisApp"/>
+          <menuitem id="menu_mac_hide_others" label="&macmenu.hideothers;" key="key_hideOtherApps"/>
+          <menuitem id="menu_mac_show_all" label="&macmenu.showall;"/>
+          <menuitem id="menu_FileQuitItem" label="&macmenu.quit;" key="key_quit" oncommand="QuitApplication();" />
+
+        </menupopup>
+     </menu>
+    </menubar>
+  </toolbox>
 </window>

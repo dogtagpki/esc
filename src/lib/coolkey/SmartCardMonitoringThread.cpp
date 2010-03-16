@@ -159,6 +159,12 @@ void SmartCardMonitoringThread::Execute()
         PR_LOG( coolKeyLogSC, PR_LOG_DEBUG,
              ("%s SmartCardMonitoringThread::info %p : \n",GetTStamp(tBuff,56),info));
 
+        // On Mac give the tokend a chance before hitting PK11_IsPresent
+
+        #ifdef DARWIN
+        PR_Sleep(PR_SecondsToInterval(1));
+        #endif
+
         PRBool isPresent = PK11_IsPresent(slot);
 
         PR_LOG( coolKeyLogSC, PR_LOG_DEBUG,

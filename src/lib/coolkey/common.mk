@@ -43,10 +43,6 @@ IMPORT_LIBRARY=
 DEFINES += -DDLL_PREFIX=\"$(DLL_PREFIX)\"
 DEFINES += -DDLL_SUFFIX=\"$(DLL_SUFFIX)\"
 
-ifdef DARWIN_GCC_VERSION
-        echo "blooie"
-        sudo gcc_select $(GCC_VERSION)
-endif
 
 #######################################################################
 # (4) Include "local" platform-dependent assignments (OPTIONAL).      #

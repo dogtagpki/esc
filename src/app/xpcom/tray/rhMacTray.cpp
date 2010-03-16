@@ -26,7 +26,6 @@ NS_IMPL_ISUPPORTS1(rhTray, rhITray)
 int rhTray::mInitialized = 0;
 WindowRef rhTray::mWnd = NULL;
 MenuRef   rhTray::mDockMenu = NULL;
-MenuRef   rhTray::mRootMenu = NULL;
 ProcessSerialNumber rhTray::mPSN;
 EventHandlerRef rhTray::mEventHandlerRef=NULL;
 EventHandlerUPP rhTray::mEventHandlerUPP=NULL;
@@ -260,43 +259,6 @@ HRESULT rhTray::Initialize()
         }
     }
 
-    MenuRef tGoMenu;
-    ::CreateNewMenu(1,0,&tGoMenu);
-
-    if(tGoMenu)
-    {
-        SetMenuID (tGoMenu,GO_MENU_ID);
-    }
-    else
-    {
-        return S_OK;
-    }
-
-    MenuRef tRootMenu;
-    ::CreateNewMenu(0, 0, &tRootMenu);
-
-    if(!tRootMenu)
-    {
-        return S_OK;
-    }
-
-    MenuItemIndex goItem;
-
-    ::AppendMenuItemTextWithCFString( tGoMenu, CFSTR("Show Manage Smart Cards"),  0,MENU_ITEM_ID_BASE , &goItem );
-
-    ::SetMenuTitleWithCFString( tGoMenu, CFSTR("Go") );
-
-    OSStatus rootResult = ::SetRootMenu(tRootMenu);
-
-    if(rootResult == noErr)
-    {
-        mRootMenu = AcquireRootMenu();
-
-        MenuItemIndex myMenuIndex;
-        AppendMenuItemTextWithCFString( tRootMenu, NULL, 0, 0, &myMenuIndex );
-        SetMenuItemHierarchicalMenu(tRootMenu, myMenuIndex, tGoMenu); 
-    }
-
     mInitialized = 1;
     return S_OK;
 }
@@ -329,21 +291,16 @@ HRESULT rhTray::Cleanup()
 
     if(mDockMenu)
     {
-        ::ReleaseMenu(mDockMenu);
+        ::DisposeMenu(mDockMenu);
     }
 
     MenuRef goMenu = GetMenuHandle (GO_MENU_ID);
 
     if(goMenu)
     {
-        ::ReleaseMenu(goMenu);
+        ::DisposeMenu(goMenu);
     }
 
-    if(mRootMenu)
-    {
-        ::ReleaseMenu(mRootMenu);
-    }
- 
     return S_OK;
 }
 
@@ -755,7 +712,6 @@ pascal OSStatus rhTray::ApplicationProc(EventHandlerCallRef nextHandler, EventRe
 
                  case kHICommandQuit:
                      PR_LOG( trayLog, PR_LOG_DEBUG, ("%s rhTray::ApplicationProc App kHICommandQuit! \n",GetTStamp(tBuff,56)));
-
                  break;
 
                  case MENU_ITEM_ID_BASE:

@@ -28,41 +28,38 @@
 #Environment variables
 # TOKEND_PATH_NAME  - Path of where to obtain the TokenD bundle ex: /usr/local/tokend/COOLKEY.zip
 
+#GECKO_SDK_PATH - Path to the Universal Binary Xulrunner SDK
+
+if [ ! $XUL_FRAMEWORK_PATH ];
+then
+    XUL_FRAMEWORK_PATH=~/XUL.framework
+fi
+
+TOKEND_PATH_NAME=/Users/slowjack/COOLKEY.zip
+
 printf "\n \n"
 echo "Building ESC... for Mac.... "
 printf "\n"
 
-OSX_RPM_PATH=/usr/local/bin
-
-LIB_USB_URL_BASE=http://downloads.sourceforge.net/libusb
-LIB_USB_NAME=libusb-0.1.12
-LIB_USB_URL=$LIB_USB_URL_BASE/$LIB_USB_NAME
-
-IFD_EGATE_URL_BASE=ftp://download.fedora.redhat.com/pub/fedora/linux/core/6/source/SRPMS
-IFD_EGATE_NAME=ifd-egate-0.05
-IFD_EGATE_REL=15
-
-COOLKEY_PKG_NAME=SmartCardManager1.16.pkg
+COOLKEY_PKG_NAME=SmartCardManager1.19.pkg
 COOLKEY_VOL_NAME=SMARTCARDMANAGER
-COOLKEY_TAG=HEAD
+COOLKEY_TAG=PKI_8_0_RTM_BRANCH
+ESC_TAG=PKI_8_0_RTM_BRANCH
 
+ESC_VERSION=1.1.0-11
 
-ESC_VERSION=1.0.1-6
+COOLKEY_DMG_NAME=SmartCardManager-$ESC_VERSION.OSX5.darwin.dmg
 
-COOLKEY_DMG_NAME=SmartCardManager-$ESC_VERSION.OSX4.darwin.dmg
-
-ENABLE_PK11INSTALL=
+ENABLE_PK11INSTALL=--enable-pk11install
 
 #replacement libtool files
 
-LIBTOOL_USB_PATCH=../misc/libtool.usb.patch
 LIBTOOL_COOLKEY=
 
 #Various CVS repositories
 
 FEDORA_CVS_ROOT=:pserver:anonymous@cvs.fedora.redhat.com/cvs/dirsec
 MOZ_CVS_ROOT=:pserver:anonymous@cvs-mirror.mozilla.org:/cvsroot
-MOZ_XULRUNNER_BRANCH=MOZILLA_1_8_0_7_RELEASE
 
 # Various path constants
 
@@ -70,8 +67,7 @@ PACKAGE_MAKER_PATH=/Developer/Applications/Utilities/PackageMaker.app/Contents/M
 PK11INSTALL_PATH=/Applications/Utilities/PK11Install
 
 TOKEND_DEST_PATH=/System/Library/Security/tokend
-#TOKEND_PATH_NAME=/share/builds/components/tokend/20070111/COOLKEY.zip
-TOKEND_DEST_NAME=A_COOLKEY.tokend
+TOKEND_DEST_NAME=COOLKEY.tokend
 
 BASE_DIR=${PWD}
 
@@ -79,7 +75,7 @@ COOLKEY_PATH=/usr/local/CoolKey
 
 #Where to grab a few universal NSS dylib's for pk11install
 
-PK11INSTALL_LIB_PATH=$BASE_DIR/esc/dist/Darwin6.8_OPT.OBJ/xulrunner_build/i386/dist/universal/xulrunner/XUL.framework/Versions/Current
+PK11INSTALL_LIB_PATH=$GECKO_SDK_PATH/bin
 
 
 function cleanup {
@@ -91,108 +87,11 @@ function cleanup {
 
     rm -f *.gz
 
+    rm -rf $COOLKEY_PKG_NAME
+
     rm  -f COOLKEY.zip
 
-}
-
-function buildUSB {
-
-    if [ $NUM_ARGS -ne 0 ] && [ $THE_ARG != -doUsb ];
-    then
-       echo "Do not build Usb"
-       return 0
-    fi
-
-    cd $BASE_DIR
-
-    echo "Build Lib USB... "
-    printf "\n"
-
-    curl --verbose -O -L $LIB_USB_URL_BASE/$LIB_USB_NAME.tar.gz
-
-    if [ $? != 0 ];
-    then
-        echo "Can't obtain tarball for Lib USB."
-        return 1
-    fi
-
-
-    tar -xzvf $LIB_USB_NAME.tar.gz 
-
-    if [ $? != 0 ];
-    then
-        echo "Can't unpack Lib USB tarball."
-        return 1
-    fi
-
-    cd $LIB_USB_NAME
-
-    ./configure --disable-dependency-tracking  --prefix=$COOLKEY_PATH CFLAGS="-isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc" CXXFLAGS="-isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc"  LDFLAGS="-arch ppc -arch i386"
-
-    if [ $? != 0 ];
-    then
-        echo "Can't configure Lib USB."
-        return 1
-    fi
-
-    cp $LIBTOOL_USB_PATCH . 
-    patch -p0 -N < libtool.usb.patch 
-
-    make
-
-    if [ $? != 0 ];
-    then
-        echo "Can't make Lib USB."
-        return 1
-    fi
-
-
-    make DESTDIR=${PWD}/../staging install
-
-    return 0
-}
-
-function buildEGATE {
-
-    if [ $NUM_ARGS -ne 0 ] && [ $THE_ARG != -doEgate ];
-    then
-       echo "Do not build Egate"
-       return 0
-    fi
-
-    echo "Build IFD-EGATE ... "
-
-    printf "\n"
-
-    cd $BASE_DIR
-
-    curl --verbose -O  $IFD_EGATE_URL_BASE/$IFD_EGATE_NAME-$IFD_EGATE_REL.src.rpm
-
-    if [ $? != 0 ];
-    then
-        echo "Can't obtain RPM for Egate."
-        return 1
-    fi
-
-
-    $OSX_RPM_PATH/rpm -ihv --define="_topdir ${PWD}" $IFD_EGATE_NAME-$IFD_EGATE_REL.src.rpm
-
-    $OSX_RPM_PATH/rpmbuild --nodeps -bp --define="_topdir ${PWD}" SPECS/ifd-egate.spec 
-
-    cd BUILD/$IFD_EGATE_NAME
-
-    make  PCSC_CFLAGS=-I/System/Library/Frameworks/PCSC.framework/Versions/Current/Headers USB_CFLAGS="-I../../staging/usr/local/CoolKey/include -isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch ppc -arch i386" USB_LDFLAGS="-L../../staging/usr/local/CoolKey/lib -arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386"  -f Makefile-OSX 
-
-    if [ $? != 0 ];
-    then
-        echo "Can't buld Egate."
-        return 1
-    fi
-
-    cp ../../misc/Makefile-OSX.egate.patch .
-    patch -p0 -N < Makefile-OSX.egate.patch 
-
-    make -f Makefile-OSX DESTDIR=${PWD}/../../staging install
+    sudo rm -rf COOLKEY.tokend
 
 }
 
@@ -201,19 +100,22 @@ function buildCOOLKEY {
     echo "Build CoolKey... "
     printf "\n"
 
-
     if [ $NUM_ARGS -ne 0 ] && [ $THE_ARG != -doCoolKey ];
     then
        echo "Do not build CoolKey"
        return 0
     fi
 
-
     echo "ENABLE_PK11INSTALLL $ENABLE_PK11INSTALL"
 
     cd $BASE_DIR
 
-    cvs   -d $FEDORA_CVS_ROOT co -r $COOLKEY_TAG coolkey
+    if [ -d coolkey ];
+    then
+       echo "CoolKey checked out already."
+    else
+       cvs   -d $FEDORA_CVS_ROOT co -r $COOLKEY_TAG coolkey
+    fi
   
     if [ $? != 0 ];
     then
@@ -221,9 +123,7 @@ function buildCOOLKEY {
         return 1
     fi
 
-
     cd coolkey
-
 
     /usr/bin/autoconf
 
@@ -233,7 +133,7 @@ function buildCOOLKEY {
         return 1
     fi
 
-    ./configure  --disable-dependency-tracking --prefix=$COOLKEY_PATH NSS_CFLAGS="-I ${PWD}/../esc/dist/Dar*/xulrunner_build/i386/dist/public/nss -I ${PWD}/../esc/dist/Dar*/xulrunner_build/i386/dist/include/nspr" NSS_LIBS="-L${PWD}/../esc/dist/Darwin6.8_OPT.OBJ/xulrunner_build/i386/dist/universal/xulrunner/XUL.framework/Versions/Current -Wl,-executable_path,${PWD}/../esc/dist/Darwin6.8_OPT.OBJ/xulrunner_build/i386/dist/universal/xulrunner/XUL.framework/Versions/Current"
+    ./configure --enable-debug  --disable-dependency-tracking --prefix=$COOLKEY_PATH NSS_CFLAGS="-I  $GECKO_SDK_PATH/sdk/include" NSS_LIBS="-L/Library/Frameworks/XUL.framework/Versions/Current -Wl,-executable_path,/System/Frameworks//XUL.framework/Versions/Current $ENABLE_PK11INSTALL"
 
     if [ $? != 0 ];
     then
@@ -261,7 +161,7 @@ function buildCOOLKEY {
 
         if [ $? != 0 ];
         then
-            echo "Can't re-make coolkey."
+            echo "Can't make pk11install!"
            return 1
         fi
  
@@ -278,6 +178,8 @@ function buildCOOLKEY {
    cp -f $PK11INSTALL_LIB_PATH/libplc4.dylib ../staging/$COOLKEY_PATH/bin
    cp -f $PK11INSTALL_LIB_PATH/libplds4.dylib ../staging/$COOLKEY_PATH/bin
    cp -f $PK11INSTALL_LIB_PATH/libnspr4.dylib ../staging/$COOLKEY_PATH/bin
+   cp -f $PK11INSTALL_LIB_PATH/libnssutil3.dylib ../staging/$COOLKEY_PATH/bin
+   cp -f $PK11INSTALL_LIB_PATH/libsqlite3.dylib ../staging/$COOLKEY_PATH/bin
 
    return 0
 }
@@ -300,9 +202,9 @@ function buildESC {
 
    if [ -d esc ];
    then
-      cvs  -d  $FEDORA_CVS_ROOT update esc
+      echo "ESC checked out already."
    else
-      cvs -d $FEDORA_CVS_ROOT co esc
+      cvs -d $FEDORA_CVS_ROOT co -r $ESC_TAG esc
    fi
 
    if [ $? != 0 ];
@@ -312,29 +214,18 @@ function buildESC {
     fi
 
    cd esc
-   mkdir -p dist/src
-   cd dist/src
 
-   cvs -d $MOZ_CVS_ROOT co -r  $MOZ_XULRUNNER_BRANCH mozilla/client.mk
+   make BUILD_OPT=1 USE_XUL_SDK=1 clean
+   echo   make BUILD_OPT=1 USE_XUL_SDK=1 ESC_VERSION=$ESC_VERSION CKY_INCLUDE=-I$BASE_DIR/staging/$COOLKEY_PATH/include CKY_LIB_LDD=-L$BASE_DIR/staging/$COOLKEY_PATH/lib XUL_FRAMEWORK_PATH=$XUL_FRAMEWORK_PATH
 
-   if [ $? != 0 ];
-    then
-        echo "Can't checkout Xulrunner code."
-        return 1
-    fi
+   echo   make BUILD_OPT=1 USE_XUL_SDK=1 ESC_VERSION=$ESC_VERSION CKY_INCLUDE=-I$BASE_DIR/staging/$COOLKEY_PATH/include CKY_LIB_LDD=-L$BASE_DIR/staging/$COOLKEY_PATH/lib XUL_FRAMEWORK_PATH=$XUL_FRAMEWORK_PATH > build.sh
 
-   cd mozilla
-   make -f client.mk checkout MOZ_CO_PROJECT=xulrunner
-   
-   if [ $? != 0 ];
-    then
-        echo "Can't checkout Xulrunner code."
-        return 1
-    fi
- 
-   cd ../../..
+   echo make BUILD_OPT=1 USE_XUL_SDK=1 clean > clean.sh
 
-   make BUILD_OPT=1 ESC_VERSION=$ESC_VERSION CKY_INCLUDE=-I$BASE_DIR/staging/$COOLKEY_PATH/include CKY_LIB_LDD=-L$BASE_DIR/staging/$COOLKEY_PATH/lib
+   chmod 775 build.sh
+   chmod 775 clean.sh
+
+   make BUILD_OPT=1 USE_XUL_SDK=1 ESC_VERSION=$ESC_VERSION CKY_INCLUDE=-I$BASE_DIR/staging/$COOLKEY_PATH/include CKY_LIB_LDD=-L$BASE_DIR/staging/$COOLKEY_PATH/lib XUL_FRAMEWORK_PATH=$XUL_FRAMEWORK_PATH
 
    if [ $? != 0 ];
     then
@@ -387,7 +278,6 @@ echo "TOKEND_PATH_NAME $TOKEND_PATH_NAME"
     fi
 
 
-
    mkdir -p staging/$TOKEND_DEST_PATH
 
    unzip COOLKEY.zip
@@ -398,8 +288,7 @@ echo "TOKEND_PATH_NAME $TOKEND_PATH_NAME"
         return 0
     fi
 
-
-   mv COOLKEY.tokend ./staging/$TOKEND_DEST_PATH/A_COOLKEY.tokend
+   sudo mv COOLKEY.tokend ./staging/$TOKEND_DEST_PATH/COOLKEY.tokend
 
    if [ $? != 0 ];
     then
@@ -407,10 +296,7 @@ echo "TOKEND_PATH_NAME $TOKEND_PATH_NAME"
         return 0
     fi
 
-
     return 0
-
-
 }
 
 function buildMacPackage {
@@ -458,7 +344,7 @@ function buildMacPackage {
 
      echo "About to create pkg installer..."
 
-    $PACKAGE_MAKER_PATH/PackageMaker -build -p $COOLKEY_PKG_NAME -f $BASE_DIR/staging -i $BASE_DIR/coolkey_package_data/Info.plist -d $BASE_DIR/coolkey_package_data/Description.plist -r $BASE_DIR/coolkey_package_data/Resources
+    $PACKAGE_MAKER_PATH/PackageMaker -build -p $COOLKEY_PKG_NAME -f $BASE_DIR/staging -i $BASE_DIR/coolkey_package_data/Info.plist -d $BASE_DIR/coolkey_package_data/Description.plist -r $BASE_DIR/coolkey_package_data/Resources --verbose
 
     if [ $? != 0 ];
     then
@@ -469,7 +355,7 @@ function buildMacPackage {
     echo "Creating final dmg file .... "
     printf "\n"
 
-    hdiutil create -format UDZO -fs HFS+ -volname $COOLKEY_VOL_NAME -srcfolder $COOLKEY_PKG_NAME $COOLKEY_DMG_NAME
+    hdiutil create -format UDZO -fs HFS+ -volname $COOLKEY_VOL_NAME -srcfolder $BASE_DIR/$COOLKEY_PKG_NAME $COOLKEY_DMG_NAME
 
     if [ $? != 0 ];
     then
@@ -486,47 +372,26 @@ function initializeBuild {
    echo "Initializing system for Mac build..... "
    printf "\n"
 
+   mkdir -p staging
+   mkdir -p staging/usr
+   mkdir -p staging/System
+   mkdir -p staging/Applications
 
-   sudo chown -R -v -h ${USER}:${USER} staging/usr
-   sudo chown -R -v -h ${USER}:${USER} staging/System
-   sudo chown -R -v -h ${USER}:${USER} staging/Applications
-
-
-   echo "Setting default compiler to gcc 4.0.1 ...... "
-   printf "\n"
-
-   sudo gcc_select 4.0
+   sudo chown -R -v -h ${USER}:staff staging/usr
+   sudo chown -R -v -h ${USER}:staff staging/System
+   sudo chown -R -v -h ${USER}:staff staging/Applications
 
    rm -rf staging/CVS
 
    rm -rf  staging/$TOKEND_DEST_PATH
 
+   rm -rf  staging/Applications/*
+   rm -rf  staging/System/*
+   rm -rf  stating/usr/*
+
    rm -rf *.dmg
 
-
-   mkdir -p BUILD
-
-   if [ $? != 0 ];
-   then
-       echo "Problem setting up build...."
-       exit 1
-   fi
-
-   mkdir -p SPECS
-
-   if [ $? != 0 ];
-   then
-       echo "Problem setting up build...."
-       exit 1
-   fi
-   mkdir -p SOURCES
-
-   if [ $? != 0 ];
-   then
-       echo "Problem setting up build...."
-       exit 1
-   fi
-
+   export MACOSX_DEPLOYMENT_TARGET=10.5
 
 }
 
@@ -554,7 +419,7 @@ function processARGS {
        return
     fi    
 
-    if [ $THE_ARG != -doUsb ] && [ $THE_ARG != -doEgate ] && [ $THE_ARG != -doEsc ] && [ $THE_ARG != -doCoolKey ] && [ $THE_ARG != -doTokenD ] &&  [ $THE_ARG != -doInstaller ];
+    if [ $THE_ARG != -doEsc ] && [ $THE_ARG != -doCoolKey ] && [ $THE_ARG != -doTokenD ] &&  [ $THE_ARG != -doInstaller ];
     then
         echo "Incorrect arguments!"
         usage
@@ -571,17 +436,12 @@ THE_ARG=$1
 
 processARGS
 
-
 initializeBuild
-
-buildUSB
 
 if [ $? != 0 ];
 then
     exit 1 
 fi
-
-buildEGATE
 
 if [ $? != 0 ];
 then
@@ -598,17 +458,6 @@ then
 fi
 
 buildESC
-
-if [ $? != 0 ];
-then
-    exit 1
-fi
-
-# Build coolkey, now with pk11install
-
-ENABLE_PK11INSTALL=--enable-pk11install
-
-buildCOOLKEY
 
 if [ $? != 0 ];
 then

@@ -31,7 +31,7 @@ endif
 
 
 MAPFILE		= $(OBJDIR)/httpchunked.def
-DEFINES		= -I$(SYS_INC)/nspr4 -I$(SYS_INC)/nss3 -I$(SYS_INC)/$(MOZ_OFFSET)/nspr -I$(SYS_INC)/$(MOZ_OFFSET)/nss -I$(XULRUNNER_BASE)/dist/public/nss -I$(XULRUNNER_BASE)/dist/include/nspr -I$(GECKO_SDK_PATH)/include/nspr -I$(GECKO_SDK_PATH)/include/nss
+DEFINES		= -I$(SYS_INC)/nspr4 -I$(SYS_INC)/nss3 -I$(SYS_INC)/$(MOZ_OFFSET)/nspr -I$(SYS_INC)/$(MOZ_OFFSET)/nss -I$(XULRUNNER_BASE)/dist/public/nss -I$(XULRUNNER_BASE)/dist/include/nspr -I$(GECKO_SDK_PATH)/include/nspr -I$(GECKO_SDK_PATH)/include/nss -I../coolkey
 
 CPPSRCS		= \
 		Cache.cpp \

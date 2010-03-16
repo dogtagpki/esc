@@ -42,6 +42,7 @@ ifndef GECKO_SDK_PATH
 GECKO_SDK_PATH =/Users/jmagne/Desktop/gecko-sdk-mac-universal
 endif
 GECKO_INCLUDE_PATH=$(GECKO_SDK_PATH)/include
+GECKO_SDK_INCLUDE_PATH=$(GECKO_SDK_PATH)/sdk/include
 GECKO_BIN_PATH=$(GECKO_SDK_PATH)/bin
 ifndef XUL_FRAMEWORK_PATH
 XUL_FRAMEWORK_PATH=/Library/Frameworks/XUL.framework
@@ -92,16 +93,16 @@ endif
 
 
 ifeq ($(OS_ARCH),Darwin)
+CXX = c++-4.0
 ifdef PPC_BUILD
-CXX = c++-3.3
-CPPFLAGS += -arch ppc
+CPPFLAGS += -arch ppc -fshort-wchar
 else
-CPPFLAGS +=  -isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386
+CPPFLAGS +=  -isysroot /Developer/SDKs/MacOSX10.5.sdk -arch i386 -fshort-wchar
 endif
 endif
 
 ifeq ($(OS_ARCH),Darwin)
-GECKO_LD_LIBS=-L$(GECKO_SDK_PATH)/lib    -W1,  $(GECKO_SDK_PATH)/lib/libxpcomglue.a -L$(XUL_FRAMEWORK_BIN_PATH) -lnss3 -lssl3 -lsoftokn3 -lplds4 -lplc4 -lnssutil3
+GECKO_LD_LIBS=-L$(GECKO_SDK_PATH)/sdk/lib    -W1,  $(GECKO_SDK_PATH)/lib/libxpcomglue.a  -L$(GECKO_SDK_PATH)/bin -lnss3 -lssl3 -lnssutil3
 endif
 
 
@@ -133,7 +134,7 @@ NSS_INCLUDE =  /usr/include/nss3
 NSPR_INCLUDE =  /usr/include/nspr4
 
  
-GECKO_INCLUDES = -I $(GECKO_SDK_PATH)/include -I $(GECKO_INCLUDE_PATH) -I $(NSPR_INCLUDE) -I $(NSS_INCLUDE) -I $(GECKO_INCLUDE_PATH)/xpcom
+GECKO_INCLUDES = -I $(GECKO_SDK_INCLUDE_PATH)  -I $(GECKO_INCLUDE_PATH) -I $(NSPR_INCLUDE) -I $(NSS_INCLUDE) -I $(GECKO_INCLUDE_PATH)/xpcom -I $(GECKO_INCLUDE_PATH)/nspr
 
 
 COOL_INCLUDES = -I $(CORE_INC)/ckymanager -I $(CORE_INC)/httpchuncked
@@ -152,7 +153,7 @@ ifeq ($(OS_ARCH),Darwin)
 COOL_LDFLAGS += -lsystemStubs  -framework Carbon   -bundle -lm
 endif
  
-GECKO_LDFLAGS= -lnspr4 \
+GECKO_LDFLAGS= -L$(GECKO_SDK_PATH)/lib  -lnspr4 \
 	-lplds4  -lplc4 -ldl  -lpthread  -Wl -z   \
         $(GECKO_LD_LIBS)
 
@@ -252,7 +253,7 @@ $(DEPLOY_OBJDIR):
 
 ifeq ($(OS_ARCH), Darwin)
 	mkdir $(DEPLOY_OBJDIR)/$(XULRUNNER_FRAME_BASE)
-	cp -Rf -v $(XUL_FRAMEWORK_PATH) $(DEPLOY_OBJDIR)/$(XULRUNNER_FRAME_DEST)
+	rsync -r -v --links $(XUL_FRAMEWORK_PATH) $(DEPLOY_OBJDIR)/$(XULRUNNER_FRAME_BASE)
 endif
 
 ifeq ($(OS_ARCH),Linux)
