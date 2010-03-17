@@ -31,14 +31,13 @@ all libs:
  
 	mkdir -p $(UNIVERSAL_OFFSET_PPC)
 	mkdir -p $(UNIVERSAL_OFFSET_386)
-	sudo gcc_select 4.0
+
 	echo "Build i386."
 	make -f common.mk OSX_ARCH_FLAGS="-arch i386 -isysroot /Developer/SDKs/MacOSX10.4u.sdk"
 
 
 	cp $(OBJDIR)/$(DARWIN_LIB_NAME) $(UNIVERSAL_OFFSET_386)
 	make -f common.mk clean
-	sudo gcc_select 3.3
 	echo "Build ppc."
 	make -f common.mk OSX_ARCH_FLAGS="-arch ppc" 
 	cp $(OBJDIR)/$(DARWIN_LIB_NAME) $(UNIVERSAL_OFFSET_PPC)
@@ -47,8 +46,6 @@ all libs:
 
 	ranlib $(OBJDIR)/$(DARWIN_LIB_NAME)
 	make -f common.mk install
-
-	sudo gcc_select 4.0
 
 clean:
 	"Darwing clean."

@@ -85,6 +85,12 @@
 <!ENTITY tpsConfigDesc2 "Second, you must format it from the main Smart Card Manager window."> 
 <!ENTITY tpsConfigDesc3 "Enter the location of the smart card server (such as https://smartcardserver.example.com:7888)">
 <!ENTITY diagnosticsMessage "The information below is diagnostic information that your system generates as you use your smart card. If you are having smart card problems, you may be asked by your support engineer to send this information for analysis.">
+<!ENTITY macmenu.hide "Hide ESC">
+<!ENTITY macmenu.services "Services">
+<!ENTITY macmenu.hideothers "Hide Others">
+<!ENTITY macmenu.showall "Show All">
+<!ENTITY macmenu.quit "Quit">
+<!ENTITY macmenu.go "GO">
 <!ENTITY dontLaunchBrowser "Don't launch the default browser when enrolled card is inserted.">
 <!ENTITY Close.accesskey "C">
 <!ENTITY OK.accesskey "O">

@@ -1107,9 +1107,7 @@ HRESULT CoolKeyGetIssuerInfo(const CoolKey *aKey, char *aBuf, int aBufLen)
         goto done;
     }
 
-#ifndef DARWIN
 CKYCardConnection_BeginTransaction(conn);
-#endif
     apduRC = 0;
     status = CKYApplet_SelectCoolKeyManager(conn, &apduRC);
     if (status != CKYSUCCESS) {
@@ -1154,9 +1152,7 @@ CKYCardConnection_BeginTransaction(conn);
     done:
 
     if (conn) {
-#ifndef DARWIN
         CKYCardConnection_EndTransaction(conn);
-#endif
         CKYCardConnection_Disconnect(conn);
         CKYCardConnection_Destroy(conn);
     }

@@ -81,7 +81,7 @@
            var wwatch = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
                          .getService(nsIWindowWatcher);
            win = wwatch.openWindow(null, chromeURI, "_blank",
-                     "chrome,dialog,height=-1,width=-1,popup=yes", cmdLine);
+                     "chrome,dialog,height=0,width=0,titlebar=no", cmdLine);
 
 
        }

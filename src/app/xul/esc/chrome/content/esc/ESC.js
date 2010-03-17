@@ -4793,3 +4793,11 @@ function GetESCLogPathName(aName)
 
 
 }
+
+function QuitApplication()
+{
+    Components
+        .classes['@mozilla.org/toolkit/app-startup;1']
+        .getService(Components.interfaces.nsIAppStartup)
+        .quit(Components.interfaces.nsIAppStartup.eForceQuit);
+}

@@ -43,6 +43,7 @@ ifeq ($(OS_ARCH),Darwin)
 ifndef GECKO_SDK_PATH
 GECKO_SDK_PATH =/Users/jmagne/Desktop/gecko-sdk-mac-universal
 endif
+GECKO_SDK_INCLUDE_PATH=$(GECKO_SDK_PATH)/sdk/include
 GECKO_INCLUDE_PATH=$(GECKO_SDK_PATH)/include
 GECKO_BIN_PATH=$(GECKO_SDK_PATH)/bin
 ifndef XUL_FRAMEWORK_PATH
@@ -113,7 +114,7 @@ endif
 
 ifeq ($(OS_ARCH),Darwin)
 ifdef PPC_BUILD
-CXX = c++-3.3
+CXX = c++-4.0
 CPPFLAGS += -arch ppc
 else
 CPPFLAGS +=  -isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386
@@ -140,7 +141,7 @@ NOTIFY_LDFLAGS  = $(shell pkg-config --libs libnotify)
 COOLKEY_LIBS+= -L $(CORE_DIST)/lib -ltraynotify  -L/usr/lib  $(NOTIFY_LDFLAGS)
 
 ifeq ($(OS_ARCH),Darwin)
-GECKO_LD_LIBS=-W1,dead_strip $(GECKO_SDK_PATH)/lib/libxpcomglue.a -Wl,-executable_path,$(GECKO_SDK_PATH)/lib -lxpcom   -L$(XUL_FRAMEWORK_BIN_PATH)   -lssl3  -lnssutil3  -lsqlite3  -lnss3 -lsoftokn3 -lsmime3
+GECKO_LD_LIBS=-W1,dead_strip $(GECKO_SDK_PATH)/lib/libxpcomglue_s.a -Wl,-executable_path,$(GECKO_SDK_PATH)/lib -lxpcom
 endif
 
 ifeq ($(OS_ARCH),WINNT)
@@ -164,7 +165,7 @@ NSS_INCLUDE =  /usr/include/nss3
 NSPR_INCLUDE =  /usr/include/nspr4
 
  
-GECKO_INCLUDES = -I $(GECKO_SDK_PATH)/include -I $(GECKO_SDK_INCLUDE_PATH) -I $(GECKO_INCLUDE_PATH) -I$(GECKO_INCLUDE_PATH)/gfx -I $(NSPR_INCLUDE) -I $(NSS_INCLUDE) -I $(GECKO_INCLUDE_PATH)/xpcom
+GECKO_INCLUDES = -I $(GECKO_SDK_PATH)/include -I $(GECKO_SDK_INCLUDE_PATH) -I $(GECKO_INCLUDE_PATH) -I$(GECKO_INCLUDE_PATH)/gfx -I $(NSPR_INCLUDE) -I $(NSS_INCLUDE) -I $(GECKO_INCLUDE_PATH)/xpcom -I $(GECKO_INCLUDE_PATH)/nspr
 
 
 COOL_INCLUDES = -I $(CORE_INC)/ckymanager -I $(CORE_INC)/httpchuncked
@@ -200,7 +201,7 @@ OBJECT		= rhMacTray.o
 endif
 
  
-GECKO_LDFLAGS= -lnspr4 \
+GECKO_LDFLAGS= -L$(GECKO_SDK_PATH)/lib  -lnspr4 \
 	-lplds4  -lplc4 -ldl  -lpthread    \
         $(GECKO_LD_LIBS)
 
