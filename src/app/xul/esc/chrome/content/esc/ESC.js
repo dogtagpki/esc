@@ -1862,6 +1862,8 @@ function InitializeAdminBindingList()
  
  window.setTimeout('ShowWindow()',250);
 
+ list.focus();
+
 }
 
 //Window related functions
