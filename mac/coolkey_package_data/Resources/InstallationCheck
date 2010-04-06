@@ -1,0 +1,155 @@
+#!/bin/bash
+
+# BEGIN COPYRIGHT BLOCK
+ # This Program is free software; you can redistribute it and/or modify it under
+ # the terms of the GNU General Public License as published by the Free Software
+ # Foundation; version 2 of the License.
+ #
+ # This Program is distributed in the hope that it will be useful, but WITHOUT
+ # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ #
+ # You should have received a copy of the GNU General Public License along with
+ # this Program; if not, write to the Free Software Foundation, Inc., 59 Temple
+ # Place, Suite 330, Boston, MA 02111-1307 USA.
+ #
+ # Copyright (C) 2005 Red Hat, Inc.
+ # All rights reserved.
+ # END COPYRIGHT BLOCK **/
+
+ESC_APP="ESC.app"
+COOLKEY_TOKEND="COOLKEY.tokend"
+PCSC_LITE="/usr/sbin/pcscd"
+LIB_COOLKEY="libcoolkeypk11.dylib"
+MIN_OS_VERSION="10.5.0"
+
+function IsRunning {
+
+if  ps -A | grep -v grep | grep $1 > /dev/null 
+then
+  return 1
+fi
+
+return 0
+}
+
+function IsInUse {
+
+lsof | grep $1
+
+if [ $? -eq 0 ];
+then
+    return 1
+fi
+
+return 0
+}
+
+#Assure proper OS Version
+
+function IsLegalOSVersion  {
+
+# Input parameter is string of mininum legal version
+version=`sw_vers -productVersion`
+
+min_version=$1
+
+OLD_IFS="$IFS"
+IFS="."
+
+version_array=( $version )
+min_version_array=( $min_version )
+
+IFS="$OLD_IFS"
+
+#echo ${min_version_array[0]}
+#echo ${min_version_array[1]}
+#echo ${min_version_array[2]}
+
+#echo ${version_array[0]}
+#echo ${version_array[1]}
+#echo ${version_array[2]}
+
+let "major=version_array[0] + 0"
+let "min_major=min_version_array[0] + 0"
+
+let "minor=version_array[1] + 0"
+let "min_minor=min_version_array[1] + 0"
+
+let "release=version_array[2] + 0"
+let "min_release=min_version_array[2] + 0"
+
+if [ $major -ge $min_major ];
+then
+   echo "major ok" 
+else
+   echo "major no ok" $major
+   return 0
+fi
+
+if [ $minor -ge $min_minor ];
+then
+   echo "minor ok"
+else
+   echo "minor no ok" $minor
+   return 0
+fi
+
+if [ $release -ge $min_release ];
+then
+   echo "release ok"
+else
+   echo "release no ok" $release
+   return 0
+fi
+
+return 1
+}
+
+#check for Leopard or above
+
+IsLegalOSVersion $MIN_OS_VERSION
+
+if [ $? -eq 0 ];
+then
+    exit 112
+fi
+
+# check esc 
+
+IsRunning $ESC_APP
+
+if [ $? -eq 1 ];
+then
+    exit 113
+fi
+
+# check COOLKEY.tokend
+
+IsRunning $COOLKEY_TOKEND
+
+if [ $? -eq 1 ];
+then
+   exit 114
+fi
+
+#check pcscd
+
+IsRunning $PCSC_LITE
+
+if [ $? -eq 1 ];
+then
+   exit 115
+fi
+
+# check to see of libcooleypk11.dylib is in use
+
+IsInUse $LIB_COOLKEY
+
+if [ $? -eq 1 ];
+then
+   echo "COOLKEY PKCS#11 module in use."
+   exit 116
+fi
+
+exit 0
