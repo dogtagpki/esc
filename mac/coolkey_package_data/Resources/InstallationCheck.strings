@@ -1,0 +1,6 @@
+"16" = "Mac OS X, version 10.5 or later is required for this software.";
+"17" = "Please close any running instances of the ESC  SmartCardManager and try again.";
+"18" = "Please make sure all COOLKEY smart cards are removed from the computer and try again.";
+"19" = "Please make sure all smart cards are removed from the computer and try again.";
+"20" = "Please close all Mozilla browsers and mail clients that may be using the COOLKEY PKCS#11 module and try again.";
+
