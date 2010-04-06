@@ -1841,6 +1841,15 @@ function AdminKeyPressHandler(evt)
       if(newitem) 
         newitem.click();
   }
+
+  var item = null;
+  for( i = 0; i < list.getRowCount(); i ++) {
+      item = list.getItemAtIndex(i);
+
+      if(item && item != gCurrentSelectedRow) {
+          item.setAttribute("class","UnSelectedRow");
+      }
+  }
 }
 
 function InitializeAdminBindingList()
