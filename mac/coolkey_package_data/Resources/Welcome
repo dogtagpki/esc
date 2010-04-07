@@ -1,0 +1,13 @@
+Please remove all smart cards from the computer before proceeding.
+
+After successfully installing this package, this computer can be used to manage and use smart cards for common cryptographic operations such as secure mail and secure web site access..
+
+
+The following Smart Card related components will be installed:
+
+1. The Smart Card Manager application (ESC), used to manage smart cards.
+
+2. The CoolKey PKCS#11 driver, used to recognize CoolKey smart cards.
+
+3. The CoolKey Smart CArd "Tokend" driver, used by Apple Mail and Safari to recognize CoolKey smart cards.
+
