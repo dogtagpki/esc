@@ -35,7 +35,7 @@ then
     XUL_FRAMEWORK_PATH=~/XUL.framework
 fi
 
-TOKEND_PATH_NAME=/Users/slowjack/COOLKEY.zip
+#TOKEND_PATH_NAME=/Users/slowjack/COOLKEY.zip
 
 printf "\n \n"
 echo "Building ESC... for Mac.... "
