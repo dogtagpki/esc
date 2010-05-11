@@ -9,5 +9,5 @@ The following Smart Card related components will be installed:
 
 2. The CoolKey PKCS#11 driver, used to recognize CoolKey smart cards.
 
-3. The CoolKey Smart CArd "Tokend" driver, used by Apple Mail and Safari to recognize CoolKey smart cards.
+3. The CoolKey Smart Card "Tokend" driver, used by Apple Mail and Safari to recognize CoolKey smart cards.
 

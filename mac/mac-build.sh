@@ -180,6 +180,7 @@ function buildCOOLKEY {
    cp -f $PK11INSTALL_LIB_PATH/libnspr4.dylib ../staging/$COOLKEY_PATH/bin
    cp -f $PK11INSTALL_LIB_PATH/libnssutil3.dylib ../staging/$COOLKEY_PATH/bin
    cp -f $PK11INSTALL_LIB_PATH/libsqlite3.dylib ../staging/$COOLKEY_PATH/bin
+   cp -f $PK11INSTALL_LIB_PATH/libnssdbm3.dylib ../staging/$COOLKEY_PATH/bin
 
    return 0
 }
