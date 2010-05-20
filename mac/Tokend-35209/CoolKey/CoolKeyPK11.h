@@ -10,6 +10,7 @@
 //#include <Security/SecKey.h>
 #include <map>
 #include <string>
+#include <Token.h>
 
 #define COOLKEY_MAX_SLOTS 20
 #define PKCS11_PATH_NAME "/Library/Application Support/CoolKey/PKCS11/libcoolkeypk11.dylib"
@@ -125,7 +126,7 @@ public:
     CoolKeyPK11(): mPk11Driver(NULL),mEpv(NULL),mInitialized(0),mOurSlotIndex(0),mIsOurToken(0),mCachedPIN("") {} ;
     virtual ~CoolKeyPK11() {};
 
-    int loadModule();
+    int loadModule(const SCARD_READERSTATE &readerInfo);
     int freeModule();
 
     int loginToken(char *aPIN);
@@ -161,7 +162,7 @@ protected:
 
 private:
 
-    int loadSlotList();
+    int loadSlotList(const SCARD_READERSTATE &readerInfo);
 
     void * mPk11Driver;
     CK_FUNCTION_LIST_PTR mEpv;

@@ -147,7 +147,7 @@ int CoolKeyPK11::isTokenLoggedIn()
    return loggedIn; 
 }
 
-int CoolKeyPK11::loadModule()
+int CoolKeyPK11::loadModule(const SCARD_READERSTATE &readerInfo)
 {
 
     CK_RV ck_rv;
@@ -221,7 +221,7 @@ int CoolKeyPK11::loadModule()
     //Syslog::debug("Successfully Initialized PKCS11 module. ");
 
     mInitialized = 1;
-    int res = loadSlotList();
+    int res = loadSlotList(readerInfo);
 
     if(res)
     {
@@ -412,7 +412,7 @@ int CoolKeyPK11::loadObjects()
     return 1;
 }
 
-int CoolKeyPK11::loadSlotList()
+int CoolKeyPK11::loadSlotList(const SCARD_READERSTATE &readerInfo)
 {
     mTokenUid[0] = 0;
     int result = 0;
@@ -450,8 +450,6 @@ int CoolKeyPK11::loadSlotList()
          {
              Syslog::debug("In CoolKeyToken::probe() GetSlotList error: %d ",ck_rv);
          }
-
-         mOurSlotIndex = nSlots - 1;
 
          for(CK_ULONG i = 0; i < nSlots ; i++)
          {
@@ -502,7 +500,15 @@ int CoolKeyPK11::loadSlotList()
 
              }
 
-             if(sinfo.flags & CKF_TOKEN_PRESENT )
+             int isTheOne = 0;
+
+             if(strstr((char *)sinfo.slotDescription , (char *)readerInfo.szReader))
+             {
+                 isTheOne = 1;
+                 Syslog::notice("szReader == slotDescripton, we found the reader!");
+             }
+
+             if(sinfo.flags & CKF_TOKEN_PRESENT && isTheOne)
              {
                   CK_TOKEN_INFO tinfo;
 
@@ -520,7 +526,7 @@ int CoolKeyPK11::loadSlotList()
                   Syslog::notice("        serialNumber = \"%.16s\"", tinfo.serialNumber);
                   Syslog::notice("        flags = 0x%08lx", tinfo.flags);
 
-                  /*
+                 /* 
                   Syslog::notice("            -> RNG = %s",
                         tinfo.flags & CKF_RNG ? "TRUE" : "FALSE");
                   Syslog::notice("            -> WRITE PROTECTED = %s",
@@ -544,9 +550,9 @@ int CoolKeyPK11::loadSlotList()
                   Syslog::notice("        ulTotalPrivateMemory = %lu", tinfo.ulTotalPrivateMemory);
                   Syslog::notice("        ulFreePrivateMemory = %lu", tinfo.ulFreePrivateMemory);
                   Syslog::notice("        hardwareVersion = %lu.%02lu", 
-                      (uint32)tinfo.hardwareVersion.major, (uint32)tinfo.hardwareVersion.minor);
+                      (CK_ULONG)tinfo.hardwareVersion.major, (CK_ULONG)tinfo.hardwareVersion.minor);
                        Syslog::notice("        firmwareVersion = %lu.%02lu",
-                       (uint32)tinfo.firmwareVersion.major, (uint32)tinfo.firmwareVersion.minor);
+                       (CK_ULONG)tinfo.firmwareVersion.major, (CK_ULONG)tinfo.firmwareVersion.minor);
                   Syslog::notice("        utcTime = \"%.16s\"", tinfo.utcTime);
                   */     
 
@@ -555,20 +561,22 @@ int CoolKeyPK11::loadSlotList()
                          
                   memcpy((void  *) mTokenUid, (void *) tinfo.label,label_size);
                   mTokenUid[label_size -1] = 0;
+
+                  mOurSlotIndex = i;
+                  result = 1;
              }
              else
              {
                  Syslog::error(" Token not present in slot ");
-                 return  result;
+                 continue;   //return  result;
              }
-             
          }
      }else
      {
          return result;
      }
 
-     return 1;
+     return result;
 }
 
 //Actual crypto ops
@@ -673,7 +681,7 @@ void CoolKeyObject::loadAttributes(CK_ATTRIBUTE *aTemplate,int aTemplateSize)
 {
     CK_RV ck_rv;
 
-    Syslog::notice("CoolKeyObject::loadAttributes with args template size %d",aTemplateSize);
+    //Syslog::notice("CoolKeyObject::loadAttributes with args template size %d",aTemplateSize);
 
     if(!aTemplate || aTemplateSize <= 0 || mAttributesLoaded)
         return;
@@ -682,7 +690,7 @@ void CoolKeyObject::loadAttributes(CK_ATTRIBUTE *aTemplate,int aTemplateSize)
 
     if(mParent && (funcPtr = mParent->getFunctionPointer()))
     {
-         Syslog::notice("CoolKeyObject::loadAttributes got function pointer");
+         //Syslog::notice("CoolKeyObject::loadAttributes got function pointer");
          ck_rv = funcPtr->C_GetAttributeValue(mSessHandle, mObjHandle, aTemplate, aTemplateSize);
 
          switch(ck_rv)
@@ -699,12 +707,13 @@ void CoolKeyObject::loadAttributes(CK_ATTRIBUTE *aTemplate,int aTemplateSize)
              break;
          };
 
-         for(int i = 0 ; i < aTemplateSize ; i++)
+        /* for(int i = 0 ; i < aTemplateSize ; i++)
          {
              Syslog::notice("Object attribute:  name % stype 0x%lx ,  size %d",
                  attributeName(aTemplate[i].type),aTemplate[i].type,
                  aTemplate[i].ulValueLen);             
          }
+        */
 
          //Do it again to get actual data
 
@@ -752,9 +761,10 @@ void CoolKeyObject::loadAttributes(CK_ATTRIBUTE *aTemplate,int aTemplateSize)
 
              if(size && size != -1 &&  data)
              {
-                Syslog::notice("Legitimate Object attribute saving.... Name: %s : type 0x%lx ,  size %d",
+               /* Syslog::notice("Legitimate Object attribute saving.... Name: %s : type 0x%lx ,  size %d",
                    attributeName(aTemplate[i].type),aTemplate[i].type,
                    aTemplate[i].ulValueLen);
+               */
 
                 CK_ATTRIBUTE * newAttr = new CK_ATTRIBUTE ;
 
@@ -777,7 +787,7 @@ void CoolKeyObject::loadAttributes(CK_ATTRIBUTE *aTemplate,int aTemplateSize)
                 newAttr->type = aTemplate[i].type;
                 newAttr->pValue = aTemplate[i].pValue;
 
-                CoolKeyObject::dumpData((CK_BYTE *)newAttr->pValue,newAttr->ulValueLen);
+                //CoolKeyObject::dumpData((CK_BYTE *)newAttr->pValue,newAttr->ulValueLen);
 
                 // put the attribute in our local map
 
@@ -821,7 +831,7 @@ CK_BYTE CoolKeyKeyObject::getSensitive()
 
     result = getByteAttribute(CKA_SENSITIVE);
 
-    Syslog::notice("In CoolKeyObject::getID type %c",result);
+    //Syslog::notice("In CoolKeyObject::getID type %c",result);
     return result;
 }
 
@@ -832,7 +842,7 @@ CK_BYTE      CoolKeyKeyObject::getKeyEncrypt()
 
     result = getByteAttribute(CKA_ENCRYPT);
 
-    Syslog::notice("In CoolKeyObject::getKeyEncrypt result %d",result);
+    //Syslog::notice("In CoolKeyObject::getKeyEncrypt result %d",result);
     return result;
 
 
@@ -845,7 +855,7 @@ CK_BYTE      CoolKeyKeyObject::getKeyDecrypt()
 
     result = getByteAttribute(CKA_DECRYPT);
 
-    Syslog::notice("In CoolKeyObject::getKeyDecrypt type %d",result);
+    //Syslog::notice("In CoolKeyObject::getKeyDecrypt type %d",result);
     return result;
 
 }
@@ -857,7 +867,7 @@ CK_BYTE      CoolKeyKeyObject::getKeySign()
 
     result = getByteAttribute(CKA_SIGN);
 
-    Syslog::notice("In CoolKeyKeyObject::getKeySign type %d",result);
+    //Syslog::notice("In CoolKeyKeyObject::getKeySign type %d",result);
     return result;
 
 
@@ -869,7 +879,7 @@ CK_BYTE      CoolKeyKeyObject::getKeyWrap()
     CK_BYTE result = 0;
 
     result = getByteAttribute(CKA_WRAP);
-    Syslog::notice("In CoolKeyKeyObject::getKeyWrap type %d",result);
+    //Syslog::notice("In CoolKeyKeyObject::getKeyWrap type %d",result);
     return result;
 
 
@@ -882,7 +892,7 @@ CK_BYTE      CoolKeyKeyObject::getKeyVerify()
 
     result = getByteAttribute(CKA_VERIFY);
 
-    Syslog::notice("In CoolKeyKeyObject::getKeyVerify type %d",result);
+    //Syslog::notice("In CoolKeyKeyObject::getKeyVerify type %d",result);
     return result;
 
 
@@ -894,7 +904,7 @@ CK_BYTE      CoolKeyKeyObject::getKeyDerive()
     CK_BYTE result = 0;
 
     result = getByteAttribute(CKA_DERIVE);
-    Syslog::notice("In CoolKeyKeyObject::getKeyDerive type %d",result);
+    //Syslog::notice("In CoolKeyKeyObject::getKeyDerive type %d",result);
     return result;
 
 
@@ -907,7 +917,7 @@ CK_BYTE      CoolKeyKeyObject::getKeyUnwrap()
          
     result = getByteAttribute(CKA_UNWRAP);
 
-    Syslog::notice("In CoolKeyKeyObject::getKeyUnwrap type %d",result);
+    //Syslog::notice("In CoolKeyKeyObject::getKeyUnwrap type %d",result);
     return result;
 
          
@@ -920,7 +930,7 @@ CK_BYTE      CoolKeyKeyObject::getKeySignRecover()
 
     result = getByteAttribute(CKA_SIGN_RECOVER);
 
-    Syslog::notice("In CoolKeyKeyObject::getKeySignRecover type %d",result);
+    //Syslog::notice("In CoolKeyKeyObject::getKeySignRecover type %d",result);
     return result;
 
 }
@@ -932,7 +942,7 @@ CK_BYTE      CoolKeyKeyObject::getKeyVerifyRecover()
 
     result = getByteAttribute(CKA_VERIFY_RECOVER);
 
-    Syslog::notice("In CoolKeyObject::getKeyKeyVerifyRecover type %d",result);
+    //Syslog::notice("In CoolKeyObject::getKeyKeyVerifyRecover type %d",result);
     return result;
 
 }
@@ -944,7 +954,7 @@ CK_BYTE      CoolKeyKeyObject::getKeyExtractable()
 
     result = getByteAttribute(CKA_EXTRACTABLE);
 
-    Syslog::notice("In CoolKeyKeyObject::getExtractable type %d",result);
+    //Syslog::notice("In CoolKeyKeyObject::getExtractable type %d",result);
     return result;
 
 }
@@ -956,7 +966,7 @@ CK_BYTE      CoolKeyKeyObject::getKeyNeverExtractable()
 
     result = getByteAttribute(CKA_NEVER_EXTRACTABLE);
 
-    Syslog::notice("In CoolKeyKeyObject::getNeverExtractable type %d",result);
+    //Syslog::notice("In CoolKeyKeyObject::getNeverExtractable type %d",result);
     return result;
 
 }
@@ -967,7 +977,7 @@ CK_BYTE CoolKeyKeyObject::getAlwaysSensitive()
 
     result = getByteAttribute(CKA_ALWAYS_SENSITIVE);
 
-    Syslog::notice("In CoolKeyKeyObject::getAlwaysSensitive type %d",result);
+    //Syslog::notice("In CoolKeyKeyObject::getAlwaysSensitive type %d",result);
     return result;
 }
 
@@ -981,7 +991,7 @@ void CoolKeyKeyObject::getLabel(CK_BYTE *aData, CK_ULONG *aDataLen)
 
    getByteDataAttribute(CKA_LABEL,aData,aDataLen);
 
-   Syslog::notice("In CoolKeyKeyObject::getLabel %s",aData);
+   //Syslog::notice("In CoolKeyKeyObject::getLabel %s",aData);
 }
 
 CK_BYTE CoolKeyObject::getID()
@@ -990,7 +1000,7 @@ CK_BYTE CoolKeyObject::getID()
 
     result = getByteAttribute(CKA_ID);
 
-    Syslog::notice("In CoolKeyObject::getID type %c",result);
+    //Syslog::notice("In CoolKeyObject::getID type %c",result);
     return result;
 }
 
@@ -1148,7 +1158,7 @@ CK_ULONG CoolKeyCertObject::getType()
 
 CoolKeyObject::CoolKeyObject(CK_OBJECT_HANDLE aObjHandle, CK_SESSION_HANDLE aSessHandle,CK_LONG aObjClass,CoolKeyPK11 *aParent) : mObjHandle(aObjHandle),mSessHandle(aSessHandle),mAttributesLoaded(0),mObjClass(aObjClass),mParent(aParent)
 {
-    Syslog::notice("In CoolKeyObject::CoolKeyObject mObjClass %d",mObjClass);
+    //Syslog::notice("In CoolKeyObject::CoolKeyObject mObjClass %d",mObjClass);
 }
 
 CK_ATTRIBUTE * CoolKeyObject::getAttribute(CK_ATTRIBUTE_TYPE aAttr)
@@ -1183,7 +1193,7 @@ CK_ULONG CoolKeyObject::getULongAttribute(CK_ATTRIBUTE_TYPE aAttr)
 
     CK_ATTRIBUTE *theAttr = getAttribute(aAttr);
 
-    Syslog::notice("In CoolKeyObject::getULongAttr attr %p size %d  value %p",theAttr,theAttr->ulValueLen,theAttr->pValue);
+    //Syslog::notice("In CoolKeyObject::getULongAttr attr %p size %d  value %p",theAttr,theAttr->ulValueLen,theAttr->pValue);
 
     if(!theAttr)
         return 0;
@@ -1226,7 +1236,7 @@ void CoolKeyObject::getByteDataAttribute(CK_ATTRIBUTE_TYPE aAttr,CK_BYTE *aData,
 
    CK_ATTRIBUTE *theAttr = getAttribute(aAttr);
 
-   Syslog::notice("In CoolKeyObject::getByteData attr %p  attr size %d ",theAttr,theAttr->ulValueLen);
+   //Syslog::notice("In CoolKeyObject::getByteData attr %p  attr size %d ",theAttr,theAttr->ulValueLen);
     if(!theAttr)
         return ;
 

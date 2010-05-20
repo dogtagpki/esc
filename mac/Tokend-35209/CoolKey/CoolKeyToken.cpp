@@ -176,7 +176,7 @@ uint32 CoolKeyToken::probe(SecTokendProbeFlags flags,
    Syslog::notice ("READER_STATE -> cbAtr %u",readerState.cbAtr);
    Syslog::notice("READER_STATE -> rgbAtr %32x",(char *) readerState.rgbAtr);
 
-    int res = mCoolKey.loadModule();
+    int res = mCoolKey.loadModule(readerState);
      
     /* if(res)
          res = mCoolKey.loadObjects();
@@ -346,7 +346,7 @@ void CoolKeyToken::populate()
         {
             CK_BYTE id = obj->getID();
             oClass = obj->getClass();
-            Syslog::notice("Retrieved object %p class %lu id %d",obj,oClass,id); 
+            //Syslog::notice("Retrieved object %p class %lu id %d",obj,oClass,id); 
  
             CoolKeyRecord *newRecord = new CoolKeyRecord(obj); 
 
@@ -358,12 +358,12 @@ void CoolKeyToken::populate()
             {
                 case CKO_PRIVATE_KEY:
                     privateKeyRelation.insertRecord(theRecord);
-                    Syslog::notice("Inserting private key record %p",newRecord);
+                    //Syslog::notice("Inserting private key record %p",newRecord);
                     keys[obj] = theRecord;
                 break;
 
                 case CKO_PUBLIC_KEY:
-                Syslog::notice("Inserting public key record %p theRefRecord %p",newRecord,theRecord.get());
+                //Syslog::notice("Inserting public key record %p theRefRecord %p",newRecord,theRecord.get());
                              publicKeyRelation.insertRecord(theRecord);
                              keys[obj] = theRecord;
                 break;
@@ -371,7 +371,7 @@ void CoolKeyToken::populate()
                 case CKO_CERTIFICATE:
                     certs[id] = obj;
                     certRecs[obj] = theRecord;
-                    Syslog::notice("Inserting cert record %p",newRecord);
+                    //Syslog::notice("Inserting cert record %p",newRecord);
                     certRelation.insertRecord(theRecord);
                 break; 
 
@@ -404,21 +404,21 @@ void CoolKeyToken::populate()
                         RefPointer<CoolKeyRecord>  coolKeyRecRef = keys[obj];
                         CoolKeyRecord *  coolKeyRec = coolKeyRecRef.get();  
 
-                        Syslog::notice("Key %p  linked to cert %p",obj,cert);
+                        //Syslog::notice("Key %p  linked to cert %p",obj,cert);
 
                         if(coolKeyRec)
                         {
-                            Syslog::notice("Found record to create adornment record: %p",coolKeyRec);
+                            //Syslog::notice("Found record to create adornment record: %p",coolKeyRec);
                             if(certRecs[cert])
                             {
                                 Tokend::LinkedRecordAdornment * lra = new Tokend::LinkedRecordAdornment(certRecs[cert]);
-                                 Syslog::notice("lra %p",lra);
+                                 //Syslog::notice("lra %p",lra);
 
                                  if(lra)
                                  { 
                                      coolKeyRec->setAdornment(mSchema->publicKeyHashCoder().certificateKey(),
                                              lra);
-                                     Syslog::notice("certificateKey %p certRecs[cert] %p",mSchema->publicKeyHashCoder().certificateKey(),certRecs[cert].get());
+                                     //Syslog::notice("certificateKey %p certRecs[cert] %p",mSchema->publicKeyHashCoder().certificateKey(),certRecs[cert].get());
                                  }
                              }
                          }
