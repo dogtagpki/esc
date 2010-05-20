@@ -54,7 +54,7 @@ CoolKeyDataAttributeCoder::~CoolKeyDataAttributeCoder()
 void CoolKeyDataAttributeCoder::decode(TokenContext *tokenContext,
 	const MetaAttribute &metaAttribute, Record &record)
 {
-   Syslog::notice("CoolKeyDataAttributeCoder::decode");
+   //Syslog::notice("CoolKeyDataAttributeCoder::decode");
 }
 
 CoolKeyCertAttributeCoder:: ~CoolKeyCertAttributeCoder()
@@ -93,7 +93,7 @@ void CoolKeyCertAttributeCoder::decode(Tokend::TokenContext *tokenContext,
     switch(id)
     {
         case kSecAlias:
-            Syslog::notice("kSecAlias");
+            //Syslog::notice("kSecAlias");
 
             cert->getLabel(tData,&dataLen);
 
@@ -103,7 +103,7 @@ void CoolKeyCertAttributeCoder::decode(Tokend::TokenContext *tokenContext,
         case kSecSubjectItemAttr:
            cert->getSubject(tData,&dataLen);
 
-           Syslog::notice("kSecSubjectItemAttr retrieved data %p datalen %lu",tData,dataLen);
+           //Syslog::notice("kSecSubjectItemAttr retrieved data %p datalen %lu",tData,dataLen);
 
            record.attributeAtIndex(metaAttribute.attributeIndex(), new Attribute((const void *)tData,dataLen));
         break;
@@ -111,7 +111,7 @@ void CoolKeyCertAttributeCoder::decode(Tokend::TokenContext *tokenContext,
         case kSecIssuerItemAttr:
            cert->getIssuer(tData,&dataLen);
 
-           Syslog::notice("kSecIssuertItemAttr retrieved data %p datalen %lu",tData,dataLen);
+           //Syslog::notice("kSecIssuertItemAttr retrieved data %p datalen %lu",tData,dataLen);
 
            record.attributeAtIndex(metaAttribute.attributeIndex(), new Attribute((const void *)tData,dataLen));
         break;
@@ -119,13 +119,13 @@ void CoolKeyCertAttributeCoder::decode(Tokend::TokenContext *tokenContext,
         case kSecSerialNumberItemAttr:
            cert->getSerialNo(tData,&dataLen);
 
-           Syslog::notice("kSecSerialNumnberItemAttr retrieved data %p datalen %lu",tData,dataLen);
+           //Syslog::notice("kSecSerialNumnberItemAttr retrieved data %p datalen %lu",tData,dataLen);
 
            record.attributeAtIndex(metaAttribute.attributeIndex(), new Attribute((const void *)tData,dataLen));
         break;
 
         case kSecPublicKeyHashItemAttr:
-            Syslog::notice("kSecPublicKeyHashItemAttr");
+            //Syslog::notice("kSecPublicKeyHashItemAttr");
 
             getCertAttributeFromData(cert,kSecPublicKeyHashItemAttr, tData, &dataLen);
 
@@ -140,7 +140,7 @@ void CoolKeyCertAttributeCoder::decode(Tokend::TokenContext *tokenContext,
         case kSecCertTypeItemAttr:
             type = cert->getType();
 
-            Syslog::notice("kSecCertTypeItemAttr type %lu",type);
+            //Syslog::notice("kSecCertTypeItemAttr type %lu",type);
 
             if(type == CKC_X_509)
                type  = CSSM_CERT_X_509v3;
@@ -150,7 +150,7 @@ void CoolKeyCertAttributeCoder::decode(Tokend::TokenContext *tokenContext,
             else
                 type = CSSM_CERT_UNKNOWN;
 
-            Syslog::notice("kSecCertTypeItemAttr final type %lu",type);
+            //Syslog::notice("kSecCertTypeItemAttr final type %lu",type);
             record.attributeAtIndex(metaAttribute.attributeIndex(),new Attribute((uint32)type));
         break;
 
@@ -165,7 +165,7 @@ void CoolKeyCertAttributeCoder::decode(Tokend::TokenContext *tokenContext,
         case kSecLabelItemAttr:
             cert->getLabel(tData,&dataLen);
 
-            Syslog::notice("kSecLabelItemAttr retrieved data %p datalen %lu",tData,dataLen);
+            //Syslog::notice("kSecLabelItemAttr retrieved data %p datalen %lu",tData,dataLen);
 
             record.attributeAtIndex(metaAttribute.attributeIndex(), new Attribute((const void *)tData,dataLen));
      break;
@@ -194,7 +194,7 @@ void CoolKeyCertAttributeCoder::getCertAttributeFromData(CoolKeyCertObject *aCer
 
     *aDataLen = 0;
 
-    Syslog::notice("CoolKeyCertAttributeCoder::getCertAttributeFromData");
+    //Syslog::notice("CoolKeyCertAttributeCoder::getCertAttributeFromData");
 
      aCert->getData(certData,&certDataLen);
 
@@ -209,7 +209,7 @@ void CoolKeyCertAttributeCoder::getCertAttributeFromData(CoolKeyCertObject *aCer
      if(status)
          return;
 
-     Syslog::notice("CoolKeyCertAttributeCoder::getCertAttributeFromData done created cert");
+     //Syslog::notice("CoolKeyCertAttributeCoder::getCertAttributeFromData done created cert");
      SecKeychainAttribute ska = { kSecPublicKeyHashItemAttr };
 
      SecKeychainItemRef tRef = (SecKeychainItemRef) theCertificate;
@@ -217,7 +217,7 @@ void CoolKeyCertAttributeCoder::getCertAttributeFromData(CoolKeyCertObject *aCer
      status = SecKeychainItemCopyContent(tRef, NULL, &skal,
                 NULL, NULL);
 
-     Syslog::notice("CoolKeyCertAttributeCoder::getCertAttributeFromData done got attribute");
+     //Syslog::notice("CoolKeyCertAttributeCoder::getCertAttributeFromData done got attribute");
 
      if(!status)
          return;
@@ -260,7 +260,7 @@ void CoolKeyKeyAttributeCoder::decode(Tokend::TokenContext *tokenContext,
 
     CK_BYTE  attrib = 0;
 
-    Syslog::notice("CoolKeyKeyAttributeCoder::decode coder %p id %d format %d record %p",this,id,format,&record);
+    //Syslog::notice("CoolKeyKeyAttributeCoder::decode coder %p id %d format %d record %p",this,id,format,&record);
     switch(id)
     {
          case  kSecKeyKeyClass:
@@ -269,7 +269,7 @@ void CoolKeyKeyAttributeCoder::decode(Tokend::TokenContext *tokenContext,
 
          case  kSecKeyPrintName: 
 
-            Syslog::notice("kSecKeyPrintName");
+            //Syslog::notice("kSecKeyPrintName");
 
             key->getLabel(tData,&dataLen);
 
@@ -285,12 +285,12 @@ void CoolKeyKeyAttributeCoder::decode(Tokend::TokenContext *tokenContext,
          break;
 
          case kSecKeyPrivate:
-             Syslog::notice("kSecKeyKeyPrivate");
+             //Syslog::notice("kSecKeyKeyPrivate");
              record.attributeAtIndex(metaAttribute.attributeIndex(), new Attribute((uint32)1));
          break;
 
          case  kSecKeyModifiable:
-             Syslog::notice("kSecKeyKeyModifiable");
+             //Syslog::notice("kSecKeyKeyModifiable");
              record.attributeAtIndex(metaAttribute.attributeIndex(), new Attribute((uint32)0));
          break;
 
@@ -303,22 +303,22 @@ void CoolKeyKeyAttributeCoder::decode(Tokend::TokenContext *tokenContext,
          break;
 
          case  kSecKeyKeyType:
-             Syslog::notice("kSecKeyType");
+             //Syslog::notice("kSecKeyType");
              record.attributeAtIndex(metaAttribute.attributeIndex(), new Attribute((uint32)CSSM_ALGID_RSA));
          break;
             
          case  kSecKeyKeySizeInBits:
-             Syslog::notice("kSecKeyKeySizeInBits");
+             //Syslog::notice("kSecKeyKeySizeInBits");
 
              value = key->getKeySize();
 
              record.attributeAtIndex(metaAttribute.attributeIndex(), new Attribute((uint32)value));
 
-             Syslog::notice("kSecKeyKeySizeInBits %d",value);
+             //Syslog::notice("kSecKeyKeySizeInBits %d",value);
          break;
 
          case  kSecKeyEffectiveKeySize:
-            Syslog::notice("kSecKeyEffectiveKeySize");
+            //Syslog::notice("kSecKeyEffectiveKeySize");
  
              value =  key->getKeySize();;
  
@@ -338,7 +338,7 @@ void CoolKeyKeyAttributeCoder::decode(Tokend::TokenContext *tokenContext,
          case  kSecKeySensitive:
              attrib = key->getSensitive();
 
-             Syslog::notice("kSecKeySensitive %d",attrib);
+             //Syslog::notice("kSecKeySensitive %d",attrib);
 
              record.attributeAtIndex(metaAttribute.attributeIndex(), new Attribute((uint32)attrib));
          break;
@@ -346,13 +346,13 @@ void CoolKeyKeyAttributeCoder::decode(Tokend::TokenContext *tokenContext,
          case  kSecKeyAlwaysSensitive:
              attrib = key->getAlwaysSensitive();
 
-             Syslog::notice("kSecKeyAlwaysSensitive %d", attrib);
+             //Syslog::notice("kSecKeyAlwaysSensitive %d", attrib);
 
              record.attributeAtIndex(metaAttribute.attributeIndex(), new Attribute((uint32)attrib));
          break;
 
          case  kSecKeyExtractable:
-             Syslog::notice("kSecKeyExtractable");
+             //Syslog::notice("kSecKeyExtractable");
 
              attrib = key->getKeyExtractable();
 
@@ -360,7 +360,7 @@ void CoolKeyKeyAttributeCoder::decode(Tokend::TokenContext *tokenContext,
          break;
 
          case kSecKeyNeverExtractable:
-             Syslog::notice("kSecKeyNeverExtractable");
+             //Syslog::notice("kSecKeyNeverExtractable");
 
              attrib = key->getKeyNeverExtractable();
 
@@ -368,11 +368,11 @@ void CoolKeyKeyAttributeCoder::decode(Tokend::TokenContext *tokenContext,
          break;
 
          case  kSecKeyEncrypt:
-             Syslog::notice("kSecKeyKeyEncrypt");
+             //Syslog::notice("kSecKeyKeyEncrypt");
 
              attrib = key->getKeyEncrypt();
 
-             Syslog::notice("kSecKeyEncrypt value %d",attrib);
+             //Syslog::notice("kSecKeyEncrypt value %d",attrib);
 
              record.attributeAtIndex(metaAttribute.attributeIndex(), new Attribute((uint32)attrib));
          break;
@@ -380,7 +380,7 @@ void CoolKeyKeyAttributeCoder::decode(Tokend::TokenContext *tokenContext,
          case  kSecKeyDecrypt:
              attrib = key->getKeyDecrypt();
 
-             Syslog::notice("kSecKeyDecrypt value %d",attrib);
+             //Syslog::notice("kSecKeyDecrypt value %d",attrib);
 
              record.attributeAtIndex(metaAttribute.attributeIndex(), new Attribute((uint32)attrib));
          break;
@@ -388,7 +388,7 @@ void CoolKeyKeyAttributeCoder::decode(Tokend::TokenContext *tokenContext,
          case  kSecKeyDerive:
              attrib = key->getKeyDerive();
 
-             Syslog::notice("kSecKeyKeyDerive %d", attrib);
+             //Syslog::notice("kSecKeyKeyDerive %d", attrib);
 
              record.attributeAtIndex(metaAttribute.attributeIndex(), new Attribute((uint32)attrib));
          break;
@@ -396,7 +396,7 @@ void CoolKeyKeyAttributeCoder::decode(Tokend::TokenContext *tokenContext,
          case kSecKeySign:
              attrib = key->getKeySign();
 
-             Syslog::notice("kSecKeyKeySign value %d",attrib);
+             //Syslog::notice("kSecKeyKeySign value %d",attrib);
 
              record.attributeAtIndex(metaAttribute.attributeIndex(), new Attribute((uint32)attrib));
          break;
@@ -404,7 +404,7 @@ void CoolKeyKeyAttributeCoder::decode(Tokend::TokenContext *tokenContext,
          case kSecKeyVerify:
              attrib = key->getKeyVerify();
 
-             Syslog::notice("kSecKeyKeyVerify value %d",attrib);
+             //Syslog::notice("kSecKeyKeyVerify value %d",attrib);
 
              record.attributeAtIndex(metaAttribute.attributeIndex(), new Attribute((uint32)attrib));
          break;
@@ -412,7 +412,7 @@ void CoolKeyKeyAttributeCoder::decode(Tokend::TokenContext *tokenContext,
          case  kSecKeySignRecover:
              attrib = key->getKeySignRecover();
 
-             Syslog::notice("kSecKeyKeySignRecover %d", attrib);
+             //Syslog::notice("kSecKeyKeySignRecover %d", attrib);
 
              record.attributeAtIndex(metaAttribute.attributeIndex(), new Attribute((uint32)attrib));
          break;
@@ -420,7 +420,7 @@ void CoolKeyKeyAttributeCoder::decode(Tokend::TokenContext *tokenContext,
          case  kSecKeyVerifyRecover:
              attrib = key->getKeyVerifyRecover();
 
-             Syslog::notice("kSecKeyKeyVerifyRecover %d", attrib);
+             //Syslog::notice("kSecKeyKeyVerifyRecover %d", attrib);
 
              record.attributeAtIndex(metaAttribute.attributeIndex(), new Attribute((uint32)attrib));
          break;
@@ -428,7 +428,7 @@ void CoolKeyKeyAttributeCoder::decode(Tokend::TokenContext *tokenContext,
          case  kSecKeyWrap:
              attrib = key->getKeyWrap();
 
-             Syslog::notice("kSecKeyKeyWrap %d", attrib);
+             //Syslog::notice("kSecKeyKeyWrap %d", attrib);
 
              record.attributeAtIndex(metaAttribute.attributeIndex(), new Attribute((uint32)attrib));
          break;
@@ -436,13 +436,13 @@ void CoolKeyKeyAttributeCoder::decode(Tokend::TokenContext *tokenContext,
          case  kSecKeyUnwrap:
              attrib = key->getKeyUnwrap();
 
-             Syslog::notice("kSecKeyKeyUnwrap %d", attrib);
+             //Syslog::notice("kSecKeyKeyUnwrap %d", attrib);
 
              record.attributeAtIndex(metaAttribute.attributeIndex(), new Attribute((uint32)attrib));
          break;
 
          case kSecKeyLabel:
-             Syslog::notice("kSecKeyLabel");
+             //Syslog::notice("kSecKeyLabel");
 
              key->getLabel(tData,&dataLen);
 
