@@ -44,6 +44,7 @@ const  ISSUER_TAG        = "IssuerName";
 const  SERVICE_INFO_TAG  = "ServiceInfo";
 const  ENROLLED_TOKEN_BROWSER_URL = "EnrolledTokenBrowserURL";
 const  ENROLLED_TOKEN_URL = "EnrolledTokenURL";
+const  GET_CA_CHAIN_URL   = "CAChainUI";
 const  TOKEN_TYPE = "TokenType";
 const  RESET_PHONE_HOME  = "ResetPhoneHome";
 
@@ -4000,6 +4001,41 @@ function CheckForSecurityMode()
     return faceToFaceMode;
 }
 
+//Launch dialog to inport CA Chain
+function launchGetCAChain(keyID)
+{
+    var caChainURL = GetCachedCAChainUI(keyID);
+    var wind = null;
+
+    if(caChainURL)
+    {
+        wind = window.openDialog("chrome://esc/content/getcachain.xul",keyID,"chrome,centerscreen,resizable,modal=yes",keyID);
+
+    }
+
+}
+
+function processGetCAChain()
+{
+
+    var caChainURL = null;     
+    var ui_id = document.getElementById("getcachain-ui");
+
+    var keyID = window.arguments[0];
+
+    if(keyID) 
+    {
+        caChainURL = GetCachedCAChainUI(keyID);
+    }
+
+    if(ui_id && caChainURL)
+    {
+        ui_id.setAttribute("src",caChainURL);
+        ui_id.setAttribute("hidden","false");
+    }
+
+}
+
 //Launch Phone Home bootstrap dialog as last resort
 function launchCONFIG(keyType,keyID)
 {
@@ -4213,6 +4249,7 @@ function IsPhoneHomeCached(aKeyID)
     var phoneHomeIssuer = null;
     var tpsURL = null;
     var tpsUI = null;
+    var caChainUI = null;
 
     phoneHomeUrl = GetCachedPhoneHomeURL(aKeyID);
 
@@ -4239,6 +4276,20 @@ function IsPhoneHomeCached(aKeyID)
     }
 
     tpsUI = GetCachedTPSUI(aKeyID);
+
+    if(!tpsUI)
+    {
+       CoolKeyLogMsg(PR_LOG_ALWAYS,"IsPhoneHomeCached keyID:  " + aKeyID + " IsCached: false " );
+       return false;
+    }
+
+    caChainUI = GetCachedCAChainUI(aKeyID);
+
+    if(!caChainUI)
+    {
+       CoolKeyLogMsg(PR_LOG_ALWAYS,"IsPhoneHomeCached keyID:  " + aKeyID + " IsCached: false ");
+       return false;
+    }
 
     CoolKeyLogMsg(PR_LOG_ALWAYS,"IsPhoneHomeCached keyID:  " + aKeyID + " IsCached: true " );
     return true;
@@ -4274,7 +4325,10 @@ function GetCachedEnrolledTokenBrowserURL(aKeyID)
 {
      return GetCachedPhoneHomeValue(aKeyID,ENROLLED_TOKEN_BROWSER_URL);
 }
-
+function GetCachedCAChainUI(aKeyID)
+{
+     return GetCachedPhoneHomeValue(aKeyID,GET_CA_CHAIN_URL);
+}
 function GetCachedPhoneHomeURL(aKeyID)
 {
      var url = null;
@@ -4466,6 +4520,7 @@ function phoneHome(theUrl,aKeyID,resultCB)
             var servicesNodes = services[0].childNodes;
             var len = servicesNodes.length;
 
+            var caChainUIFound = false;
             for (var i = 0; i < len; i++)
             {
                 var oChild = servicesNodes.item(i);
@@ -4484,6 +4539,10 @@ function phoneHome(theUrl,aKeyID,resultCB)
                 if(name && value)
                 {
                     var cValue = ConfigValueWithKeyID(aKeyID,name);
+                    if(name == "CAChainUI")
+                    {
+                        caChainUIFound = true;
+                    }
 
                     if(cValue)
                     {
@@ -4505,6 +4564,12 @@ function phoneHome(theUrl,aKeyID,resultCB)
                 DoCoolKeySetConfigValue(ESC_TOKEN_BROWSER_URL_ESTABLISHED,"yes");
                 DoHandleEnrolledBrowserLaunch();
 
+            }
+
+            var caChainURL = GetCachedPhoneHomeURL(aKeyID);
+            if(caChainURL && caChainUIFound == true)
+            {
+                launchGetCAChain(aKeyID);
             }
 
             if(resultCB)

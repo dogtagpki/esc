@@ -38,6 +38,10 @@ pref("esc.windows.do.capi","yes");
 
 #pref("esc.security.url","https://dhcp-170.sjc.redhat.com:7889/cgi-bin/sow/welcome.cgi");
 
+#Uncomment only for security officer mode.
+
+#pref("esc.disable.password.prompt","no"); 
+
 #Hide the format button or not.
 
 pref("esc.hide.format","no");
@@ -46,4 +50,4 @@ pref("esc.hide.format","no");
 #Use this if you absolutely want a global phone home url for all tokens
 #Not recommended!
 
-#pref("esc.global.phone.home.url","http:/test.host.com:7888/cgi-bin/home/index.cgi");
+#pref("esc.global.phone.home.url","http://test.host.com:7888/cgi-bin/home/index.cgi");

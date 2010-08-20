@@ -22,6 +22,7 @@
 <!ENTITY smartCardU "Smart Card">
 <!ENTITY escTitle "Smart Card Manager">
 <!ENTITY configTitle "Phone Home Configuration Information">
+<!ENTITY caChainTitle "Import and Trust CA Certificate">
 <!ENTITY certInfoTitle "ESC Key Info">
 <!ENTITY advancedInfoTitle "Diagnostics Information">
 <!ENTITY genericAuthTitle "Authentication">
@@ -80,10 +81,11 @@
 <!ENTITY getESCPassword "Password">
 <!ENTITY escOK "OK">
 <!ENTITY escCancel "Cancel">
+<!ENTITY caChainDesc "You have been asked to import and trust the CA certificate chain on behalf of TPS. Press OK to continue.">
 <!ENTITY tpsConfigDesc "You have inserted a smart card that the Smart Card Manager recognizes, but needs to be formatted.">
 <!ENTITY tpsConfigDesc1 "Before you can use this smart card, you need to do two things.  First, you need to specify the location (URL) of the smart card server in the text box below.  The Smart Card Manager will insert this location onto the smart card.">
 <!ENTITY tpsConfigDesc2 "Second, you must format it from the main Smart Card Manager window."> 
-<!ENTITY tpsConfigDesc3 "Enter the location of the smart card server (such as https://smartcardserver.example.com:7888)">
+<!ENTITY tpsConfigDesc3 "Enter the location of the smart card server (such as https://smartcardserver.example.com:7888/cgi-bin/home/index.cgi)">
 <!ENTITY diagnosticsMessage "The information below is diagnostic information that your system generates as you use your smart card. If you are having smart card problems, you may be asked by your support engineer to send this information for analysis.">
 <!ENTITY macmenu.hide "Hide ESC">
 <!ENTITY macmenu.services "Services">

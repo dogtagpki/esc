@@ -4,14 +4,14 @@
 [Setup]
 AppName=Smart Card Manager
 AppMutex=ESCMutex
-AppVerName=Smart Card Manager 1.1.0-8
+AppVerName=Smart Card Manager 1.1.0-12
 AppPublisher=Fedora
 CreateAppDir=true
 Compression=lzma
 SolidCompression=true
 MinVersion=0,5.0.2195
 ShowLanguageDialog=yes
-OutputBaseFilename=SmartCardManagerSetup-1.1.0-8.win32.i386
+OutputBaseFilename=SmartCardManagerSetup-1.1.0-12.win32.i386
 DefaultDirName={pf}\Fedora\ESC
 DisableProgramGroupPage=false
 DefaultGroupName=Fedora
@@ -24,7 +24,7 @@ LicenseFile=esc-license.txt
 InfoBeforeFile=info-before.txt
 InfoAfterFile=info-after.txt
 PrivilegesRequired=admin
-VersionInfoVersion=1.1.0.8
+VersionInfoVersion=1.1.0.12
 
 
 [Files]
@@ -494,6 +494,155 @@ Name: {app}\dictionaries
 Name: {app}\modules; Flags: uninsalwaysuninstall
 
 [Code]
+var
+	ConfigValues:	TArrayOfString;
+//Program to update the esc-prefs.js file if the program
+// is given optional arguments of the form:
+// /EscConfig=name=value, EX:
+// /EscConfig=esc.global.phone.home.url=http://test.host.com:7888/cgi-bin/home/index.cgi
+
+// Program either replaces an existing entry or add new entries to the end.
+// Commented values are ignored.
+
+// Read the esc-prefs.js into the program.
+function ReadEscConfigFile (FileName: String): Boolean;
+begin
+	Result := LoadStringsFromFile (FileName, ConfigValues);
+end;
+
+// Return TRUE if the pref already is in the file.
+function QueryEscConfigValue ( Name: String ;var  Index: LongInt): Boolean;
+var
+	I:		LongInt;
+	ValuePos: Integer;
+	CommentPos: Integer;
+begin
+
+	For I := 0 to GetArrayLength (ConfigValues) - 1 do
+	begin
+
+    ValuePos :=  Pos ( Name, ConfigValues[I]);
+    CommentPos := Pos('#',ConfigValues[I]);
+
+		if ((CommentPos = 0) and (ValuePos  <>  0 )) then
+		begin
+			Index := I;
+			Result := TRUE;
+			Exit;
+		end;
+	end;
+	Result := FALSE;
+end;
+
+//Write out the value to the config file.
+// If the value exists replace it.
+// If the value does not exist, add it to the end of the file.
+function WriteEscConfigValue (ValueName: String; Value: String): Boolean;
+var
+	Index:		LongInt;
+	Length:		LongInt;
+	S:		    String;
+	Found:    Boolean;
+begin
+   Length := GetArrayLength(ConfigValues);
+   S := 'pref("' + Valuename + '","' + Value + '");' ;
+   //MsgBox(' In WriteEscConfigValue ' + S,mbConfirmation, MB_OK);
+   Found := QueryEscConfigValue (ValueName , Index);
+   if( Found = TRUE) then
+	 begin
+	   ConfigValues [Index] :=  S;
+	   Result := TRUE;
+	   Exit;
+	 end;
+	 SetArrayLength (ConfigValues, Length + 1);
+	 ConfigValues [Length] := S;
+	 Result := TRUE;
+end;
+
+//Write the new esc-prefs config file with any new changes.
+function WriteEscConfigFile (FileName: String): Boolean;
+var
+	ret:	Boolean;
+begin
+	
+	ret := FileCopy (FileName,
+		ExpandConstant ('{tmp}\' + ExtractFileName (FileName)),
+		FALSE);
+		
+	if (ret) then
+	begin
+		ret := SaveStringsToFile (FileName, ConfigValues, FALSE);
+		if (ret) then
+		begin
+			Result := TRUE;
+			Exit;
+		end else
+		begin
+			ret := FileCopy (
+		     ExpandConstant ('{tmp}\' + ExtractFileName (FileName)), FileName,
+		  FALSE);
+		end;
+	end;
+	Result := FALSE;
+end;
+
+//Inno install callback, only do out stuff
+// at the end of the installation procedure to process
+// the esc-prefs.js file.
+
+procedure CurStepChanged (CurStep: TSetupStep);
+var
+	
+  NumParams: Integer;
+  i: Integer;
+  ConfigPos: Integer;
+  ConfigStr: String;
+  ConfigSuccess: Boolean;
+  ConfigNeeded: Boolean;
+  ConfigName:  String;
+  ConfigValue: String;
+begin
+  ConfigNeeded  := FALSE;
+  ConfigSuccess := TRUE;
+	if (CurStep = ssPostInstall) then
+	begin
+	   ConfigSuccess := ReadEscConfigFile (ExpandConstant('{app}\defaults\preferences\esc-prefs.js'));
+	   if ConfigSuccess <> TRUE then
+	   begin
+	      Exit;
+	   end;
+	  NumParams := ParamCount;
+	  for i := 0 to NumParams  do
+	  begin
+	     ConfigPos := Pos('EscConfig=',ParamStr(i));
+	
+	     if( ConfigPos > 0) then
+	     begin
+	       ConfigStr := Copy(ParamStr(i),ConfigPos + 10, Length(ParamStr(i)));
+	       ConfigPos := Pos('=',ConfigStr);
+	       if ConfigPos > 0 then
+	       begin
+	          ConfigName := Copy(ConfigStr, 0, ConfigPos -1);
+	          ConfigValue := Copy(ConfigStr, ConfigPos + 1, Length(ConfigStr));
+	          if ( (Length(ConfigName) > 0) and (Length(ConfigValue) > 0 ) ) then
+	          begin
+	             ConfigNeeded := TRUE;
+	             ConfigSuccess :=  WriteEscConfigValue(ConfigName, ConfigValue);
+	          end
+            else
+            begin
+	             ConfigSuccess := FALSE;
+	          end;
+	       end;
+	     end;
+	  end;
+		
+		if ConfigNeeded and ConfigSuccess then
+		begin
+		   WriteEscConfigFile (ExpandConstant('{app}\defaults\preferences\esc-prefs.js'));
+		end;
+	end;
+end;
 
 function GetEscStatusMsg(Param: String) :string;
 var MyMillis: LongInt;
