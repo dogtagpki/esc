@@ -1596,7 +1596,7 @@ void CoolKeyHandler::HttpProcessEndOp(CoolKeyHandler* context, eCKMessage_END_OP
 
     context->mReceivedEndOp = true;
 
-    if ((operation == (int) eCKMessage_BEGIN_OP::ENROLL || operation == (int) eCKMessage_BEGIN_OP::UPDATE) && (result == 0)) {
+    if ((operation == (int) eCKMessage_BEGIN_OP::ENROLL || operation == (int) eCKMessage_BEGIN_OP::UPDATE)) {
     // Reset the card.
         CKYCardConnection_Reset(context->mCardConnection);
     
