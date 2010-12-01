@@ -24,8 +24,6 @@
 
 ### INNO_PATH  -  Path name of Inno installer executable
 
-### CSP_PATH   -  Path to the directory containing the CSP if desired
-
 ### USE_64     -  Are we trying to build the 64 bit version 
 
 NUM_ARGS=0
@@ -35,20 +33,19 @@ ARG_COMMAND=
 # NSS values
 # NSS needed just to help coolkey build
 
-NSS_NAME=nss-3.11.4
-NSS_ARCHIVE=$NSS_NAME-with-nspr-4.6.4
-NSS_SOURCE_URL=https://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/NSS_3_11_4_RTM/src/$NSS_ARCHIVE.tar.gz
+NSS_NAME=nss-3.12.5
+NSPR_NAME=nspr-4.8.2
+NSS_PATH_NAME=NSS_3_12_5_RTM
+NSS_ARCHIVE=$NSS_NAME-with-$NSPR_NAME
+NSS_SOURCE_URL=https://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/$NSS_PATH_NAME/src/$NSS_ARCHIVE.tar.gz
 
+NSS_NAME=$NSS_ARCHIVE
 NSS_LIB_PATH=$NSS_NAME/mozilla/dist/WIN*/lib
 
 #Inno installer values
 
 #INNO_PATH="C:/Program Files/Inno Setup 5/ISCC.exe"
 
-#Egate driver values
-
-EGATE_DRIVER_URL=http://www.it-secure.com/Downloads
-EGATE_DRIVER_NAME=e-gate_W2k_XP_24.zip
 
 #Zlib values
 
@@ -58,7 +55,7 @@ ZLIB_DLL=zlib1
 
 ZLIB_DLL_64=zlibwapi
 ZLIB_ARCHIVE=zlib123-dll
-ZLIB_BIN_URL=http://www.zlib.net
+ZLIB_BIN_URL=http://sourceforge.net/projects/libpng/files/zlib/1.2.3
 
 ZLIB_ARCHIVE_64=zlib123dllx64
 ZLIB_BIN_URL_64=http://winimage.com/zLibDll
@@ -68,24 +65,49 @@ ZLIB_BIN_URL_64=http://winimage.com/zLibDll
 COOLKEY_NAME=coolkey
 COOLKEY_TAG=HEAD
 
+PKI_PATH=http://pki.fedoraproject.org/pki
+CSP_PATH=support/esc/windows/csp/32/latest
+CSP_DIR=CLKCSP
+CSP_ARCHIVE=CLKCSP.zip
+
+if [ X$USE_64 == X1 ];
+then
+CSP_PATH=support/esc/windows/csp/64/latest
+fi
+
+
 #Fedora repo for CoolKey and ESC
 
-FEDORA_CVS_ROOT=:pserver:anonymous@cvs.fedora.redhat.com:/cvs/dirsec
+FEDORA_CVS_ROOT=:pserver:anonymous@cvs.fedoraproject.org:/cvs/dirsec
 
 #Xulrunner values
 
 
-XULRUNNER_ARCHIVE_NAME=xulrunner-1.8.0.4-source.tar.bz2
-XULRUNNER_SRC_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/1.8.0.4/source/$XULRUNNER_ARCHIVE_NAME
+#Xulrunner SDK
+MOZILLA_FTP_PATH=ftp://ftp.mozilla.org/pub/mozilla.org
+XULRUNNER_SDK_PATH=xulrunner/releases/1.9.0.17/sdk/
+XULRUNNER_SDK_ARCHIVE=xulrunner-1.9.0.17.en-US.win32.sdk.zip
+
+XUL_SDK_DIR=xulrunner-sdk
+
+#Xlrunner runtime
+
+XULRUNNER_DIR=xulrunner
+XULRUNNER_FTP_PATH=http://releases.mozilla.org/pub/mozilla.org/
+XULRUNNER_PATH=xulrunner/releases/1.9.2.12/runtimes/
+
+XULRUNNER_ARCHIVE=xulrunner-1.9.2.12.en-US.win32.zip
+
 
 #Base Dirctory calc
 
 BASE_DIR=${PWD}
 
+
 #ESC values
 
 ESC_NAME=esc
-ESC_VERSION_NO=1.1.0-8
+ESC_VERSION_NO=1.1.0-12
 
 
 #Cygwin values
@@ -104,13 +126,14 @@ CORE_OBJ_DIR=`uname``uname -r`_OPT.OBJ
 
 export PATH=${ORIG_PATH}
 
+GECKO_SDK_PATH=${BASE_DIR}/${XUL_SDK_DIR}
 
 
 function buildNSS  {
 
     echo "BUILDING NSS..."
 
-    if [ $NUM_ARGS -ne 0 ] && [ $THE_ARG != -doNSS ] || [ $USE_64 == 1 ];
+    if [ $NUM_ARGS -ne 0 ] && [ $THE_ARG != -doNSS ] || [ X$USE_64 == X1 ];
     then
         echo "Do not build NSS." 
         return 0
@@ -131,13 +154,13 @@ function buildNSS  {
        return 1
 
     fi
-
     tar -xzvf $NSS_ARCHIVE.tar.gz
+    fi
+
     if [ $? != 0 ];
     then
         echo "Can't untar NSS."
         return 1
-    fi
     fi
 
     cd $NSS_NAME/mozilla/security/nss
@@ -148,8 +171,6 @@ function buildNSS  {
         return 1
         
     fi
-
-    return 0
 
 }
 
@@ -189,7 +210,7 @@ function buildCOOLKEY {
    ZLIB_LIB_PATH=${BASE_DIR}/zlib/lib
 
 
-   if [ $USE_64 == 1 ];
+   if [ X$USE_64 == X1 ];
    then
      ZLIB_LIB_PATH=${BASE_DIR}/zlib/dll_x64
      ZLIB_LIB_FLAGS=${BASE_DIR}/zlib/dll_x64/$ZLIB_DLL_64.dll
@@ -212,7 +233,7 @@ function buildCOOLKEY {
    export ZLIB_LIB=$ZLIB_LIB_PATH
    export ZLIB_INCLUDE=$ZLIB_INC_PATH
 
-   if [ $USE_64 == 1 ];
+   if [ X$USE_64 == X1 ];
    then
        PK11=
    else
@@ -245,7 +266,7 @@ function buildCOOLKEY {
    cp -f coolkey/src/coolkey/.libs/libcoolkeypk11.dll BUILD/coolkeypk11.dll
    cp -f coolkey/src/libckyapplet/.libs/libckyapplet-1.dll BUILD
 
-   if [ $USE_64 == 1 ];
+   if [ X$USE_64 == X1 ];
    then
       cp -f zlib/dll_x64/zlibwapi.dll BUILD
    else
@@ -255,13 +276,75 @@ function buildCOOLKEY {
 
    # Grab pk11install
 
-   if [ $USE_64 != 1 ];
+   if [ X$USE_64 != X1 ];
    then
       cp -f coolkey/src/install/pk11install.exe BUILD
    fi
 
    export PATH=${ORIG_PATH}
    return 0
+}
+
+function obtainXULSDK {
+
+  if [ -d ${XUL_SDK_DIR} ];
+  then
+      echo "XUL SDK already obtained."
+      return 0
+  fi
+
+
+  wget ${MOZILLA_FTP_PATH}/${XULRUNNER_SDK_PATH}/${XULRUNNER_SDK_ARCHIVE}
+
+  if [ $? != 0 ];
+  then
+     echo "Can't download the XUL SDK."
+     return 1
+  fi
+
+  unzip ${XULRUNNER_SDK_ARCHIVE}
+
+  if [ $? != 0 ];
+  then
+     echo "Can't unzip XUL SDK."
+     return 1
+  fi
+
+  chmod -R 755  ${XUL_SDK_DIR}/bin/*.exe
+  chmod -R 755  ${XUL_SDK_DIR}/bin/*.dll
+
+
+  rm -f ${XULRUNNER_SDK_ARCHIVE}
+
+
+  if [ -d ${XULRUNNER_DIR} ];
+  then
+      echo "XULRUNNER already obtained."
+  fi
+
+  wget ${XULRUNNER_FTP_PATH}/${XULRUNNER_PATH}/${XULRUNNER_ARCHIVE}
+
+  if [ $? != 0 ];
+  then
+      echo "Can't download Xulrunner Runtime."
+      return 1
+  fi
+
+  unzip ${XULRUNNER_ARCHIVE}
+
+  if [ $? != 0 ];
+  then
+      echo "Can't unzip Xulrunner Runtime."
+      return 1
+  fi
+
+  rm -f ${XULRUNNER_ARCHIVE}
+
+  chmod -R 755  ${XULRUNNER_DIR}/*.exe
+  chmod -R 755  ${XULRUNNER_DIR}/*.dll 
+
+  return 0
+
 }
 
 function obtainZLIB {
@@ -280,7 +363,7 @@ function obtainZLIB {
 
   cd $ZLIB_NAME
 
-  if [  $USE_64 == 1 ]
+  if [  X$USE_64 == X1 ]
   then
    wget $ZLIB_BIN_URL_64/$ZLIB_ARCHIVE_64.zip
 
@@ -328,27 +411,17 @@ function buildESC {
    echo "BUILDING ESC"
    cd $BASE_DIR
 
-   if [ $NUM_ARGS -ne 0 ] && [ $THE_ARG != -doEsc ] || [ $USE_64 == 1 ];
+   if [ $NUM_ARGS -ne 0 ] && [ $THE_ARG != -doEsc ] || [ X$USE_64 == X1 ];
    then
        echo "Do not build ESC."
        return 0
    fi
 
-   if [ -d esc ];
-   then
-       echo "ESC already checked out.." 
-   else 
-       cvs  -d $FEDORA_CVS_ROOT co esc 
-   fi
+   export GECKO_SDK_PATH=`cygpath -m $GECKO_SDK_PATH`
 
-   if [ $? != 0 ];
-   then
-      echo "Can't check out ESC..."
-      return 1
+   echo "GECKO_SDK_PATH ${GECKO_SDK_PATH}"
 
-   fi
-
-   cd $ESC_NAME
+   cd ../ 
 
    mkdir -p dist/src
 
@@ -381,21 +454,11 @@ function buildESC {
    make BUILD_OPT=1 install
    cd ../../..
 
-   cp dist/WIN*/coolkey_drivers/egate/eginstall.exe ../BUILD/egate
-
-   if [ $? != 0 ];
-   then
-       echo "Can't copy egate installer!"
-       return 1
-    fi
- 
-   
 
    # hoist the build into the installer staging area
 
-   cd ..
 
-   cp -rf esc/dist/WIN*/esc_build/ESC BUILD
+   cp -rf dist/WIN*/esc_build/ESC win32/BUILD
 
    if [ $? != 0 ];
    then
@@ -405,7 +468,6 @@ function buildESC {
 
    return 0
 
-
 }
 
 function obtainCAPI {
@@ -414,44 +476,39 @@ function obtainCAPI {
 
    echo "OBTAINING the CAPI driver... CSP_PATH $CSP_PATH"
 
-
-   if [  -z $CSP_PATH ];
+   if [ -d ${CSP_DIR} ];
    then
-       echo "No CSP path specified."
-       echo "Set environ var: CSP_PATH if desired . "
-       return 0
-   fi 
-
-   cp $CSP_PATH/* BUILD
-
-   return 0
-}
-
-function obtainEGATE {
-
-   echo "OBTAINING EGINSTALL"
-
-   cd $BASE_DIR
-
-
-   if [ -d BUILD/egate ];
-   then
-      echo "Egate already obtained!"
+      echo "CSP already obtained."
       return 0
    fi
-   
 
-   wget $EGATE_DRIVER_URL/$EGATE_DRIVER_NAME
+   wget ${PKI_PATH}/${CSP_PATH}/${CSP_ARCHIVE}
+
    if [ $? != 0 ];
    then
-      echo "Can't obtain egate driver!"
+     echo "Can't download the CSP."
+     return 1
+   fi
+
+   unzip ${CSP_ARCHIVE}
+
+   rm -f ${CSP_ARCHIVE}
+
+   if [ $? != 0 ];
+   then
+      echo "Can't unzip the CSP."
       return 1
    fi
-   mkdir -p BUILD/egate
-   unzip $EGATE_DRIVER_NAME -d BUILD/egate
+
+   cp $CSP_DIR/* BUILD
+
+   if [ $? != 0 ];
+   then
+     echo "Unable to obtain CSP driver!"
+     return 1
+   fi
 
    return 0
-
 }
 
 function initializeBUILD {
@@ -514,9 +571,9 @@ function createINSTALLER {
     fi
 
 
-    #Move over extra files we don't keep in the open source world
+    #Move over extra files
 
-    if [ $USE_64 == 1 ];
+    if [ X$USE_64 == X1 ];
     then
        INNO_SCRIPT=coolkey-64.iss
     else
@@ -529,6 +586,8 @@ function createINSTALLER {
         cp $NSS_LIB_PATH/libplc4.dll BUILD
         cp $NSS_LIB_PATH/libnspr4.dll BUILD
         cp $NSS_LIB_PATH/libplds4.dll BUILD
+        cp $NSS_LIB_PATH/nssutil3.dll BUILD
+        cp $NSS_LIB_PATH/sqlite3.dll BUILD
 
         INNO_SCRIPT=setup.iss
     fi
@@ -590,17 +649,24 @@ echo "args   $NUM_ARGS"
 THE_ARG=$1
 
 
-
 processARGS
 
 
-
 initializeBUILD
+
 
 if [ $? != 0 ];
 then
     exit 1
 fi
+
+obtainXULSDK
+
+if [ $? != 0 ];
+then 
+    exit 1
+fi
+
 
 obtainCAPI
 
@@ -608,8 +674,6 @@ if [ $? != 0 ];
 then
     exit 1
 fi
-
-#obtainEGATE
 
 if [ $? != 0 ];
 then
@@ -620,7 +684,8 @@ buildNSS
 
 if [ $? != 0 ];
 then
-echo "Issue building NSS."
+    echo "Issue building NSS."
+    exit 1
 fi
 
 obtainZLIB
@@ -630,7 +695,7 @@ then
     exit 1
 fi
 
-#buildCOOLKEY
+buildCOOLKEY
 
 if [ $? != 0 ];
 then

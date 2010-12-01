@@ -47,7 +47,7 @@ HCRYPTPROV CoolKeyCSPKeyListener::GetCryptHandle()
     {
 
        CryptAcquireContext(&CoolKeyCSPKeyListener::mCryptProv, NULL, 
-           OPENKEY_PROV, PROV_RSA_FULL,NULL);
+           OPENKEY_PROV, PROV_RSA_FULL, CRYPT_SILENT);
 
     }
 
@@ -432,7 +432,7 @@ PropCerts( CoolKey *aKey)
     {
 
        if(CryptAcquireContext(&CoolKeyCSPKeyListener::mCryptProv, szContainer,
-    OPENKEY_PROV, PROV_RSA_FULL,0))
+    OPENKEY_PROV, PROV_RSA_FULL, CRYPT_SILENT))
        {
              PR_LOG( coolKeyCSPLog, PR_LOG_DEBUG, ("CoolKeyCSPListener::PropCerts: about to call PropCertsInContainer %s \n",szContainer)); 
             PropCertsInContainer(aKey->mKeyID, szContainer, hCertStore);
