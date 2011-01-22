@@ -295,7 +295,7 @@ function obtainXULSDK {
 
   if [ X$USE_64 == X1 ];
   then
-      echo "Don't get XUL SDK for 64 bits.
+      echo "Don't get XUL SDK for 64 bits."
       return 0
   fi
 
