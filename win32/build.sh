@@ -70,6 +70,12 @@ CSP_PATH=support/esc/windows/csp/32/latest
 CSP_DIR=CLKCSP
 CSP_ARCHIVE=CLKCSP.zip
 
+if [ X$ON_64 == X1 ];
+then
+export INNO_PATH="C:/Program Files (x86)/Inno Setup 5/ISCC.exe"
+fi
+
+
 if [ X$USE_64 == X1 ];
 then
 CSP_PATH=support/esc/windows/csp/64/latest
@@ -94,9 +100,9 @@ XUL_SDK_DIR=xulrunner-sdk
 
 XULRUNNER_DIR=xulrunner
 XULRUNNER_FTP_PATH=http://releases.mozilla.org/pub/mozilla.org/
-XULRUNNER_PATH=xulrunner/releases/1.9.2.12/runtimes/
+XULRUNNER_PATH=xulrunner/releases/1.9.2.13/runtimes/
 
-XULRUNNER_ARCHIVE=xulrunner-1.9.2.12.en-US.win32.zip
+XULRUNNER_ARCHIVE=xulrunner-1.9.2.13.en-US.win32.zip
 
 
 #Base Dirctory calc

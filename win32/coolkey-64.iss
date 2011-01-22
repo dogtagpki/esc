@@ -4,14 +4,14 @@
 [Setup]
 AppName=Coolkey
 AppId=Coolkey
-AppVerName=Coolkey 1.0.0-1
+AppVerName=Coolkey 1.0.0-2
 AppPublisher=Red Hat
 CreateAppDir=true
 Compression=lzma
 SolidCompression=true
 MinVersion=0,5.0.2195
 ShowLanguageDialog=yes
-OutputBaseFilename=CoolkeySetup-1.0.0-1.win64.x64
+OutputBaseFilename=CoolkeySetup-1.0.0-2.win64.x64
 DefaultDirName={pf}\Red Hat\Coolkey
 DisableProgramGroupPage=false
 DefaultGroupName=Red Hat
@@ -22,16 +22,19 @@ AllowNoIcons=yes
 LicenseFile=esc-license.txt
 InfoBeforeFile=coolkey-64-info-before.txt
 PrivilegesRequired=admin
-VersionInfoVersion=1.0.0.1
+VersionInfoVersion=1.0.0.2
 ArchitecturesAllowed=x64
 ArchitecturesInstallIn64BitMode=x64
 
 [Files]
-Source: BUILD\regcerts.exe; DestDir: {app}
+;Source: BUILD\regcerts.exe; DestDir: {app}
 Source: ..\src\app\xpcom\tray\esc.ico; DestDir: {app}
 Source: BUILD\clkcsp.dll; DestDir: {sys}; Flags: restartreplace
 Source: BUILD\cspres.dll; DestDir: {sys}; Flags: restartreplace
 Source: BUILD\clkcsp.sig; DestDir: {sys}
+Source: BUILD\coolkeypk11.dll; DestDir: {sys}; Flags: restartreplace
+Source: BUILD\zlibwapi.dll; DestDir: {sys}; Flags: restartreplace
+Source: BUILD\libckyapplet-1.dll; DestDir: {sys}; Flags: restartreplace
 Source: BUILD\vcredist_x64.exe; DestDir: "{tmp}"
 
 
