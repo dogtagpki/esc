@@ -100,9 +100,9 @@ XUL_SDK_DIR=xulrunner-sdk
 
 XULRUNNER_DIR=xulrunner
 XULRUNNER_FTP_PATH=http://releases.mozilla.org/pub/mozilla.org/
-XULRUNNER_PATH=xulrunner/releases/1.9.2.13/runtimes/
+XULRUNNER_PATH=xulrunner/releases/1.9.2.14/runtimes/
 
-XULRUNNER_ARCHIVE=xulrunner-1.9.2.13.en-US.win32.zip
+XULRUNNER_ARCHIVE=xulrunner-1.9.2.14.en-US.win32.zip
 
 
 #Base Dirctory calc
