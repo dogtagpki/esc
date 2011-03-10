@@ -128,7 +128,8 @@ MOZ_TOOLS_BIN_PATH=/cygdrive/c/moztools/bin:/cygdrive/d/moztools/bin
 
 export PATH=${MOZ_TOOLS_BIN_PATH}:${ORIG_PATH}
 
-CORE_OBJ_DIR=`uname``uname -r`_OPT.OBJ
+#CORE_OBJ_DIR=`uname``uname -r`_OPT.OBJ
+CORE_OBJ_DIR=WINNT5.2_OPT.OBJ
 
 export PATH=${ORIG_PATH}
 
