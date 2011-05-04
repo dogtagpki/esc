@@ -348,7 +348,7 @@ ifdef STRICT_CPLUSPLUS_SUFFIX
 	rm -f $(OBJDIR)/t_$*.cc
 else
 ifdef USE_NT_C_SYNTAX
-	$(CCC) -Fo$@ -c $(CFLAGS) $(call abspath,$<)
+	$(CCC) -Fo$@ -c $(CFLAGS) $<
 else
 ifdef NEED_ABSOLUTE_PATH
 	$(CCC) -o $@ -c $(CFLAGS) $(call abspath,$<)
