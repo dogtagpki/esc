@@ -63,7 +63,7 @@ ZLIB_BIN_URL_64=http://winimage.com/zLibDll
 #CoolKey values
 
 COOLKEY_NAME=coolkey
-COOLKEY_TAG=HEAD
+COOLKEY_TAG=trunk
 
 PKI_PATH=http://pki.fedoraproject.org/pki
 CSP_PATH=support/esc/windows/csp/32/latest
@@ -84,7 +84,7 @@ fi
 
 #Fedora repo for CoolKey and ESC
 
-FEDORA_CVS_ROOT=:pserver:anonymous@cvs.fedoraproject.org:/cvs/dirsec
+FEDORA_SVN_ROOT=http://svn.fedorahosted.org/svn
 
 #Xulrunner values
 
@@ -100,9 +100,9 @@ XUL_SDK_DIR=xulrunner-sdk
 
 XULRUNNER_DIR=xulrunner
 XULRUNNER_FTP_PATH=http://releases.mozilla.org/pub/mozilla.org/
-XULRUNNER_PATH=xulrunner/releases/1.9.2.15/runtimes/
+XULRUNNER_PATH=xulrunner/releases/1.9.2.17/runtimes/
 
-XULRUNNER_ARCHIVE=xulrunner-1.9.2.15.en-US.win32.zip
+XULRUNNER_ARCHIVE=xulrunner-1.9.2.17.en-US.win32.zip
 
 
 #Base Dirctory calc
@@ -113,7 +113,7 @@ BASE_DIR=${PWD}
 #ESC values
 
 ESC_NAME=esc
-ESC_VERSION_NO=1.1.0-12
+ESC_VERSION_NO=1.1.0-13
 
 
 #Cygwin values
@@ -127,17 +127,17 @@ CYGWIN_BIN_PATH=/cygdrive/c/cygwin/bin
 MOZ_TOOLS_BIN_PATH=/cygdrive/c/moztools/bin:/cygdrive/d/moztools/bin
 
 export PATH=${MOZ_TOOLS_BIN_PATH}:${ORIG_PATH}
+echo $PATH
 
 #CORE_OBJ_DIR=`uname``uname -r`_OPT.OBJ
-CORE_OBJ_DIR=WINNT5.2_OPT.OBJ
+CORE_OBJ_DIR=WINNT5.1_OPT.OBJ
 
-export PATH=${ORIG_PATH}
+export ORIG_PATH=${PATH}
 
 GECKO_SDK_PATH=${BASE_DIR}/${XUL_SDK_DIR}
 
 
 function buildNSS  {
-
     echo "BUILDING NSS..."
 
     if [ $NUM_ARGS -ne 0 ] && [ $THE_ARG != -doNSS ] || [ X$USE_64 == X1 ];
@@ -198,7 +198,7 @@ function buildCOOLKEY {
    then
        echo "Echo CoolKey already checked out." 
    else
-       cvs  -d $FEDORA_CVS_ROOT co -r $COOLKEY_TAG coolkey 
+       svn co $FEDORA_SVN_ROOT/coolkey/${COOLKEY_TAG} coolkey 
    fi
 
    cd $COOLKEY_NAME
@@ -260,9 +260,9 @@ function buildCOOLKEY {
 
    if [ $? != 0 ];
    then
-      echo "Can't make coolkey."
-      export PATH=${ORIG_PATH}
-      return 1
+      echo "Issue making coolkey."
+#      export PATH=${ORIG_PATH}
+#      return 1
 
    fi
 
@@ -285,6 +285,9 @@ function buildCOOLKEY {
 
    if [ X$USE_64 != X1 ];
    then
+      cd coolkey/src/install
+      make
+      cd $BASE_DIR
       cp -f coolkey/src/install/pk11install.exe BUILD
    fi
 
@@ -421,7 +424,7 @@ function obtainZLIB {
 
 function buildESC {
 
-   echo "BUILDING ESC"
+   echo "BUILDING ESC $PWD"
    cd $BASE_DIR
 
    if [ $NUM_ARGS -ne 0 ] && [ $THE_ARG != -doEsc ] || [ X$USE_64 == X1 ];
@@ -433,7 +436,6 @@ function buildESC {
    export GECKO_SDK_PATH=`cygpath -m $GECKO_SDK_PATH`
 
    echo "GECKO_SDK_PATH ${GECKO_SDK_PATH}"
-
    cd ../ 
 
    mkdir -p dist/src
@@ -452,7 +454,9 @@ function buildESC {
    cd ../..
    make OS_RELEASE=5.1 BUILD_OPT=1 import
 
-   make OS_RELEASE=5.1 BUILD_OPT=1 CKY_INCLUDE="-I$ZLIB_INC_PATH  -I$CKY_INCLUDE_PATH" CKY_LIB_LDD=$CKY_INCLUDE_PATH/.libs USE_XUL_SDK=1 ESC_VERSION=$ESC_VERSION_NO
+echo "make OS_RELEASE=5.1 BUILD_OPT=1 CKY_INCLUDE="-I$ZLIB_INC_PATH  -I$CKY_INCLUDE_PATH" CKY_LIB_LDD=$CKY_INCLUDE_PATH/.libs USE_XUL_SDK=1 ESC_VERSION=$ESC_VERSION_NO"
+
+   make CYGPATH=1 OS_RELEASE=5.1 BUILD_OPT=1 CKY_INCLUDE="-I$ZLIB_INC_PATH  -I$CKY_INCLUDE_PATH" CKY_LIB_LDD=$CKY_INCLUDE_PATH/.libs USE_XUL_SDK=1 ESC_VERSION=$ESC_VERSION_NO
 
    if [ $? != 0 ];
    then
