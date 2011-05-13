@@ -118,6 +118,7 @@ Source: BUILD\ESC\chrome\content\esc\initializecardx2.png; DestDir: {app}\chrome
 Source: BUILD\ESC\chrome\content\esc\MineOverlay.xul; DestDir: {app}\chrome\content\esc
 Source: BUILD\ESC\chrome\content\esc\password.js; DestDir: {app}\chrome\content\esc
 Source: BUILD\ESC\chrome\content\esc\certManager.xul; DestDir: {app}\chrome\content\esc
+Source: BUILD\ESC\chrome\content\esc\getcachain.xul; DestDir: {app}\chrome\content\esc
 Source: BUILD\ESC\defaults\preferences\esc-prefs.js; DestDir: {app}\defaults\preferences
 ; Xulrunner
 
