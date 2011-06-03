@@ -41,8 +41,15 @@ printf "\n \n"
 echo "Building ESC... for Mac.... "
 printf "\n"
 
-COOLKEY_PKG_NAME=SmartCardManager1.19.pkg
+COOLKEY_PKG_NAME=SmartCardManager1.20.pkg
 COOLKEY_VOL_NAME=SMARTCARDMANAGER
+
+
+SVN_BRANCH=trunk
+FEDORA_ESC_SVN_ROOT=http://svn.fedorahosted.org/svn/esc/${SVN_BRANCH}
+FEDORA_COOLKEY_SVN_ROOT=http://svn.fedorahosted.org/svn/coolkey/${SVN_BRANCH}
+
+
 COOLKEY_TAG=HEAD
 ESC_TAG=HEAD
 
@@ -114,7 +121,7 @@ function buildCOOLKEY {
     then
        echo "CoolKey checked out already."
     else
-       cvs   -d $FEDORA_CVS_ROOT co -r $COOLKEY_TAG coolkey
+       svn co $FEDORA_COOLKEY_SVN_ROOT coolkey
     fi
   
     if [ $? != 0 ];
@@ -194,7 +201,6 @@ function buildESC {
        return 0
     fi
 
-
     echo "Build ESC ... " 
 
     printf "\n"
@@ -205,7 +211,7 @@ function buildESC {
    then
       echo "ESC checked out already."
    else
-      cvs -d $FEDORA_CVS_ROOT co -r $ESC_TAG esc
+      svn co $FEDORA_ESC_SVN_ROOT esc
    fi
 
    if [ $? != 0 ];
